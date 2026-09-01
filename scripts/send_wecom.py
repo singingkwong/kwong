@@ -10,6 +10,7 @@ from datetime import datetime
 from pathlib import Path
 
 import requests
+from bs4 import BeautifulSoup
 
 ROOT = Path(__file__).resolve().parent.parent
 
@@ -53,31 +54,33 @@ def extract_title(html_content: str) -> str:
 
 
 def extract_summary(html_content: str) -> str:
-    """从 HTML 中提取"核心摘要"作为摘要，否则取第一段有意义的正文。"""
-    # 移除 script/style 标签及其内容
-    text = re.sub(r"<script[^>]*>.*?</script>", "", html_content, flags=re.IGNORECASE | re.DOTALL)
-    text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.IGNORECASE | re.DOTALL)
+    """从 HTML 的"本周总览"区域提取摘要，否则取第一段有意义的正文。"""
+    soup = BeautifulSoup(html_content, "html.parser")
 
-    # 优先匹配"核心摘要："后面的内容
-    summary_match = re.search(
-        r"核心摘要[：:]\s*(.*?)(?:</p>|</div>|</section>)",
-        text,
-        re.IGNORECASE | re.DOTALL,
-    )
-    if summary_match:
-        summary = strip_html_tags(summary_match.group(1))
-        summary = re.sub(r"<[^>]+>", "", summary)  # 再确保去掉 strong 等标签
-        summary = summary.strip()
-        if summary:
-            return summary[:200]
+    # 优先从"本周总览"section 中提取 report-summary 或第一个段落
+    overview_section = soup.find("section", {"id": "section-1"})
+    if overview_section:
+        # 先尝试 report-summary 概述
+        summary_div = overview_section.find("div", class_=lambda x: x and "report-summary" in x)
+        if summary_div:
+            text = summary_div.get_text(strip=True)
+            if len(text) >= 30:
+                return text[:200]
 
-    # 回退：取第一段有意义的正文
-    text = strip_html_tags(text)
-    sentences = re.split(r"(?<=[。！？.!?])\s+", text)
-    for s in sentences:
-        s = s.strip()
-        if len(s) >= 30 and not s.startswith("全球汽车行业") and not s.startswith("报告日期"):
-            return s[:160]
+        # 再尝试"核心摘要"段落
+        for p in overview_section.find_all("p"):
+            text = p.get_text(strip=True)
+            if "核心摘要" in text or len(text) >= 40:
+                clean = re.sub(r"^核心摘要[：:]\s*", "", text)
+                if len(clean) >= 30:
+                    return clean[:200]
+
+    # 回退：取 body 中第一个有意义的段落
+    body = soup.find("body") or soup
+    for p in body.find_all("p"):
+        text = p.get_text(strip=True)
+        if len(text) >= 40 and not text.startswith("全球汽车行业") and not text.startswith("报告日期"):
+            return text[:160]
 
     return "本周全球汽车市场深度解读，点击查看完整报告。"
 
@@ -89,32 +92,26 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
     若未找到，则回退到 <h2> 章节标题策略。
     """
     hotspots = []
+    soup = BeautifulSoup(html_content, "html.parser")
 
-    # 策略 A：从"本周总览"区域提取指标卡片
-    # 匹配模式：背景卡片内的"指标名称"+"数值"
-    overview_pattern = re.compile(
-        r"本周总览.*?(?:</section>|(?=<!--\s*\d+\.|</main>))",
-        re.IGNORECASE | re.DOTALL,
-    )
-    overview_match = overview_pattern.search(html_content)
+    # 策略 A：从"本周总览"区域提取 stat-card 指标
+    overview_section = soup.find("section", {"id": "section-1"})
+    if overview_section:
+        stat_cards = overview_section.find_all("div", class_=lambda x: x and "stat-card" in x)
+        for card in stat_cards:
+            label = card.find("div", class_=lambda x: x and "stat-label" in x)
+            value = card.find("div", class_=lambda x: x and "stat-value" in x)
+            desc = card.find("p")
 
-    if overview_match:
-        overview_html = overview_match.group(0)
-        # 匹配每个指标：外层 div 包含两个子 div（名称 + 数值）
-        metric_pattern = re.compile(
-            r"background:\s*rgba\([^)]+\);\s*padding:[^>]*>\s*"
-            r"<div[^>]*>(.*?)</div>\s*"
-            r"<div[^>]*>(.*?)</div>\s*"
-            r"</div>",
-            re.IGNORECASE | re.DOTALL,
-        )
-        for m in metric_pattern.finditer(overview_html):
-            name = strip_html_tags(m.group(1))
-            value = strip_html_tags(m.group(2))
-            if name and value and len(name) < 50:
+            name = label.get_text(strip=True) if label else ""
+            val_text = value.get_text(strip=True) if value else ""
+            desc_text = desc.get_text(strip=True) if desc else ""
+
+            if name and val_text and len(name) < 50:
+                description = f"{val_text} {desc_text}".strip()
                 hotspots.append({
                     "title": name,
-                    "description": value[:150],
+                    "description": description[:150],
                 })
             if len(hotspots) >= count:
                 return hotspots
