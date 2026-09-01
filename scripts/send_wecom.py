@@ -18,7 +18,7 @@ GITHUB_USER = os.environ.get("GITHUB_USER", os.environ.get("GITHUB_REPOSITORY_OW
 GITHUB_REPO = os.environ.get("GITHUB_REPO", os.environ.get("GITHUB_REPOSITORY_NAME", "<你的仓库名>"))
 
 BASE_URL = f"https://{GITHUB_USER}.github.io/{GITHUB_REPO}"
-COVER_URL = f"{BASE_URL}/cover.png"
+DEFAULT_COVER_URL = f"{BASE_URL}/cover.png"
 
 
 def find_latest_md() -> Path:
@@ -26,6 +26,16 @@ def find_latest_md() -> Path:
     if not md_files:
         raise FileNotFoundError("未找到 weekly_*.md 文件")
     return md_files[-1]
+
+
+def extract_cover_image(md_content: str) -> str:
+    """从 Markdown 中提取封面图 URL，如果没有则使用默认封面。"""
+    match = re.search(r"^cover_image:\s*(.+)$", md_content, re.MULTILINE | re.IGNORECASE)
+    if match:
+        url = match.group(1).strip()
+        if url and url.lower() != "default":
+            return url
+    return DEFAULT_COVER_URL
 
 
 def extract_title(md_content: str) -> str:
@@ -42,8 +52,11 @@ def extract_summary(md_content: str) -> str:
     """提取 Markdown 第一段非空文字作为摘要。"""
     lines = [line.strip() for line in md_content.splitlines() if line.strip()]
     for line in lines:
-        if not line.startswith("#") and not line.startswith("!") and not line.startswith("["):
-            return line[:160]
+        if line.startswith("#") or line.startswith("!") or line.startswith("["):
+            continue
+        if re.match(r"^cover_image:\s*", line, re.IGNORECASE):
+            continue
+        return line[:160]
     return "本周全球汽车市场深度解读，点击查看完整报告。"
 
 
@@ -88,13 +101,13 @@ def extract_hotspots(md_content: str, count: int = 3) -> list:
     return hotspots
 
 
-def build_payload(title: str, summary: str, hotspots: list) -> dict:
+def build_payload(title: str, summary: str, hotspots: list, cover_url: str) -> dict:
     articles = [
         {
             "title": title,
             "description": summary,
             "url": BASE_URL,
-            "picurl": COVER_URL,
+            "picurl": cover_url,
         }
     ]
 
@@ -104,7 +117,7 @@ def build_payload(title: str, summary: str, hotspots: list) -> dict:
                 "title": f"热点{idx}：{hotspot['title']}",
                 "description": hotspot["description"],
                 "url": BASE_URL,
-                "picurl": COVER_URL,
+                "picurl": cover_url,
             }
         )
 
@@ -133,16 +146,18 @@ def main():
 
     md_content = md_path.read_text(encoding="utf-8")
     title = extract_title(md_content)
+    cover_url = extract_cover_image(md_content)
     summary = extract_summary(md_content)
     hotspots = extract_hotspots(md_content)
 
     print(f"标题: {title}")
+    print(f"封面图: {cover_url}")
     print(f"摘要: {summary}")
     print(f"热点数: {len(hotspots)}")
     for i, h in enumerate(hotspots, 1):
         print(f"  热点{i}: {h['title']}")
 
-    payload = build_payload(title, summary, hotspots)
+    payload = build_payload(title, summary, hotspots, cover_url)
     print("Payload:", json.dumps(payload, ensure_ascii=False, indent=2))
 
     send(payload)
