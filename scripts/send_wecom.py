@@ -53,13 +53,26 @@ def extract_title(html_content: str) -> str:
 
 
 def extract_summary(html_content: str) -> str:
-    """从 HTML 中提取第一段有意义的正文作为摘要。"""
+    """从 HTML 中提取"核心摘要"作为摘要，否则取第一段有意义的正文。"""
     # 移除 script/style 标签及其内容
     text = re.sub(r"<script[^>]*>.*?</script>", "", html_content, flags=re.IGNORECASE | re.DOTALL)
     text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.IGNORECASE | re.DOTALL)
-    text = strip_html_tags(text)
 
-    # 按句子拆分，找到第一段超过 30 个字的描述性文字
+    # 优先匹配"核心摘要："后面的内容
+    summary_match = re.search(
+        r"核心摘要[：:]\s*(.*?)(?:</p>|</div>|</section>)",
+        text,
+        re.IGNORECASE | re.DOTALL,
+    )
+    if summary_match:
+        summary = strip_html_tags(summary_match.group(1))
+        summary = re.sub(r"<[^>]+>", "", summary)  # 再确保去掉 strong 等标签
+        summary = summary.strip()
+        if summary:
+            return summary[:200]
+
+    # 回退：取第一段有意义的正文
+    text = strip_html_tags(text)
     sentences = re.split(r"(?<=[。！？.!?])\s+", text)
     for s in sentences:
         s = s.strip()
@@ -71,15 +84,45 @@ def extract_summary(html_content: str) -> str:
 
 def extract_hotspots(html_content: str, count: int = 3) -> list:
     """
-    从 HTML 的 <h2> 标题中提取热点条目。
-    策略：取 <h2> 标题及之后的第一段正文作为描述。
+    从 HTML "本周总览" 区域的数据指标卡片中提取热点。
+    优先匹配：指标名称 + 指标数值/描述。
+    若未找到，则回退到 <h2> 章节标题策略。
     """
     hotspots = []
-    # 移除 script/style
+
+    # 策略 A：从"本周总览"区域提取指标卡片
+    # 匹配模式：背景卡片内的"指标名称"+"数值"
+    overview_pattern = re.compile(
+        r"本周总览.*?(?:</section>|(?=<!--\s*\d+\.|</main>))",
+        re.IGNORECASE | re.DOTALL,
+    )
+    overview_match = overview_pattern.search(html_content)
+
+    if overview_match:
+        overview_html = overview_match.group(0)
+        # 匹配每个指标：外层 div 包含两个子 div（名称 + 数值）
+        metric_pattern = re.compile(
+            r"background:\s*rgba\([^)]+\);\s*padding:[^>]*>\s*"
+            r"<div[^>]*>(.*?)</div>\s*"
+            r"<div[^>]*>(.*?)</div>\s*"
+            r"</div>",
+            re.IGNORECASE | re.DOTALL,
+        )
+        for m in metric_pattern.finditer(overview_html):
+            name = strip_html_tags(m.group(1))
+            value = strip_html_tags(m.group(2))
+            if name and value and len(name) < 50:
+                hotspots.append({
+                    "title": name,
+                    "description": value[:150],
+                })
+            if len(hotspots) >= count:
+                return hotspots
+
+    # 策略 B：回退到 <h2> 章节标题
     text = re.sub(r"<script[^>]*>.*?</script>", "", html_content, flags=re.IGNORECASE | re.DOTALL)
     text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.IGNORECASE | re.DOTALL)
 
-    # 找到所有 h2 标题及其位置
     h2_pattern = re.compile(r"<h2[^>]*>(.*?)</h2>", re.IGNORECASE | re.DOTALL)
     matches = list(h2_pattern.finditer(text))
 
@@ -88,16 +131,13 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
         if not title:
             continue
 
-        # 过滤不合适的标题
-        if any(skip in title for skip in ["来源", "配图", "原文链接", "周报", "简报", "总览", "关于我们"]):
+        if any(skip in title for skip in ["来源", "配图", "原文链接", "周报", "简报", "关于我们"]):
             continue
 
-        # 提取该 h2 之后到下一个 h2 之前的正文
         start = match.end()
         end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
         section = text[start:end]
 
-        # 取 section 中的第一段非空文本
         section_text = strip_html_tags(section)
         sentences = re.split(r"(?<=[。！？.!?])\s+", section_text)
         description = ""
