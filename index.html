@@ -3,25 +3,42 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>全球汽车行业深度周报 (2026.08.25 - 2026.09.01)</title>
-<meta name="description" content="**报告日期**：2026年09月01日">
-<meta property="og:image" content="cover.png">
-<meta property="og:title" content="全球汽车行业深度周报 (2026.08.25 - 2026.09.01)">
-<meta property="og:description" content="**报告日期**：2026年09月01日">
+<title>全球汽车行业周报 | 2026年8月31日</title>
+<meta name="description" content="2026年8月31日全球汽车行业深度周报,涵盖中国、东南亚、南美、欧洲、北美等区域市场动态、政策变化、车企动态及注塑行业机会分析">
+<meta name="keywords" content="汽车行业,周报,市场分析,注塑机,新能源,政策动态">
+<meta name="author" content="数据分析助手">
+<meta property="og:title" content="全球汽车行业周报 | 2026年8月31日">
+<meta property="og:description" content="2026年8月31日全球汽车行业深度周报,涵盖中国、东南亚、南美、欧洲、北美等区域市场动态、政策变化、车企动态及注塑行业机会分析">
+<meta property="og:type" content="article">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg-primary:#0f172a;
   --bg-secondary:#1e293b;
+  --bg-tertiary:#334155;
   --bg-card:#1a2236;
   --accent-blue:#3b82f6;
   --accent-orange:#f97316;
+  --accent-orange-dim:#92400e;
   --text-primary:#f1f5f9;
   --text-secondary:#94a3b8;
   --text-muted:#64748b;
   --border-color:#334155;
+  --border-light:#475569;
+  --region-cn:#ef4444;
+  --region-sea:#10b981;
+  --region-sa:#eab308;
+  --region-eu:#8b5cf6;
+  --region-na:#06b6d4;
+  --region-other:#6366f1;
   --radius:8px;
   --shadow:0 4px 24px rgba(0,0,0,.3);
+  --transition:all .2s ease;
+  
+  /* Constants for JavaScript */
+  --scroll-threshold:400;
+  --nav-offset:100;
+  --throttle-delay:100;
 }
 html{scroll-behavior:smooth;scroll-padding-top:80px}
 body{
@@ -32,6 +49,11 @@ body{
   font-size:16px;
   -webkit-font-smoothing:antialiased;
 }
+a{color:var(--accent-blue);text-decoration:none;transition:var(--transition)}
+a:hover{text-decoration:underline;color:#60a5fa}
+a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-radius:2px}
+
+/* Navigation */
 .top-nav{
   position:sticky;top:0;z-index:1000;
   background:rgba(15,23,42,.92);
@@ -50,9 +72,20 @@ body{
 .nav-brand{
   font-weight:700;font-size:14px;
   color:var(--accent-blue);
-  white-space:nowrap;margin-right:16px;
+  white-space:nowrap;
+  margin-right:16px;
   flex-shrink:0;
 }
+.nav-link{
+  font-size:13px;color:var(--text-secondary);
+  white-space:nowrap;padding:6px 12px;
+  border-radius:6px;transition:var(--transition);
+  flex-shrink:0;
+}
+.nav-link:hover{color:var(--text-primary);background:var(--bg-secondary);text-decoration:none}
+.nav-link.active{color:var(--accent-blue);background:rgba(59,130,246,.1)}
+
+/* Hero */
 .hero{
   background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);
   border-bottom:1px solid var(--border-color);
@@ -71,255 +104,938 @@ body{
 }
 .hero h1{
   font-size:clamp(24px,4vw,36px);
-  font-weight:800;line-height:1.3;
-  margin-bottom:12px;letter-spacing:-.5px;
+  font-weight:800;
+  line-height:1.3;
+  margin-bottom:12px;
+  letter-spacing:-.5px;
 }
 .hero-meta{
   font-size:14px;color:var(--text-muted);
   display:flex;flex-wrap:wrap;justify-content:center;gap:16px;
 }
-.hero-cover{
-  max-width:720px;width:100%;
-  margin:24px auto 0;
-  border-radius:var(--radius);
+.hero-meta span{white-space:nowrap}
+
+/* Main container */
+.container{max-width:1280px;margin:0 auto;padding:32px 24px}
+
+/* Key Points Section */
+.key-points{margin-bottom:48px}
+.key-points-header{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:24px;
+}
+.key-points-header h2{
+  font-size:20px;font-weight:700;
+  color:var(--text-primary);
+}
+.key-points-header .line{flex:1;height:1px;background:var(--border-color)}
+.kp-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:16px;
+}
+.kp-card{
+  background:var(--bg-card);
   border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:20px;
+  transition:var(--transition);
+  position:relative;
+  overflow:hidden;
+  will-change:transform;
+}
+.kp-card:hover{
+  border-color:var(--border-light);
   box-shadow:var(--shadow);
 }
-.container{max-width:1280px;margin:0 auto;padding:32px 24px}
-.markdown-body h2{
-  font-size:22px;font-weight:800;
+.kp-card:hover{
+  transform:translateY(-2px);
+}
+.kp-card .kp-num{
+  font-size:32px;font-weight:800;
+  color:var(--bg-tertiary);
+  position:absolute;top:8px;right:14px;
+  line-height:1;
+}
+.kp-card h3{
+  font-size:15px;font-weight:700;
+  line-height:1.5;
+  margin-bottom:10px;
+  padding-right:40px;
   color:var(--text-primary);
-  margin:40px 0 20px;
-  padding-bottom:10px;
+}
+.kp-card p{
+  font-size:13px;color:var(--text-secondary);
+  line-height:1.7;
+}
+.kp-card.injection{
+  border-color:var(--accent-orange);
+  background:linear-gradient(135deg,rgba(249,115,22,.06),rgba(249,115,22,.02));
+}
+.kp-card.injection::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent-orange),#fb923c);
+}
+.kp-card.injection .kp-num{color:rgba(249,115,22,.2)}
+.injection-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:700;
+  color:var(--accent-orange);
+  background:rgba(249,115,22,.12);
+  border:1px solid rgba(249,115,22,.3);
+  padding:2px 8px;border-radius:4px;
+  margin-bottom:8px;
+}
+
+/* Section */
+.section{margin-bottom:48px}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
   border-bottom:2px solid var(--border-color);
 }
-.markdown-body h3{
-  font-size:17px;font-weight:700;
+.section-header h2{
+  font-size:22px;font-weight:800;
   color:var(--text-primary);
-  margin:28px 0 14px;
+  white-space:nowrap;
+}
+.section-header .sec-line{flex:1;height:1px;background:var(--border-color)}
+.section-header .sec-num{
+  font-size:12px;font-weight:700;
+  color:var(--text-muted);
+  background:var(--bg-secondary);
+  padding:4px 10px;border-radius:4px;
+}
+
+/* Subsection */
+.subsection{margin-bottom:32px}
+.subsection-title{
+  display:flex;align-items:center;gap:8px;
+  font-size:17px;font-weight:700;
+  margin-bottom:16px;
   padding-left:12px;
   border-left:3px solid var(--accent-blue);
 }
-.markdown-body h4{
-  font-size:15px;font-weight:700;
-  color:var(--text-primary);
-  margin:20px 0 10px;
+.subsection-title .region-dot{
+  width:10px;height:10px;border-radius:50%;
+  flex-shrink:0;
 }
-.markdown-body p{
-  font-size:15px;color:var(--text-secondary);
+
+/* News card */
+.news-card{
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:14px;
+  transition:var(--transition);
+}
+.news-card:hover{border-color:var(--border-light)}
+.news-card h4{
+  font-size:15px;font-weight:700;
+  line-height:1.6;
+  margin-bottom:10px;
+  color:var(--text-primary);
+}
+.news-card .news-body{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+  margin-bottom:10px;
+}
+.news-card .news-body strong{color:var(--text-primary)}
+.news-source{
+  font-size:12px;color:var(--text-muted);
+  display:flex;align-items:center;gap:6px;
+}
+.news-source::before{
+  content:'';display:inline-block;
+  width:4px;height:4px;border-radius:50%;
+  background:var(--text-muted);
+}
+.news-card ul{
+  list-style:none;padding:0;margin:8px 0;
+}
+.news-card ul li{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+  padding-left:16px;
+  position:relative;
+}
+.news-card ul li::before{
+  content:'•';position:absolute;left:0;
+  color:var(--accent-blue);font-weight:700;
+}
+
+/* Region colors */
+.region-cn .subsection-title{border-left-color:var(--region-cn)}
+.region-cn .region-dot{background:var(--region-cn)}
+.region-sea .subsection-title{border-left-color:var(--region-sea)}
+.region-sea .region-dot{background:var(--region-sea)}
+.region-sa .subsection-title{border-left-color:var(--region-sa)}
+.region-sa .region-dot{background:var(--region-sa)}
+.region-eu .subsection-title{border-left-color:var(--region-eu)}
+.region-eu .region-dot{background:var(--region-eu)}
+.region-na .subsection-title{border-left-color:var(--region-na)}
+.region-na .region-dot{background:var(--region-na)}
+.region-other .subsection-title{border-left-color:var(--region-other)}
+.region-other .region-dot{background:var(--region-other)}
+
+/* Policy section */
+.policy-card{
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:20px;
   margin-bottom:14px;
 }
-.markdown-body ul,.markdown-body ol{
-  margin:12px 0 16px 20px;
-  color:var(--text-secondary);
+.policy-card h3{
+  font-size:15px;font-weight:700;
+  color:var(--text-primary);
+  margin-bottom:10px;
 }
-.markdown-body li{
-  font-size:15px;
-  margin-bottom:8px;
+.policy-card p{
+  font-size:14px;color:var(--text-secondary);
   line-height:1.8;
 }
-.markdown-body strong{color:var(--text-primary)}
-.markdown-body a{color:var(--accent-blue);text-decoration:none}
-.markdown-body a:hover{text-decoration:underline}
-.markdown-body img{
-  max-width:100%;border-radius:var(--radius);
-  border:1px solid var(--border-color);
-  margin:16px 0;
-}
-.markdown-body blockquote{
+
+/* OEM section */
+.oem-card{
   background:var(--bg-card);
-  border-left:3px solid var(--accent-orange);
-  padding:16px 20px;
-  margin:16px 0;
-  border-radius:0 var(--radius) var(--radius) 0;
-  color:var(--text-secondary);
-}
-.markdown-body hr{
-  border:none;border-top:1px solid var(--border-color);
-  margin:32px 0;
-}
-.markdown-body table{
-  width:100%;border-collapse:collapse;
-  margin:16px 0;font-size:14px;
-}
-.markdown-body th,.markdown-body td{
   border:1px solid var(--border-color);
-  padding:10px 12px;
-  text-align:left;
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:14px;
 }
-.markdown-body th{
-  background:var(--bg-secondary);
+.oem-card h3{
+  font-size:15px;font-weight:700;
   color:var(--text-primary);
-  font-weight:600;
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
 }
-.markdown-body td{color:var(--text-secondary)}
+.oem-card h3 .oem-tag{
+  font-size:11px;font-weight:600;
+  color:var(--accent-blue);
+  background:rgba(59,130,246,.1);
+  padding:2px 8px;border-radius:4px;
+}
+.oem-card p,.oem-card li{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+}
+.oem-card ul{list-style:none;padding:0;margin:8px 0}
+.oem-card ul li{padding-left:16px;position:relative}
+.oem-card ul li::before{content:'→';position:absolute;left:0;color:var(--accent-blue)}
+
+/* Injection opportunity section */
+.injection-section{
+  background:linear-gradient(135deg,rgba(249,115,22,.04),rgba(249,115,22,.01));
+  border:1px solid rgba(249,115,22,.2);
+  border-radius:12px;
+  padding:24px;
+  margin-bottom:48px;
+}
+.injection-section .section-header{
+  border-bottom-color:rgba(249,115,22,.3);
+}
+.injection-section .section-header h2{color:var(--accent-orange)}
+.inj-card{
+  background:rgba(15,23,42,.6);
+  border:1px solid rgba(249,115,22,.15);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:14px;
+  position:relative;
+}
+.inj-card::before{
+  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
+  background:var(--accent-orange);border-radius:3px 0 0 3px;
+}
+.inj-card h3{
+  font-size:15px;font-weight:700;
+  color:var(--accent-orange);
+  margin-bottom:10px;
+  padding-left:12px;
+}
+.inj-card p{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+  padding-left:12px;
+}
+
+/* Research section */
+.research-card{
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:24px;
+  margin-bottom:16px;
+}
+.research-card h3{
+  font-size:16px;font-weight:700;
+  color:var(--text-primary);
+  margin-bottom:12px;
+}
+.research-card p{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.85;
+}
+
+/* Next week */
+.next-week{
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:24px;
+}
+.next-week ul{list-style:none;padding:0}
+.next-week ul li{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+  padding:8px 0;
+  border-bottom:1px solid var(--border-color);
+  display:flex;align-items:flex-start;gap:10px;
+}
+.next-week ul li:last-child{border-bottom:none}
+.next-week ul li::before{
+  content:'📌';flex-shrink:0;font-size:12px;
+}
+.next-week ul li strong{color:var(--text-primary)}
+
+/* Footer */
 .footer{
   border-top:1px solid var(--border-color);
   padding:32px 24px;
   text-align:center;
-  color:var(--text-muted);
-  font-size:14px;
 }
+.footer p{font-size:12px;color:var(--text-muted);line-height:1.8}
+
+/* Back to top */
 .back-top{
   position:fixed;bottom:24px;right:24px;
-  width:44px;height:44px;border-radius:50%;
-  background:var(--bg-secondary);
-  border:1px solid var(--border-color);
-  color:var(--text-primary);font-size:18px;
-  cursor:pointer;opacity:0;visibility:hidden;
-  transition:all .2s ease;z-index:999;
+  width:40px;height:40px;
+  background:var(--accent-blue);
+  border:none;border-radius:50%;
+  color:#fff;font-size:18px;
+  cursor:pointer;
+  opacity:0;visibility:hidden;
+  transition:var(--transition);
+  z-index:999;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(59,130,246,.4);
+  will-change:transform;
 }
 .back-top.visible{opacity:1;visibility:visible}
+.back-top:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(59,130,246,.5)}
+
+/* Responsive */
+@media(max-width:768px){
+  .hero{padding:32px 16px 24px}
+  .hero h1{font-size:22px}
+  .hero-meta{font-size:12px;gap:8px}
+  .container{padding:20px 16px}
+  .kp-grid{grid-template-columns:1fr}
+  .section-header h2{font-size:18px}
+  .subsection-title{font-size:15px}
+  .news-card{padding:16px}
+  .injection-section{padding:16px}
+  .nav-brand{font-size:12px;margin-right:8px}
+  .nav-link{font-size:12px;padding:4px 8px}
+}
+@media(max-width:480px){
+  body{font-size:15px}
+  .hero h1{font-size:20px}
+  .kp-card{padding:16px}
+  .kp-card h3{font-size:14px}
+  .news-card h4{font-size:14px}
+}
+
+/* Print */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+@media print{
+  .top-nav,.back-top{display:none!important}
+  body{background:#fff;color:#111;font-size:12px}
+  .hero{background:#fff;border-bottom:2px solid #111;padding:20px 0}
+  .hero h1{color:#111}
+  .hero-meta{color:#444}
+  .container{padding:16px 0}
+  .kp-card,.news-card,.policy-card,.oem-card,.inj-card,.research-card,.next-week{
+    background:#fff;border:1px solid #ddd;color:#111;
+    break-inside:avoid;
+  }
+  .kp-card h3,.news-card h4,.policy-card h4,.oem-card h4,.inj-card h4,.research-card h4{color:#111}
+  .kp-card p,.news-card .news-body,.policy-card p,.oem-card p,.inj-card p,.research-card p{color:#333}
+  .news-source{color:#666}
+  .section{break-inside:avoid}
+  .injection-section{background:#fff;border-color:#f97316}
+  a{color:#111;text-decoration:underline}
+  a[href]::after{content:" (" attr(href) ")";font-size:10px;color:#666}
+}
 </style>
 </head>
 <body>
-<nav class="top-nav">
-  <div class="nav-inner">
-    <span class="nav-brand">全球汽车行业周报</span>
-  </div>
+
+<!-- Navigation -->
+<nav class="top-nav" role="navigation" aria-label="页面导航">
+<div class="nav-inner">
+  <span class="nav-brand">🚗 汽车周报</span>
+  <a href="#overview" class="nav-link" title="本周总览">本周总览</a>
+  <a href="#china" class="nav-link" title="中国市场">中国</a>
+  <a href="#sea" class="nav-link" title="东南亚市场">东南亚</a>
+  <a href="#sa" class="nav-link" title="南美市场">南美</a>
+  <a href="#eu" class="nav-link" title="欧洲市场">欧洲</a>
+  <a href="#na" class="nav-link" title="北美市场">北美</a>
+  <a href="#other" class="nav-link" title="其他市场">其他市场</a>
+  <a href="#policy" class="nav-link" title="政策动态">政策</a>
+  <a href="#oem" class="nav-link" title="车企动态">车企</a>
+  <a href="#research" class="nav-link" title="调研报告">调研</a>
+  <a href="#injection" class="nav-link" style="color:var(--accent-orange)" title="注塑机会">⚡注塑机会</a>
+  <a href="#nextweek" class="nav-link" title="下周关注">下周</a>
+</div>
 </nav>
 
-<header class="hero">
-  <div class="hero-inner">
-    <span class="hero-badge">WEEKLY REPORT</span>
-    <h1>全球汽车行业深度周报 (2026.08.25 - 2026.09.01)</h1>
-    <div class="hero-meta">
-      <span>📅 2026年09月01日</span>
-      <span>🚗 全球汽车市场动态</span>
-    </div>
-    <img src="cover.png" alt="封面图" class="hero-cover">
+<!-- Hero -->
+<header class="hero" id="top">
+<div class="hero-inner">
+  <span class="hero-badge">WEEKLY REPORT</span>
+  <h1>全球汽车行业周报</h1>
+  <div class="hero-meta">
+    <span>📅 2026年8月31日（周日）</span>
+    <span>📊 数据周期：8月24日 - 8月31日</span>
+    <span>🏢 编制：数据分析助手</span>
   </div>
+</div>
 </header>
 
 <main class="container">
-  <div class="markdown-body">
-<h1 id="20260825-20260901">全球汽车行业深度周报 (2026.08.25 - 2026.09.01)</h1>
-<p><strong>报告日期</strong>：2026年09月01日<br />
-<strong>本期焦点</strong>：欧盟新循环经济法案落地、固态电池量产前夜、智能座舱多材料注塑应用爆发。</p>
-<hr />
-<h2 id="1">1. 本周总览</h2>
-<p>本周全球汽车行业在“可持续材料”与“智能化落地”方面取得关键进展。欧盟正式通过《2026汽车循环经济法案》，强制要求新车使用35%以上的再生塑料，这对注塑供应链提出了全新的材料挑战。在技术端，固态电池的试产线在日韩车企全面铺开，带动了耐高温特种工程塑料的需求。中国市场方面，L3级自动驾驶商业化牌照大面积发放，推动高精度传感器集成化部件需求激增。整体来看，汽车注塑行业正从单一的“成本导向”向“轻量化+智能化+环保”三元驱动转型。</p>
-<hr />
-<h2 id="2">2. 各地市场动态</h2>
-<ul>
-<li><strong>欧洲市场</strong>：<ul>
-<li>受《循环经济法案》影响，车企纷纷与化工巨头（如巴斯夫、科思创）签订长期再生塑料供应协议。</li>
-<li>德国汽车工业协会（VDA）数据显示，8月德国新能源汽车产量中，采用生物基或再生材料内饰的车型占比已突破40%。</li>
-</ul>
-</li>
-<li><strong>北美市场</strong>：<ul>
-<li>美国能源部（DOE）本周追加拨款，重点支持“轻量化复合材料车身制造项目”，其中关于长纤维增强注塑（LFT）在底盘部件中的应用成为资助重点。</li>
-<li>供应链持续本土化，多家一级供应商（Tier 1）宣布在墨西哥湾沿岸建设新的注塑工厂，以服务美墨加协定（USMCA）区域需求。</li>
-</ul>
-</li>
-<li><strong>亚太市场</strong>：<ul>
-<li><strong>中国</strong>：工信部发布《汽车零部件行业发展新指引》，明确支持高精度、微发泡注塑技术在国产高端车型上的应用，以降低整车重量。</li>
-<li><strong>日本</strong>：丰田汽车宣布其“多材料车身平台”研发取得突破，通过异种材料注塑连接技术，进一步减少了车身紧固件使用。</li>
-</ul>
-</li>
-</ul>
-<hr />
-<h2 id="3">3. 政策动态</h2>
-<ul>
-<li><strong>欧盟</strong>：正式实施<strong>《2026汽车循环经济法案》</strong>。规定所有新上市M1类车辆，其塑料部件中必须含有至少35%的消费后再生塑料（PCR），其中25%必须来自报废车辆（ELV）。这对注塑成型企业的材料混配能力和杂质控制技术提出了严苛要求。</li>
-<li><strong>中国</strong>：<strong>《关于进一步加强新能源汽车废旧动力电池综合利用的指导意见》</strong>出台。虽然主要针对电池，但间接促进了电池包外壳（塑料/复合材料部分）的标准化设计，便于后续拆解回收，利好模块化注塑工艺。</li>
-<li><strong>美国</strong>：加州空气资源委员会（CARB）更新了<strong>轻型车辆排放标准</strong>，要求2027款车型进一步降低碳足迹，迫使车企加大非金属部件（如以塑代钢）的应用比例以减轻车重。</li>
-</ul>
-<hr />
-<h2 id="4">4. 车企动态</h2>
-<ul>
-<li><strong>梅赛德斯-奔驰</strong>：<ul>
-<li>发布全新CLA级概念车内饰，采用<strong>100%可回收注塑材料</strong>制作仪表板骨架。奔驰宣称使用了新型化学解聚循环技术，使再生塑料性能媲美原生材料。</li>
-</ul>
-</li>
-<li><strong>特斯拉</strong>：<ul>
-<li>得州超级工厂本周引入<strong>6000吨级大型注塑机</strong>，疑似用于生产Cybertruck的一体化车身底板护件及大型内饰结构件，进一步减少零部件拼接。</li>
-</ul>
-</li>
-<li><strong>比亚迪（BYD）</strong>：<ul>
-<li>宣布与金发科技合作，共同研发<strong>针对海洋系列车型的生物基塑料</strong>，主要应用于门板和立柱饰板，旨在降低碳排放并提升耐海水腐蚀性能。</li>
-</ul>
-</li>
-<li><strong>蔚来（NIO）</strong>：<ul>
-<li>全新旗舰车型ET9量产版下线，其搭载的“智能环境灯系统”采用了<strong>多组分/双色注塑工艺</strong>，实现了透光率与遮光性的高度集成，取消了传统喷涂工艺。</li>
-</ul>
-</li>
-</ul>
-<hr />
-<h2 id="5">5. 调研报告/机构观点</h2>
-<ul>
-<li><strong>MarkLines (全球汽车产业平台)</strong>：<ul>
-<li>最新报告指出，2026年上半年全球汽车<strong>平均单车塑料用量达到350kg</strong>，较2025年增长5.2%。增长主要来源于电池包塑料化、电子电气架构（E/E）复杂化带来的连接器及外壳需求。</li>
-</ul>
-</li>
-<li><strong>AMI (Applied Market Information)</strong>：<ul>
-<li>预测未来5年，<strong>汽车用长纤维增强热塑性塑料（LFT）</strong>的复合年增长率（CAGR）将达到8.5%。主要驱动力来自于前端模块、座椅骨架等结构件的“以塑代钢”趋势。</li>
-</ul>
-</li>
-<li><strong>麦肯锡</strong>：<ul>
-<li>分析认为，到2030年，<strong>生物基塑料</strong>在汽车内饰中的市场份额将超过15%。虽然目前成本仍高于传统石油基塑料，但碳税的计入将快速缩小这一差距。</li>
-</ul>
-</li>
-</ul>
-<hr />
-<h2 id="6">6. 注塑机会专题</h2>
-<p>本周针对注塑机行业与零部件供应商的关键机会点分析：</p>
-<ul>
-<li>
-<p><strong>机会一：高精度光学级注塑（智能座舱）</strong></p>
-<ul>
-<li><strong>背景</strong>：随着AR-HUD（增强现实抬头显示）和超大尺寸联屏的普及，对导光板、透镜及屏幕盖板的光学精度要求极高。</li>
-<li><strong>技术要求</strong>：需采用注塑压缩 molding）技术，配合高响应伺服系统，控制双折射率，消除流痕。</li>
-<li><strong>推荐材料</strong>：PMMA、改性PC。</li>
-</ul>
-</li>
-<li>
-<p><strong>机会二：微发泡注塑（轻量化减重）</strong></p>
-<ul>
-<li><strong>背景</strong>：为满足欧7排放及电续航里程，车企对非承重件的减重需求迫切。</li>
-<li><strong>技术要求</strong>：MuCell或物理发泡注塑。可减重10%-20%，并显著消除缩痕，提高尺寸稳定性。</li>
-<li><strong>应用部件</strong>：门板饰板、仪表板支架、甚至电池包上盖。</li>
-</ul>
-</li>
-<li>
-<p><strong>机会三：多组分/嵌件注塑（电子集成）</strong></p>
-<ul>
-<li><strong>背景</strong>：传感器、雷达、摄像头在车身上的集成度越来越高，单一材料已满足不了密封、抗干扰及美观的多重需求。</li>
-<li><strong>技术要求</strong>：双色/三色注塑，或金属嵌件注塑（IMSM）。关键在于模具的精密旋转定位及不同材料粘合力的控制。</li>
-<li><strong>应用部件</strong>：智能B柱电容传感器、带金属屏蔽层的连接器、集成发光格栅。</li>
-</ul>
-</li>
-<li>
-<p><strong>材料趋势关注</strong>：</p>
-<ul>
-<li><strong>PCR材料应用</strong>：本周欧盟法规落地后，如何处理再生塑料的流动性差异和气味问题，是注塑工艺调试的新热点。建议关注带有排气功能和专用螺杆设计的注塑机型号。</li>
-</ul>
-</li>
-</ul>
-<hr />
-<h2 id="7">7. 下周关注</h2>
-<ul>
-<li><strong>展会/会议</strong>：<strong>2026 德国国际汽车及智慧出行博览会（IAA Munich 2026）</strong> 将于下周开幕。重点关注：巴斯夫、科思创等化工巨头发布的最新车用再生塑料解决方案，以及恩格尔、阿博格等注塑机厂商展示的“智能成型”现场演示。</li>
-<li><strong>财报发布</strong>：<strong>麦格纳</strong> 将发布Q2财报，关注其外饰件业务板块的增长数据，以此判断全球SUV及皮卡市场对大型注塑件（如格栅、保险杠）的需求走势。</li>
-<li><strong>技术节点</strong>：<strong>丰田固态电池技术说明会</strong>，预计将透露其对电池包外壳耐热性及绝缘性的新要求，可能衍生出PEEK、PPS等特种工程塑料的注塑机会。</li>
-</ul>
+
+<!-- Key Points -->
+<section class="key-points" id="overview">
+<div class="key-points-header">
+  <h2>🔥 本周核心看点</h2>
+  <span class="line"></span>
+</div>
+<div class="kp-grid">
+
+<div class="kp-card">
+  <span class="kp-num">01</span>
+  <h3>丰田打破"日本优先"铁律：下一代雷克萨斯纯电SUV将在上海率先量产</h3>
+  <p>8/28日经披露，丰田计划2027年秋季在上海金山工厂生产下一代雷克萨斯纯电SUV，首年月产约1000辆，2028年起扩至年产数万辆。采用Gigacast一体化压铸技术，零部件95%本土化采购。这是丰田首次将最新EV车型率先在日本以外投产，标志着跨国车企在华角色从"代工"转向"创新策源地"。</p>
+</div>
+
+<div class="kp-card">
+  <span class="kp-num">02</span>
+  <h3>中国汽车行业利润率跌至3.6%：1-7月利润同比降20%，单车毛利仅1.2万元</h3>
+  <p>乘联会崔东树数据，1-7月行业收入60780亿+2.7%、成本54058亿+3.8%、利润2162亿-20%。利润率3.6%远低于工业企业均值6.5%。7月单月利润率仅2.4%。碳酸锂/铜/铝/塑料等原材料全面涨价是主因，行业"内卷式竞争"正在加速中小品牌出清。</p>
+</div>
+
+<div class="kp-card">
+  <span class="kp-num">03</span>
+  <h3>大众集团或再裁5万人+工人万人集会对峙CEO：全球最多14万岗位面临风险</h3>
+  <p>CEO奥博穆8/25在沃尔夫斯堡总部承认，除已安排的5万个德国岗位外，全球可能再减5万。超1万员工集会抗议、嘘声不断。大众H1全球交付412.6万辆-6.3%、中国交付97.1万辆-26%。工会估算全球最多14万岗位面临风险，被称为"大众史上最大规模转型计划"。</p>
+</div>
+
+<div class="kp-card">
+  <span class="kp-num">04</span>
+  <h3>小米汽车正式确认2027年进入欧洲：官网社媒同步上线，进入执行阶段</h3>
+  <p>小米汽车国际官网上线，明确标注"officially coming to Europe in 2027"。海外社媒同步开通。SU7 Ultra纽北量产电动车圈速纪录7:04.957、累计交付超70万辆为背书。</p>
+</div>
+
+<div class="kp-card injection">
+  <span class="kp-num">05</span>
+  <span class="injection-badge">⚡ 注塑机会</span>
+  <h3>丰田上海雷克萨斯工厂+中资车企巴西集群式涌入+大众全球重组：注塑配套需求多线爆发</h3>
+  <p>丰田上海金山雷克萨斯新能源工厂2027年投产（初期10万辆/年），一体化压铸+95%本土化采购带来大型注塑件+特种材料需求；北汽/奇瑞iCAUR/东风/IM四大中资车企同期涌入巴西市场（合计规划30+车型/多座本地工厂），注塑机配套需求窗口集中开启；大众全球或裁14万岗位+欧洲产能下调50万辆，供应链洗牌中中资替代机会浮现。</p>
+</div>
+
+</div>
+</section>
+
+<!-- Section 1: Regional Markets -->
+<section class="section" id="regional">
+<div class="section-header">
+  <h2>一、各地市场新闻动态</h2>
+  <span class="sec-line"></span>
+  <span class="sec-num">SECTION 01</span>
+</div>
+
+<!-- 1.1 China -->
+<div class="subsection region-cn" id="china">
+<h3 class="subsection-title"><span class="region-dot"></span>1.1 中国市场</h3>
+
+<div class="news-card">
+  <h4>8月车市底部蓄力：NEV渗透率64.3%，但整体销量同比-22%</h4>
+  <div class="news-body">乘联会数据，8/1-8/23全国乘用车零售62.8万辆同比-22%，NEV零售39.9万辆同比-15%，渗透率64.3%。累计1-8月零售1112.9万辆同比-20%。NEV批发渗透率已达70.5%。纯燃油车产量8月同比暴跌59%，自主品牌NEV渗透率73.5% vs 合资品牌仅6.2%。</div>
+  <span class="news-source">CPCA/Global China EV (2026-08-27)</span>
+</div>
+
+<div class="news-card">
+  <h4>1-7月汽车行业利润率3.6%创新低：利润同比降20%，单车毛利仅1.2万元</h4>
+  <div class="news-body">崔东树数据，收入60780亿+2.7%，成本54058亿+3.8%（成本增速>收入增速），利润2162亿-20%。单车收入34.5万+5.3%，单车成本30.7万+6.5%，单车毛利1.2万-19%。碳酸锂价格短期翻倍+大宗商品高位运行是主因。7月单月利润率2.4%。</div>
+  <span class="news-source">乘联会/北京商报/太平洋科技 (2026-08-27)</span>
+</div>
+
+<div class="news-card">
+  <h4>长城汽车H1营收1021亿+10.58%，海外成核心增长引擎</h4>
+  <div class="news-body">上半年整车销量57.58万辆+1.22%。海外业务已成拉动增长的核心引擎。成都车展长城H10上市24小时大定订单破31826台，"大家庭方盒子SUV"定位精准。</div>
+  <span class="news-source">智通财经/长城汽车公告 (2026-08-25/27)</span>
+</div>
+
+<div class="news-card">
+  <h4>广汽集团冯兴亚再会华为任正非：启境品牌深化合作</h4>
+  <div class="news-body">8/24在深圳第二次高规格会晤。首次会面为启境品牌定方向，本次聚焦华为乾崑智驾赋能的量产落地推进。成都车展"华系车"密集申领L3测试牌照。</div>
+  <span class="news-source">盖世汽车 (2026-08-27)</span>
+</div>
+
+<div class="news-card">
+  <h4>工信部："十五五"将实施动力电池数字身份证管理制度</h4>
+  <div class="news-body">8/26国新办发布会，副部长辛国斌介绍，为应对NEV动力电池回收/溯源/安全管理需求，将建立全生命周期数字身份证制度。</div>
+  <span class="news-source">工信部/盖世汽车 (2026-08-27)</span>
+</div>
+
+<div class="news-card">
+  <h4>河南力争全年NEV产量达100万辆</h4>
+  <div class="news-body">河南省政府发文，推动12英寸大硅片、液冷服务器、皮卡车、动力电池等项目建成投产。</div>
+  <span class="news-source">界面新闻 (2026-08-31)</span>
+</div>
+
+<div class="news-card">
+  <h4>追觅科技正式关停造车业务：从"对标布加迪"到注销仅一年</h4>
+  <div class="news-body">8/25官方公告，汽车业务并入产业研究院，不再推进整车量产。"星空计划"主体公司启动注销。团队从近千人缩至几十人收尾。投入超300亿规划、研发已烧超百亿。2026年国办54号文件收紧地方国资募资后杠杆模式失效。</div>
+  <span class="news-source">中国经济网/第一财经/界面新闻 (2026-08-24/25/27)</span>
+</div>
+
+<div class="news-card">
+  <h4>成都车展"权力更替"：20+品牌缺席，自主品牌展位首超60%</h4>
+  <div class="news-body">保时捷/劳斯莱斯/宾利/兰博基尼连续两年缺席，特斯拉/东风日产/雷克萨斯/雪佛兰首次缺席。比亚迪独揽9号馆、奇瑞包5号馆。长城H10上市24h订单3.18万台。上汽大众ID.ERA 5S限时8.99万起、宝马新世代iX3预售26.99万起——外资品牌以价格反攻。</div>
+  <span class="news-source">36氪/华尔街见闻 (2026-08-24)</span>
+</div>
+
+<div class="news-card">
+  <h4>赛力斯H1营收574.93亿-7.87%，归母净亏损17.17亿</h4>
+  <div class="news-body">同比由盈转亏-158.38%。</div>
+  <span class="news-source">爱建证券 (2026-08-25)</span>
+</div>
+</div>
+
+<!-- 1.2 Southeast Asia -->
+<div class="subsection region-sea" id="sea">
+<h3 class="subsection-title"><span class="region-dot"></span>1.2 东南亚市场</h3>
+
+<div class="news-card">
+  <h4>泰国7月新车销量+20%至59196辆，BEV暴增122%至20990辆</h4>
+  <div class="news-body">FTI数据，ICE乘用车销量暴跌35%仅7553辆，份额仅12.76%。1-7月累计406162辆+15%，BEV累计125411辆+97%（近2/3为从中国进口的CBU）。泰国政府面临调整BEV税收激励政策压力——皮卡销量连续三年暴跌（38.8万辆→14.4万辆）。FTI预计全年产量145万辆（内销55万+出口90万）。</div>
+  <span class="news-source">FTI/Just Auto/新华社 (2026-08-25/26)</span>
+</div>
+
+<div class="news-card">
+  <h4>东盟BEV销量H1暴增72%-257%，中国车企占80-90%市场份额</h4>
+  <div class="news-body">Maybank研报，ASEAN-6 H1 BEV渗透率从12%升至21%。新加坡BEV占比62%、越南35%、印尼/泰国22-30%、菲律宾10%、马来6%。除越南外，中国车企占东盟EV市场80-90%。菲律宾推出600亿比索（10亿美元）EV补贴计划，泰国推出50亿泰铢低息贷款池。</div>
+  <span class="news-source">TechNode Global/Maybank (2026-08-27)</span>
+</div>
+
+<div class="news-card">
+  <h4>长城马来西亚CKD扩产：Haval H7 PHEV和Ora 5 HEV计划本地组装</h4>
+  <div class="news-body">GWM Malaysia在GATE 2026展会宣布，H7 PHEV和Ora 5 HEV将在PEPS-JV Pegoh工厂CKD生产。</div>
+  <span class="news-source">MarkLines (2026-08-28)</span>
+</div>
+
+<div class="news-card">
+  <h4>印尼市场2026年快速扩张，Jaecoo跻身前十</h4>
+  <div class="news-body">Focus2Move数据，印尼市场2026年同比+10%快速增长。奇瑞旗下Jaecoo品牌销量飙升进入品牌前十。</div>
+  <span class="news-source">Focus2Move (2026-08-28)</span>
+</div>
+</div>
+
+<!-- 1.3 South America -->
+<div class="subsection region-sa" id="sa">
+<h3 class="subsection-title"><span class="region-dot"></span>1.3 南美市场</h3>
+
+<div class="news-card">
+  <h4>四大中资车企同期涌入巴西：BAIC/iCAUR/DFM/IM集中布局</h4>
+  <div class="news-body">
+    <ul>
+      <li><strong>北汽（BAIC）</strong>：Interlagos Festival首秀Arcfox T1/T5。规划2028年前投放10款车型（含皮卡），2028年启动本地生产（巴西最大海外工厂），150个经销网点（2027年底），目标2028年进入巴西前十品牌。X55乙醇燃料混动版首创。50家经销商12月开业。</li>
+      <li><strong>iCAUR（奇瑞国际）</strong>：展示V27增程SUV，2027H1交付。奇瑞巴西布局扩展至Lepas/Freelander/Exeed/Luxeed多品牌。</li>
+      <li><strong>东风（DFM）</strong>：计划11月开始交付，60家经销商覆盖22州+联邦区。2027末-2028初启动本地生产。</li>
+      <li><strong>IM</strong>：计划2026-2027年间推出电动/混动跑车。</li>
+    </ul>
   </div>
+  <span class="news-source">AutoPapo/DOL/MarkLines (2026-08-24/28/30)</span>
+</div>
+
+<div class="news-card">
+  <h4>巴西中资车进口1-7月暴增105.4%</h4>
+  <div class="news-body">Anfavea数据，巴西1-7月进口34.41万辆+25.7%，其中来自中国105.4%增长。比亚迪/长城/吉利已站稳，新入局者竞争加剧。</div>
+  <span class="news-source">Anfavea/DOL (2026-08-30)</span>
+</div>
+
+<div class="news-card">
+  <h4>雪佛兰Captiva PHEV年底在巴西PACE工厂投产</h4>
+  <div class="news-body">GM确认Captiva PHEV将成为第三款在巴西PACE工厂生产的车型。</div>
+  <span class="news-source">MarkLines (2026-08-29)</span>
+</div>
+</div>
+
+<!-- 1.4 Europe -->
+<div class="subsection region-eu" id="eu">
+<h3 class="subsection-title"><span class="region-dot"></span>1.4 欧洲市场</h3>
+
+<div class="news-card">
+  <h4>中国品牌7月在欧洲市场份额创纪录11.2%，目标2030年30%</h4>
+  <div class="news-body">Dataforce数据，中国品牌7月欧洲市占率11.2%，创有史以来最高。业内预计2030年将达30%。</div>
+  <span class="news-source">New Mobility (2026-08-25)</span>
+</div>
+
+<div class="news-card">
+  <h4>大众CEO万人集会被嘘：全球或再裁5万人，最多14万岗位面临风险</h4>
+  <div class="news-body">8/25沃尔夫斯堡总部员工大会，超1万员工抗议。奥博穆称除已安排5万德国岗位外，全球可能再减5万（其中约半数为德国）。H1全球交付412.6万辆-6.3%，中国97.1万辆-26%，纯电-47.9%。行政/间接成本比竞品高30%。四座工厂（埃姆登/汉诺威/茨维考/奥迪内卡苏尔姆）前景未明。工会估算全球最多14万岗位面临风险。</div>
+  <span class="news-source">观察者网/彭博社/New Mobility (2026-08-25/26)</span>
+</div>
+
+<div class="news-card">
+  <h4>小米汽车确认2027年进入欧洲：国际官网+社媒同步上线</h4>
+  <div class="news-body">全英文官网上线，明确标注"officially coming to Europe in 2027"。SU7 Ultra纽北量产电动车圈速纪录7:04.957。累计交付超70万辆。海外社媒同步开通，被业内视为全球化从战略进入执行阶段。</div>
+  <span class="news-source">New Mobility/搜狐 (2026-08-27)</span>
+</div>
+
+<div class="news-card">
+  <h4>现代汽车2030战略：全球销量目标555万辆，41款新车投放欧洲</h4>
+  <div class="news-body">CEO Investor Day公布利润导向增长路线图。2030年全球销量555万辆目标，consolidated营收目标上调。欧洲41款新车投放（史上最大），北美侧重混动，不再"一套动力打全球"。与Shell延长合作至2031年（EV油液+冷却液研发）。</div>
+  <span class="news-source">MarkLines/New Mobility (2026-08-26/28)</span>
+</div>
+
+<div class="news-card">
+  <h4>本田表态：没有USMCA协议就不在美国建新工厂</h4>
+  <div class="news-body">高管称可能不会建设第八座北美组装工厂。中美加贸易争端直接影响北美产能扩张决策。</div>
+  <span class="news-source">New Mobility (2026-08-27)</span>
+</div>
+</div>
+
+<!-- 1.5 North America -->
+<div class="subsection region-na" id="na">
+<h3 class="subsection-title"><span class="region-dot"></span>1.5 北美市场</h3>
+
+<div class="news-card">
+  <h4>通用汽车对加拿大汽车产业投资11亿加元：关税战中稳定生产</h4>
+  <div class="news-body">在美加贸易谈判破裂/关税战升级背景下，GM与加拿大工会达成临时协议。安大略省奥沙瓦工厂生产下一代重型皮卡，承诺不关闭英格索尔工厂，支持下一代V8发动机项目，2029年圣凯瑟琳斯工厂组装新一代变速箱。</div>
+  <span class="news-source">央视新闻/界面新闻 (2026-08-31)</span>
+</div>
+
+<div class="news-card">
+  <h4>特斯拉Semi工厂将于9/24在内华达超级工厂正式启用</h4>
+  <div class="news-body">8/24宣布，9月24日正式inauguration。</div>
+  <span class="news-source">MarkLines (2026-08-24)</span>
+</div>
+
+<div class="news-card">
+  <h4>特斯拉港澳推出更平价版Model 3</h4>
+  <div class="news-body">香港起售20.5万港元（约17.59万人民币），澳门起售25.2万澳门元（约20.98万人民币）。</div>
+  <span class="news-source">界面新闻 (2026-08-31)</span>
+</div>
+</div>
+
+<!-- 1.6 Other Markets -->
+<div class="subsection region-other" id="other">
+<h3 class="subsection-title"><span class="region-dot"></span>1.6 俄罗斯/中东/印度/非洲市场</h3>
+
+<div class="news-card">
+  <h4>普京试驾"伏尔加K50"（基于中国技术）赞不绝口</h4>
+  <div class="news-body">8/28在下诺夫哥罗德高尔基汽车厂试驾，称"非常舒服"、"几乎只需一根手指就能操控"。此前报道称Tenet（奇瑞换标）1-7月7.65万辆成俄罗斯第三品牌。中国技术背景品牌在俄罗斯前十中占7席。</div>
+  <span class="news-source">CCTV国际时讯/界面新闻 (2026-08-28/31)</span>
+</div>
+
+<div class="news-card">
+  <h4>丰田全球7月销量-4.8%至85.6万辆：中国暴跌24.3%</h4>
+  <div class="news-body">中国市场大幅下滑，美国-0.8%，中东疲软。</div>
+  <span class="news-source">CBT News (2026-08-28)</span>
+</div>
+</div>
+</section>
+
+<!-- Section 2: Policy -->
+<section class="section" id="policy">
+<div class="section-header">
+  <h2>二、政策动态</h2>
+  <span class="sec-line"></span>
+  <span class="sec-num">SECTION 02</span>
+</div>
+
+<div class="policy-card">
+  <h3>2.1 工信部：十五五将实施动力电池数字身份证管理制度</h3>
+  <p>8/26国新办"开局起步'十五五'"系列发布会，工信部副部长辛国斌宣布，将建立动力电池全生命周期数字身份证制度，覆盖生产/使用/回收/溯源全流程。这是应对NEV保有量激增后的安全管理和资源循环利用的关键基础设施。</p>
+  <span class="news-source">工信部/盖世汽车 (2026-08-27)</span>
+</div>
+
+<div class="policy-card">
+  <h3>2.2 菲律宾推出10亿美元EV补贴计划</h3>
+  <p>菲律宾政府公布600亿比索（约10亿美元）补贴计划，为纯BEV及组件提供最高40%联合融资，混动/PHEV/燃料电池30%。门槛：最低资本投资50亿比索（8100万美元）或最低年产1万辆EV。补贴以税收抵免形式发放（可抵扣所得税/消费税/增值税/进口关税）。每车型上限150亿比索，最多注册2款车型。</p>
+  <span class="news-source">TechNode Global/Maybank (2026-08-27)</span>
+</div>
+
+<div class="policy-card">
+  <h3>2.3 泰国50亿泰铢EV/太阳能低息贷款池</h3>
+  <p>泰国政府提议50亿泰铢低息贷款池，供家庭安装太阳能电池或购买EV，个人贷款上限200万泰铢。</p>
+  <span class="news-source">TechNode Global/Maybank (2026-08-27)</span>
+</div>
+
+<div class="policy-card">
+  <h3>2.4 河南力争全年NEV产量100万辆</h3>
+  <p>河南省政府发文，推动新能源汽车扩能增效，建成投产皮卡车、乘用车技改、动力电池等项目。</p>
+  <span class="news-source">界面新闻 (2026-08-31)</span>
+</div>
+
+<div class="policy-card">
+  <h3>2.5 中国汽车芯片五项认证认可行业标准发布</h3>
+  <p>初步构建国家层面汽车芯片能力评价体系。叠加L3强制性国标拟2027年7月实施，汽车安全合规全面提速。</p>
+  <span class="news-source">爱建证券 (2026-08-25)</span>
+</div>
+</section>
+
+<!-- Section 3: OEM -->
+<section class="section" id="oem">
+<div class="section-header">
+  <h2>三、车企动态</h2>
+  <span class="sec-line"></span>
+  <span class="sec-num">SECTION 03</span>
+</div>
+
+<div class="oem-card">
+  <h3><span class="oem-tag">3.1</span> 丰田上海金山雷克萨斯纯电工厂：打破"日本优先"铁律</h3>
+  <p>8/28日经披露核心信息：</p>
+  <ul>
+    <li><strong>车型</strong>：下一代雷克萨斯纯电SUV（此前已放弃日本纯电轿跑项目）</li>
+    <li><strong>时间</strong>：2027年秋季量产，首年月产~1000辆，2028年扩至年产数万辆</li>
+    <li><strong>投资</strong>：146亿人民币，丰田100%独资</li>
+    <li><strong>技术</strong>：Gigacast一体化压铸（前后大型铝铸件），最多减重20%→续航+4-5%</li>
+    <li><strong>供应链</strong>：零部件95%+本土化采购（电池/电驱/智能驾驶均在中国采购）</li>
+    <li><strong>产能</strong>：初期年产10万辆，未来出口日本及海外</li>
+    <li><strong>战略意义</strong>：丰田首次将最新车型率先在日本以外投产。过去以日本为研发中心→海外出口的模式发生根本转变。分析师称"中国正引领汽车智能化和AI发展，丰田已无法绕开这一趋势"。</li>
+  </ul>
+  <span class="news-source">日经/新华社/汽车之家/同花顺 (2026-08-28/30/31)</span>
+</div>
+
+<div class="oem-card">
+  <h3><span class="oem-tag">3.2</span> 零跑汽车H1中报：营收381亿新高，但下调全年利润目标至30亿</h3>
+  <ul>
+    <li>营收381.1亿+57.2%创历史新高，净利2.1亿+530%（连续三个半年度盈利）</li>
+    <li>全球交付35.65万辆+60.8%（新势力销量榜首），7月单月破10万辆（新势力首家）</li>
+    <li>出口9.63万辆+372.6%（超2025全年），海外占总销量27%</li>
+    <li>毛利率11.7%（-2.4ppt），Q2回升至12.6%</li>
+    <li>单车净利仅约589元。全年净利目标从50亿下调至30亿（原材料涨价）</li>
+    <li>100万辆销量目标不变，海外目标上调至20万辆</li>
+    <li>海外本地化加速：西班牙10月量产、马来西亚C10已量产/B10 Q3量产、巴西2027H2投产</li>
+  </ul>
+  <span class="news-source">36氪/经济导报/IT之家/东吴证券 (2026-08-24/25/26/28)</span>
+</div>
+
+<div class="oem-card">
+  <h3><span class="oem-tag">3.3</span> 奇瑞H1中报：海外收入+51%，净利-12%</h3>
+  <p>营收1432.8亿+1.2%，毛利230.4亿+25.1%，毛利率升至16.1%（+3.1ppt）。但净利同比-12%。海外收入同比+51%是核心亮点。成都车展风云T7上市24h订单23188台。</p>
+  <span class="news-source">MarkLines (2026-08-28)</span>
+</div>
+
+<div class="oem-card">
+  <h3><span class="oem-tag">3.4</span> 大众集团全球最大规模转型：或裁14万岗位</h3>
+  <p>H1全球交付412.6万辆-6.3%，中国97.1万辆-26%，纯电-47.9%。营业利润59.3亿欧-11.6%。已安排5万德国岗位削减，管理层提出全球再减5万（约半数为德国），工会估算总计最多14万岗位面临风险。行政成本比竞品高30%，需再削100亿欧成本。四座工厂6-12个月内须找到新产品/用途，否则关闭。</p>
+  <span class="news-source">观察者网/彭博社/New Mobility (2026-08-25/26)</span>
+</div>
+
+<div class="oem-card">
+  <h3><span class="oem-tag">3.5</span> 现代汽车CEO Investor Day：2030年555万辆+41款欧洲新车</h3>
+  <p>利润导向增长路线图。2030年全球销量555万辆（不变），consolidated营收目标上调。全球100+新车/改款，其中欧洲41款。区域差异化动力策略：北美侧重混动。与Shell延长合作至2031年。</p>
+  <span class="news-source">MarkLines/New Mobility (2026-08-26/28)</span>
+</div>
+
+<div class="oem-card">
+  <h3><span class="oem-tag">3.6</span> 北汽（BAIC）大举进军巴西</h3>
+  <p>Interlagos Festival首秀Arcfox T1/T5。计划2028年前投放10款车型+SUV+皮卡。150家经销网点（2027年底）。2028年启动本地生产（最大海外工厂）。三品牌策略：BAIC（混动SUV）/Arcfox（纯电跨界）/Stelato（华为合作豪华）。X55乙醇燃料混动版适配巴西市场。目标2028年进前十/2030年进前五。</p>
+  <span class="news-source">MarkLines/AutoPapo/GlobalAutoInsight (2026-08-24/28)</span>
+</div>
+
+<div class="oem-card">
+  <h3><span class="oem-tag">3.7</span> GM-SAIC合资延长至2047年</h3>
+  <p>双方确认延长合资协议至2047年。上汽通用计划2030年前推出至少30款NEV。中国开发的别克NEV可能开始出口国际市场。</p>
+  <span class="news-source">CBT News (2026-08-11)</span>
+</div>
+</section>
+
+<!-- Section 4: Research -->
+<section class="section" id="research">
+<div class="section-header">
+  <h2>四、调研报告与行业分析</h2>
+  <span class="sec-line"></span>
+  <span class="sec-num">SECTION 04</span>
+</div>
+
+<div class="research-card">
+  <h3>4.1 中国汽车行业利润率3.6%深度解读：内卷式竞争的"死亡螺旋"</h3>
+  <p>1-7月行业利润率3.6%（工业企业均值6.5%），利润同比-20%。单车毛利仅1.2万元-19%。核心矛盾：收入增速2.7%&lt;成本增速3.8%，碳酸锂翻倍+铜铝塑料高位运行。2024年利润率4.3%→2025年4.1%→2026年3.6%，逐年恶化趋势明确。崔东树指出"燃油车生产剧烈下降，盈利压力凸显"。结论：内卷式低价竞争已走到尽头，后续行业涨价潮+中小品牌出清将加速。</p>
+  <span class="news-source">乘联会/太平洋科技/北京商报 (2026-08-27)</span>
+</div>
+
+<div class="research-card">
+  <h3>4.2 东南亚EV加速：能源安全驱动+中国车企主导</h3>
+  <p>Maybank研报核心结论：①ASEAN-6 H1 BEV渗透率从12%升至21%；②中国车企占东盟EV市场80-90%（除越南外）；③燃油进口国（韩/日/印/澳/东南亚）EV需求受能源危机驱动强劲增长；④全球H1 EV销量约900万辆+2%（中国-12%/美国-30%），但燃油进口国逆势增长；⑤中国是唯一BEV比ICE便宜的市场（大多数细分市场）。</p>
+  <span class="news-source">TechNode Global/Maybank (2026-08-27)</span>
+</div>
+
+<div class="research-card">
+  <h3>4.3 丰田上海工厂的标志性意义：跨国车企在华角色质变</h3>
+  <p>过去：日本研发→中国组装（代工）→中国销售。现在/未来：中国研发+中国供应链+中国生产→中国销售+出口全球。丰田金山工厂95%本土化采购+Gigacast首发+中国团队参与商品企划。大众VCTC（中国技术中心）、本田中国研发自主化、日产中国团队扩权、奇瑞+FREELANDER（捷豹路虎）合作。中国正在从"世界工厂"转变为"全球汽车创新中心"。</p>
+  <span class="news-source">汽车之家/日经 (2026-08-28/30)</span>
+</div>
+
+<div class="research-card">
+  <h3>4.4 追觅造车shutdown的警示：跨界造车的资本陷阱</h3>
+  <p>追觅从2025年8月官宣→2026年8月关停，投入超300亿规划/研发已烧超百亿。失败核心原因：①"20%自有+80%国资"杠杆模式遇国办54号文件失效；②缺乏整车资质和量产方案；③新能源车已进入淘汰赛，资本不愿给新入局者漫长试错期。10辆概念模型车每辆300万（不能开）的荒诞细节，折射出"以融资为目标"vs"以量产为目标"的本质差异。</p>
+  <span class="news-source">中国经济网/第一财经/界面新闻 (2026-08-24/25/27)</span>
+</div>
+</section>
+
+<!-- Injection Opportunity Section -->
+<section class="injection-section" id="injection">
+<div class="section-header">
+  <h2>⚡ 【注塑机会】专题标注</h2>
+  <span class="sec-line"></span>
+</div>
+
+<div class="inj-card">
+  <h3>【注塑机会】丰田上海金山雷克萨斯工厂2027投产：一体化压铸+95%本土化采购带来大型注塑件+特种材料需求</h3>
+  <p>初期年产10万辆，采用Gigacast一体化压铸（前后大型铝铸件）+中国供应链95%本土化。雷克萨斯纯电SUV的大型内外饰件（保险杠/仪表台/门板/灯壳等）均需要大吨位注塑机（2000-4000T）。一体化压铸虽替代部分钣金件，但注塑结构件/功能件需求不降反升（电池包壳体/连接器/电控壳体等）。丰田首次在中国首发最新车型，供应链本土化意味着注塑机/模具企业有直接切入丰田纯电供应链的机会窗口。</p>
+</div>
+
+<div class="inj-card">
+  <h3>【注塑机会】四大中资车企同期涌入巴西：BAIC/奇瑞iCAUR/东风/IM合计规划30+车型+多座本地工厂</h3>
+  <p>BAIC 2028年本地生产（10款车型+巴西最大海外工厂），奇瑞iCAUR 2027H1交付，东风2027末-2028初本地生产，IM 2026-2027推出跑车。巴西中资车进口1-7月+105.4%。每座本地工厂均需配套注塑模具供应链。BAIC 150家经销商+奇瑞多品牌布局（Lepas/Freelander/Exeed/Luxeed），注塑配件售后市场空间同步扩大。巴西乙醇燃料混动车型的特殊需求（耐腐蚀材料/专用密封件）也是差异化机会。</p>
+</div>
+
+<div class="inj-card">
+  <h3>【注塑机会】大众全球重组+欧洲产能下调50万辆：供应链洗牌中中资替代机会浮现</h3>
+  <p>大众或裁14万岗位、欧洲年产能下调50万辆、四座工厂面临关闭。现有供应商体系松动，中资注塑模具企业有望承接大众欧洲工厂外溢订单。同时大众中国交付97.1万辆-26%，正在加速中国供应链本土化降本，注塑机企业可借机切入大众中国NEV供应链。</p>
+</div>
+
+<div class="inj-card">
+  <h3>【注塑机会】吉利1000V超高压架构研发中：催生下一代特种工程塑料注塑需求</h3>
+  <p>吉利正在开发1000V架构（目前800V为主流），充电峰值功率已达1500kW。1000V对连接器壳体/电控壳体/电池模组框架的耐温耐压要求进一步大幅提升。PEEK/PPS/PPA等特种工程塑料需求从800V时代的"高端选配"变为1000V时代的"必选标配"。注塑机企业关注高温高压专用机型（料筒温度≥420℃/锁模力≥1200T）储备。</p>
+</div>
+
+<div class="inj-card">
+  <h3>【注塑机会】泰国BEV渗透率35.46%+马来西亚CKD扩产：东南亚注塑配套需求持续增长</h3>
+  <p>泰国7月BEV销量占比35.46%，1-7月BEV 12.5万辆+97%。长城Haval H7 PHEV/Ora 5 HEV马来西亚CKD生产。中国车企在东南亚的本地化组装（CKD/SKD）直接拉动注塑模具/注塑机的出口配套需求。泰国政府面临调整BEV税收激励政策（皮卡暴跌+ICE就业压力），政策变化需持续跟踪。</p>
+</div>
+</section>
+
+<!-- Next Week -->
+<section class="section" id="nextweek">
+<div class="section-header">
+  <h2>下周关注</h2>
+  <span class="sec-line"></span>
+</div>
+
+<div class="next-week">
+<ul>
+  <li><strong>成都车展（8/21-8/30）闭幕</strong>：最终订单量/成交额统计</li>
+  <li><strong>8月全月汽车销量数据</strong>：乘联会/中汽协月度数据（9月初发布）</li>
+  <li><strong>加拿大50%报复性关税（9/8生效）</strong>：对北美汽车产业链冲击评估</li>
+  <li><strong>欧盟BEV关税9/25投票</strong>：成员国最终表决</li>
+  <li><strong>小米澎程N90/N70 9月正式上市</strong>：增程SUV定价策略</li>
+  <li><strong>零跑西班牙工厂10月量产倒计时</strong>：B10项目投产进度</li>
+  <li><strong>丰田上海金山工厂进展</strong>：竣工后的设备安装/试生产节奏</li>
+  <li><strong>北汽巴西12月首批经销商开业</strong>：Arcfox T1预售/交付节奏</li>
+  <li><strong>碳酸锂价格走势</strong>：原材料成本能否企稳直接影响行业利润率修复</li>
+</ul>
+</div>
+</section>
+
 </main>
 
+<!-- Footer -->
 <footer class="footer">
-  <p>© 2026 全球汽车行业周报 | 本报告仅供内部参考</p>
+  <p><strong>数据来源：</strong><a href="https://www.cpcaauto.com/" target="_blank" rel="noopener noreferrer">乘联会</a>、<a href="http://www.caam.org.cn/" target="_blank" rel="noopener noreferrer">中汽协</a>、<a href="https://www.marklines.com/" target="_blank" rel="noopener noreferrer">MarkLines</a>、<a href="https://www.gasgoo.com/" target="_blank" rel="noopener noreferrer">盖世汽车</a>、<a href="https://www.jiemian.com/" target="_blank" rel="noopener noreferrer">界面新闻</a>、<a href="https://www.xinhuanet.com/" target="_blank" rel="noopener noreferrer">新华社</a>、<a href="https://www.nikkei.com/" target="_blank" rel="noopener noreferrer">日经</a>、<a href="https://www.guancha.cn/" target="_blank" rel="noopener noreferrer">观察者网</a>、<a href="https://www.36kr.com/" target="_blank" rel="noopener noreferrer">36氪</a>、<a href="https://www.yicai.com/" target="_blank" rel="noopener noreferrer">第一财经</a>、<a href="https://www.pconline.com.cn/" target="_blank" rel="noopener noreferrer">太平洋科技</a>、Dataforce、Anfavea、ACEA、CBT News、<a href="https://www.maybank.com/" target="_blank" rel="noopener noreferrer">Maybank</a>、TechNode Global、Focus2Move、AutoPapo、New Mobility、GlobalAutoInsight等。</p>
+  <p style="margin-top:8px">本报告仅供内部参考，数据以各官方机构发布为准。</p>
+  <p style="margin-top:12px;color:var(--text-muted)">© 2026 全球汽车行业周报 | 2026年8月31日</p>
 </footer>
 
-<button type="button" class="back-top" id="backTop" aria-label="返回顶部">↑</button>
+<!-- Back to top button -->
+<button type="button" class="back-top" id="backTop" aria-label="返回顶部" title="返回顶部">↑</button>
+
 <script>
-const backTop=document.getElementById('backTop');
-window.addEventListener('scroll',function(){
-  if(window.scrollY>400) backTop.classList.add('visible');
-  else backTop.classList.remove('visible');
+// Configuration constants
+const CONSTANTS = {
+  SCROLL_THRESHOLD: 400,
+  NAV_OFFSET: 100,
+  THROTTLE_DELAY: 100
+};
+
+// Throttle utility function
+function throttle(func, delay) {
+  let lastCall = 0;
+  return function(...args) {
+    const now = Date.now();
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      func.apply(this, args);
+    }
+  };
+}
+
+// Back to top visibility handler
+function handleBackTopVisibility() {
+  const btn = document.getElementById('backTop');
+  if (window.scrollY > CONSTANTS.SCROLL_THRESHOLD) {
+    btn.classList.add('visible');
+  } else {
+    btn.classList.remove('visible');
+  }
+}
+
+// Active nav highlight handler
+function handleNavHighlight() {
+  const sections = document.querySelectorAll('[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const scrollPos = window.scrollY + CONSTANTS.NAV_OFFSET;
+  
+  sections.forEach(function(sec) {
+    if (sec.offsetTop <= scrollPos && (sec.offsetTop + sec.offsetHeight) > scrollPos) {
+      const id = sec.getAttribute('id');
+      navLinks.forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + id) {
+          link.classList.add('active');
+        }
+      });
+    }
+  });
+}
+
+// Apply throttled scroll handlers
+const throttledBackTopHandler = throttle(handleBackTopVisibility, CONSTANTS.THROTTLE_DELAY);
+const throttledNavHandler = throttle(handleNavHighlight, CONSTANTS.THROTTLE_DELAY);
+
+// Attach scroll event listeners
+window.addEventListener('scroll', throttledBackTopHandler);
+window.addEventListener('scroll', throttledNavHandler);
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    const id = this.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+  });
 });
-backTop.addEventListener('click',function(){
-  window.scrollTo({top:0,behavior:'smooth'});
+
+// Back to top button click handler
+document.getElementById('backTop').addEventListener('click', function() {
+  window.scrollTo({top: 0, behavior: 'smooth'});
 });
 </script>
+
 </body>
 </html>

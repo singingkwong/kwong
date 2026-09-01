@@ -17,9 +17,6 @@ HTML_TEMPLATE = """<!doctype html>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>{title}</title>
 <meta name="description" content="{description}">
-<meta property="og:image" content="{cover_url}">
-<meta property="og:title" content="{title}">
-<meta property="og:description" content="{description}">
 <style>
 *,*::before,*::after{{box-sizing:border-box;margin:0;padding:0}}
 :root{{
@@ -199,7 +196,7 @@ body{{
       <span>📅 {date}</span>
       <span>🚗 全球汽车市场动态</span>
     </div>
-    <img src="{cover_url}" alt="封面图" class="hero-cover">
+    <img src="cover.png" alt="封面图" class="hero-cover">
   </div>
 </header>
 
@@ -234,25 +231,12 @@ def extract_title(md_content: str) -> str:
     return match.group(1).strip() if match else "全球汽车行业周报"
 
 
-def extract_cover_image(md_content: str) -> str:
-    """从 Markdown 中提取封面图 URL，如果没有则使用默认封面。"""
-    match = re.search(r"^cover_image:\s*(.+)$", md_content, re.MULTILINE | re.IGNORECASE)
-    if match:
-        url = match.group(1).strip()
-        if url and url.lower() != "default":
-            return url
-    return "cover.png"
-
-
 def extract_description(md_content: str) -> str:
     """提取第一段非空文本作为 description。"""
     lines = [line.strip() for line in md_content.splitlines() if line.strip()]
     for line in lines:
-        if line.startswith("#") or line.startswith("!"):
-            continue
-        if re.match(r"^cover_image:\s*", line, re.IGNORECASE):
-            continue
-        return line[:120]
+        if not line.startswith("#") and not line.startswith("!"):
+            return line[:120]
     return "全球汽车行业深度周报"
 
 
@@ -266,18 +250,13 @@ def convert(md_path: Path, output_path: Path = None) -> Path:
     )
 
     title = extract_title(md_content)
-    cover_url = extract_cover_image(md_content)
     description = extract_description(md_content)
     date_str = datetime.now().strftime("%Y年%m月%d日")
     year = datetime.now().year
 
-    # 移除封面图配置行，避免正文显示
-    html_content = re.sub(r"^<p>cover_image:\s*[^<]+</p>\n*", "", html_content, flags=re.MULTILINE | re.IGNORECASE)
-
     html = HTML_TEMPLATE.format(
         title=title,
         description=description,
-        cover_url=cover_url,
         date=date_str,
         year=year,
         content=html_content,
