@@ -241,7 +241,68 @@
             .grid-2 { grid-template-columns: 1fr; }
             .header-content { flex-direction: column; }
         }
-    </style>
+    
+        /* Report Navigation */
+        .report-nav {
+            background-color: rgba(30, 41, 59, 0.95);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 20px;
+            position: sticky;
+            top: 0;
+            z-index: 99;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-inner {
+            max-width: 1200px;
+            margin: 0 auto;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            overflow-x: auto;
+            scrollbar-width: thin;
+        }
+
+        .nav-title {
+            color: var(--accent-color);
+            font-weight: 700;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        .nav-list {
+            list-style: none;
+            display: flex;
+            gap: 8px;
+            flex-wrap: nowrap;
+        }
+
+        .nav-list li {
+            flex-shrink: 0;
+        }
+
+        .nav-list a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 6px;
+            transition: all 0.2s ease;
+            white-space: nowrap;
+            border: 1px solid transparent;
+        }
+
+        .nav-list a:hover {
+            color: var(--accent-color);
+            background-color: var(--accent-glow);
+            border-color: rgba(56, 189, 248, 0.3);
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+</style>
 </head>
 <body>
 
@@ -259,9 +320,24 @@
         </div>
     </header>
 
+
+    <nav class="report-nav">
+        <div class="nav-inner">
+            <span class="nav-title">目录</span>
+            <ul class="nav-list">
+                <li><a href="#本周总览">本周总览</a></li>
+                <li><a href="#各地市场动态">各地市场动态</a></li>
+                <li><a href="#政策动态">政策动态</a></li>
+                <li><a href="#车企动态">车企动态</a></li>
+                <li><a href="#调研报告-机构观点">调研报告/机构观点</a></li>
+                <li><a href="#注塑机会专题">注塑机会专题</a></li>
+                <li><a href="#下周关注">下周关注</a></li>
+            </ul>
+        </div>
+    </nav>
     <main>
         <!-- 本周总览 -->
-        <section class="card">
+        <section class="card" id="本周总览">>
             <div class="card-header">
                 <div class="card-icon">01</div>
                 <h2 class="card-title">本周总览</h2>
@@ -285,7 +361,7 @@
 
         <div class="grid-2">
             <!-- 各地市场动态 -->
-            <section class="card">
+            <section class="card" id="各地市场动态">>
                 <div class="card-header">
                     <div class="card-icon">02</div>
                     <h2 class="card-title">各地市场动态</h2>
@@ -298,7 +374,7 @@
             </section>
 
             <!-- 政策动态 -->
-            <section class="card">
+            <section class="card" id="政策动态">>
                 <div class="card-header">
                     <div class="card-icon">03</div>
                     <h2 class="card-title">政策动态</h2>
@@ -313,7 +389,7 @@
 
         <div class="grid-2">
             <!-- 车企动态 -->
-            <section class="card">
+            <section class="card" id="车企动态">>
                 <div class="card-header">
                     <div class="card-icon">04</div>
                     <h2 class="card-title">车企动态</h2>
@@ -352,7 +428,7 @@
             </section>
 
             <!-- 调研报告/机构观点 -->
-            <section class="card">
+            <section class="card" id="调研报告-机构观点">>
                 <div class="card-header">
                     <div class="card-icon">05</div>
                     <h2 class="card-title">调研报告/机构观点</h2>
@@ -364,7 +440,7 @@
         </div>
 
         <!-- 注塑机会专题 (核心部分) -->
-        <section class="card injection-card">
+        <section class="card injection-card" id="注塑机会专题">>
             <div class="card-header">
                 <div class="card-icon">★</div>
                 <h2 class="card-title">注塑机会专题</h2>
@@ -404,10 +480,13 @@
         </section>
 
         <!-- 下周关注 -->
-        <section class="card">
+        <section class="card" id="下周关注">>
             <div class="card-header">
                 <div class="card-icon">07</div>
                 <h2 class="card-title">下周关注</h2>
             </div>
             <ul>
                 <li><strong>09月05日：</
+    </main>
+</body>
+</html>
