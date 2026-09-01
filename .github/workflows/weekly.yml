@@ -43,6 +43,11 @@ jobs:
           git commit -m "auto: $(date +%Y-%m-%d) 汽车行业周报" || echo "No changes to commit"
           git push
 
+      - name: Wait for GitHub Pages deployment
+        run: |
+          echo "Waiting for GitHub Pages to deploy..."
+          sleep 180
+
       - name: Send WeCom notification
         env:
           WECOM_WEBHOOK_KEY: ${{ secrets.WECOM_WEBHOOK_KEY }}
