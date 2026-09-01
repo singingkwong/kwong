@@ -23,14 +23,20 @@ HEADERS = {
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def fetch_weekly_markdown() -> str:
-    """调用扣子 Bot 生成周报 Markdown。"""
+def fetch_weekly_html() -> str:
+    """调用扣子 Bot 直接生成周报 HTML。"""
     today = datetime.now().strftime("%Y年%m月%d日")
     prompt = (
-        f"请生成一份{today}的全球汽车行业深度周报。"
+        f"请生成一份{today}的全球汽车行业深度周报，并直接输出完整的 HTML 文件内容。"
         "基于你搜索到的近7天最新行业数据、政策动态、车企动向和注塑机相关机会，"
-        "按照固定模板输出：本周总览、各地市场动态、政策动态、车企动态、调研报告/机构观点、"
-        "注塑机会专题、下周关注。输出为 Markdown 格式。"
+        "按照固定模板组织内容：本周总览、各地市场动态、政策动态、车企动态、调研报告/机构观点、"
+        "注塑机会专题、下周关注。"
+        "要求：\n"
+        "1. 输出一个完整的、独立的 HTML 文件，包含 <html><head><body> 标签；\n"
+        "2. 使用现代深色主题、响应式布局、卡片式设计，类似高端行业研究报告风格；\n"
+        "3. 在 <head> 中使用嵌入式 CSS，不要引用外部 CSS 文件；\n"
+        "4. 标题层级清晰，数据可视化可用表格展示；\n"
+        "5. 不要在 HTML 外面添加任何说明文字，只输出 HTML 代码本身。"
     )
 
     resp = requests.post(
@@ -47,7 +53,7 @@ def fetch_weekly_markdown() -> str:
                     "content_type": "text",
                 }
             ],
-            "auto_save_history": False,
+            "auto_save_history": True,
         },
         timeout=60,
     )
@@ -100,30 +106,49 @@ def fetch_weekly_markdown() -> str:
     raise RuntimeError("未找到有效的回答内容")
 
 
-def save_markdown(content: str) -> Path:
-    """保存 Markdown 文件。"""
-    date_str = datetime.now().strftime("%Y%m%d")
-    md_path = ROOT / f"weekly_{date_str}.md"
-    md_path.write_text(content, encoding="utf-8")
-    print(f"Markdown 已保存: {md_path}")
-    return md_path
+def clean_html(content: str) -> str:
+    """清理 Agent 返回的内容，只保留 HTML 部分。"""
+    content = content.strip()
+    # 如果内容被 markdown 代码块包裹，提取内部
+    if content.startswith("```html"):
+        content = content[7:]
+        if content.endswith("```"):
+            content = content[:-3]
+    elif content.startswith("```"):
+        content = content[3:]
+        if content.endswith("```"):
+            content = content[:-3]
+    return content.strip()
+
+
+def save_html(content: str) -> Path:
+    """保存 HTML 文件。"""
+    html_path = ROOT / "index.html"
+    html_path.write_text(content, encoding="utf-8")
+    print(f"HTML 已保存: {html_path}")
+    return html_path
 
 
 def extract_title(content: str) -> str:
-    """从 Markdown 中提取标题。"""
-    match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
-    return match.group(1).strip() if match else "全球汽车行业周报"
+    """从 HTML 中提取标题。"""
+    match = re.search(r"<title>(.*?)</title>", content, re.IGNORECASE)
+    if match:
+        return match.group(1).strip()
+    match = re.search(r"<h1[^>]*>(.*?)</h1>", content, re.IGNORECASE | re.DOTALL)
+    if match:
+        return re.sub(r"<[^>]+>", "", match.group(1)).strip()
+    return "全球汽车行业周报"
 
 
 def main():
-    print("开始调用 Agent 生成周报...")
-    content = fetch_weekly_markdown()
-    md_path = save_markdown(content)
+    print("开始调用 Agent 生成周报 HTML...")
+    content = fetch_weekly_html()
+    content = clean_html(content)
+    html_path = save_html(content)
 
-    # 同时输出摘要信息供后续步骤使用
     title = extract_title(content)
     print(f"title={title}")
-    print(f"md_path={md_path}")
+    print(f"html_path={html_path}")
 
 
 if __name__ == "__main__":

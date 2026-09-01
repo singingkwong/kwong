@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 企业微信机器人推送：汽车行业周报图文卡片。
-从生成的 Markdown 文件中自动提取标题和热点，发送企微图文消息。
+从生成的 HTML 文件中自动提取标题和热点，发送企微图文消息。
 """
 import json
 import os
@@ -21,65 +21,93 @@ BASE_URL = f"https://{GITHUB_USER}.github.io/{GITHUB_REPO}"
 COVER_URL = f"{BASE_URL}/cover.png"
 
 
-def find_latest_md() -> Path:
-    md_files = sorted(ROOT.glob("weekly_*.md"))
-    if not md_files:
-        raise FileNotFoundError("未找到 weekly_*.md 文件")
-    return md_files[-1]
+def find_html() -> Path:
+    html_path = ROOT / "index.html"
+    if not html_path.exists():
+        raise FileNotFoundError("未找到 index.html 文件")
+    return html_path
 
 
-def extract_title(md_content: str) -> str:
-    match = re.search(r"^#\s+(.+)$", md_content, re.MULTILINE)
-    title = match.group(1).strip() if match else "全球汽车行业周报"
-    # 如果标题没有日期，加上当天日期
-    if not re.search(r"\d{4}", title):
-        today = datetime.now().strftime("%Y年%m月%d日")
-        title = f"{title} | {today}"
-    return title
+def strip_html_tags(text: str) -> str:
+    """去除 HTML 标签并压缩空白。"""
+    text = re.sub(r"<[^>]+>", "", text)
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
 
-def extract_summary(md_content: str) -> str:
-    """提取 Markdown 第一段非空文字作为摘要。"""
-    lines = [line.strip() for line in md_content.splitlines() if line.strip()]
-    for line in lines:
-        if not line.startswith("#") and not line.startswith("!") and not line.startswith("["):
-            return line[:160]
+def extract_title(html_content: str) -> str:
+    """从 HTML <title> 或 <h1> 中提取标题。"""
+    match = re.search(r"<title>(.*?)</title>", html_content, re.IGNORECASE | re.DOTALL)
+    if match:
+        title = strip_html_tags(match.group(1))
+        if title:
+            return title
+
+    match = re.search(r"<h1[^>]*>(.*?)</h1>", html_content, re.IGNORECASE | re.DOTALL)
+    if match:
+        title = strip_html_tags(match.group(1))
+        if title:
+            return title
+
+    return "全球汽车行业周报"
+
+
+def extract_summary(html_content: str) -> str:
+    """从 HTML 中提取第一段有意义的正文作为摘要。"""
+    # 移除 script/style 标签及其内容
+    text = re.sub(r"<script[^>]*>.*?</script>", "", html_content, flags=re.IGNORECASE | re.DOTALL)
+    text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.IGNORECASE | re.DOTALL)
+    text = strip_html_tags(text)
+
+    # 按句子拆分，找到第一段超过 30 个字的描述性文字
+    sentences = re.split(r"(?<=[。！？.!?])\s+", text)
+    for s in sentences:
+        s = s.strip()
+        if len(s) >= 30 and not s.startswith("全球汽车行业") and not s.startswith("报告日期"):
+            return s[:160]
+
     return "本周全球汽车市场深度解读，点击查看完整报告。"
 
 
-def extract_hotspots(md_content: str, count: int = 3) -> list:
+def extract_hotspots(html_content: str, count: int = 3) -> list:
     """
-    从 Markdown 中提取热点条目。
-    策略：匹配 ## 或 ### 标题，取标题下的第一段正文作为描述。
+    从 HTML 的 <h2> 标题中提取热点条目。
+    策略：取 <h2> 标题及之后的第一段正文作为描述。
     """
     hotspots = []
-    # 按标题拆分
-    sections = re.split(r"\n(?=##\s+|###\s+)", md_content)
+    # 移除 script/style
+    text = re.sub(r"<script[^>]*>.*?</script>", "", html_content, flags=re.IGNORECASE | re.DOTALL)
+    text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.IGNORECASE | re.DOTALL)
 
-    for section in sections:
-        title_match = re.match(r"#{2,3}\s+(.+)$", section, re.MULTILINE)
-        if not title_match:
+    # 找到所有 h2 标题及其位置
+    h2_pattern = re.compile(r"<h2[^>]*>(.*?)</h2>", re.IGNORECASE | re.DOTALL)
+    matches = list(h2_pattern.finditer(text))
+
+    for i, match in enumerate(matches):
+        title = strip_html_tags(match.group(1))
+        if not title:
             continue
 
-        title = title_match.group(1).strip()
-        # 过滤掉不合适的标题
-        if any(skip in title for skip in ["来源", "配图", "原文链接", "周报", "简报", "总览"]):
+        # 过滤不合适的标题
+        if any(skip in title for skip in ["来源", "配图", "原文链接", "周报", "简报", "总览", "关于我们"]):
             continue
 
-        # 提取标题下的第一段正文
-        body_lines = []
-        for line in section.splitlines()[1:]:
-            line = line.strip()
-            if not line or line.startswith("#"):
-                continue
-            if line.startswith("!") or line.startswith("["):
-                continue
-            body_lines.append(line)
-            if len(body_lines) >= 2:
+        # 提取该 h2 之后到下一个 h2 之前的正文
+        start = match.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
+        section = text[start:end]
+
+        # 取 section 中的第一段非空文本
+        section_text = strip_html_tags(section)
+        sentences = re.split(r"(?<=[。！？.!?])\s+", section_text)
+        description = ""
+        for s in sentences:
+            s = s.strip()
+            if len(s) >= 20:
+                description = s[:150]
                 break
 
-        if body_lines:
-            description = " ".join(body_lines)[:150]
+        if description:
             hotspots.append({"title": title, "description": description})
 
         if len(hotspots) >= count:
@@ -128,13 +156,13 @@ def send(payload: dict):
 
 
 def main():
-    md_path = find_latest_md()
-    print(f"读取周报: {md_path}")
+    html_path = find_html()
+    print(f"读取周报 HTML: {html_path}")
 
-    md_content = md_path.read_text(encoding="utf-8")
-    title = extract_title(md_content)
-    summary = extract_summary(md_content)
-    hotspots = extract_hotspots(md_content)
+    html_content = html_path.read_text(encoding="utf-8")
+    title = extract_title(html_content)
+    summary = extract_summary(html_content)
+    hotspots = extract_hotspots(html_content)
 
     print(f"标题: {title}")
     print(f"摘要: {summary}")
