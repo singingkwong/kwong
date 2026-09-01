@@ -81,7 +81,28 @@ nav_style = """
 if "nav a:hover" not in html:
     html = html.replace("</style>", nav_style + "\n</style>", 1)
 
-# 步骤 6：提取专家建议并格式化为独立 section
+# 步骤 6：添加编制团队信息
+if "YZM海外汽车行业拓展项目组" not in html:
+    # 在 report-meta 里追加编制团队
+    if '<div class="report-meta">' in html:
+        html = re.sub(
+            r'(<div class="report-meta">\s*)(.*?)(\s*</div>)',
+            lambda m: f'{m.group(1)}{m.group(2).strip()}<br>\\n                编制团队：YZM海外汽车行业拓展项目组{m.group(3)}',
+            html,
+            count=1,
+            flags=re.DOTALL,
+        )
+    else:
+        # 如果没有 report-meta，在 h1 后面追加
+        html = re.sub(
+            r'(</h1>\s*</div>\s*<div>)',
+            r'\1<div style="margin-top: 8px; font-size: 0.9rem; opacity: 0.8;">编制团队：YZM海外汽车行业拓展项目组</div><div>',
+            html,
+            count=1,
+            flags=re.DOTALL,
+        )
+
+# 步骤 7：提取专家建议并格式化为独立 section
 expert_section = ""
 # 匹配 "专家建议：" 或 "专家建议：" 开头的段落
 expert_match = re.search(
