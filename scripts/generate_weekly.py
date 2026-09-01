@@ -47,7 +47,7 @@ def fetch_weekly_markdown() -> str:
                     "content_type": "text",
                 }
             ],
-            "auto_save_history": False,
+            "auto_save_history": True,
         },
         timeout=60,
     )
