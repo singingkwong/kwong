@@ -157,6 +157,50 @@ if "<section" in html and "下周关注" in html:
             </div>
         </section>"""
 
+# 步骤 8：添加数据来源说明
+sources_section = """
+        <!-- 数据来源 -->
+        <section id="sources">
+            <h2>数据来源</h2>
+            <div class="card">
+                <p style="margin-bottom: 15px;">本报告数据与资讯来源于以下公开渠道及行业数据库，所有引用均标注来源及日期：</p>
+                <div class="grid-3">
+                    <div>
+                        <h4>行业数据库</h4>
+                        <ul style="list-style: disc; padding-left: 20px; color: var(--text-secondary);">
+                            <li>MarkLines 付费数据库</li>
+                            <li>乘联会 (CPCA)</li>
+                            <li>中汽协 (CAAM)</li>
+                            <li>ACEA（欧洲）</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>区域市场</h4>
+                        <ul style="list-style: disc; padding-left: 20px; color: var(--text-secondary);">
+                            <li>GAIKINDO（印尼）</li>
+                            <li>TAI / FTI（泰国）</li>
+                            <li>ANFAVEA / Fenabrave（巴西）</li>
+                            <li>SIAM（印度）、AEB（俄罗斯）</li>
+                        </ul>
+                    </div>
+                    <div>
+                        <h4>媒体与研报</h4>
+                        <ul style="list-style: disc; padding-left: 20px; color: var(--text-secondary);">
+                            <li>盖世汽车、36氪、界面新闻</li>
+                            <li>AlixPartners、麦肯锡</li>
+                            <li>Maybank、爱建证券</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>"""
+
+if 'id="sources"' not in html and "数据来源" not in html:
+    if "</main>" in html:
+        html = html.replace("</main>", sources_section + "\n    </main>", 1)
+    else:
+        html = html.rstrip() + sources_section + "\n    </main>"
+
 # 确保基本结构完整
 if "</main>" not in html:
     # 如果存在专家建议 section，把它放到 main 里面
