@@ -80,14 +80,15 @@ def fetch_weekly_html() -> str:
         retrieve_resp.raise_for_status()
         retrieve_result = retrieve_resp.json()
         status = retrieve_result["data"]["status"]
-        print(f"chat status: {status}")
+        last_error = retrieve_result["data"].get("last_error", {})
+        print(f"chat status: {status}, last_error: {last_error}")
         if status in ("completed", "failed", "canceled"):
             break
     else:
         raise RuntimeError("等待对话完成超时")
 
     if status != "completed":
-        raise RuntimeError(f"对话未成功完成: {status}")
+        raise RuntimeError(f"对话未成功完成: {status}, last_error: {last_error}")
 
     # 获取消息列表
     msg_resp = requests.get(
@@ -150,6 +151,13 @@ def main():
     title = extract_title(content)
     print(f"title={title}")
     print(f"html_path={html_path}")
+
+    # 调用 HTML 修复脚本，确保导航条、编制团队、HTML 闭合完整
+    try:
+        import fix_html
+        fix_html.main()
+    except Exception as e:
+        print(f"fix_html 运行失败（非致命）: {e}")
 
 
 if __name__ == "__main__":
