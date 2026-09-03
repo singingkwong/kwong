@@ -53,12 +53,20 @@ def extract_title(html_content: str) -> str:
     return "全球汽车行业周报"
 
 
+def _find_overview_section(soup: BeautifulSoup):
+    """查找"本周总览"区域，支持 overview / section-1 两种 id。"""
+    for section_id in ("overview", "section-1"):
+        section = soup.find("section", {"id": section_id})
+        if section:
+            return section
+    return None
+
+
 def extract_summary(html_content: str) -> str:
     """从 HTML 的"本周总览"区域提取摘要，否则取第一段有意义的正文。"""
     soup = BeautifulSoup(html_content, "html.parser")
 
-    # 优先从"本周总览"section 中提取 report-summary 或第一个段落
-    overview_section = soup.find("section", {"id": "section-1"})
+    overview_section = _find_overview_section(soup)
     if overview_section:
         # 先尝试 report-summary 概述
         summary_div = overview_section.find("div", class_=lambda x: x and "report-summary" in x)
@@ -67,10 +75,10 @@ def extract_summary(html_content: str) -> str:
             if len(text) >= 30:
                 return text[:200]
 
-        # 再尝试"核心摘要"段落
+        # 再尝试第一个有意义的段落
         for p in overview_section.find_all("p"):
             text = p.get_text(strip=True)
-            if "核心摘要" in text or len(text) >= 40:
+            if len(text) >= 40:
                 clean = re.sub(r"^核心摘要[：:]\s*", "", text)
                 if len(clean) >= 30:
                     return clean[:200]
@@ -87,16 +95,16 @@ def extract_summary(html_content: str) -> str:
 
 def extract_hotspots(html_content: str, count: int = 3) -> list:
     """
-    从 HTML "本周总览" 区域的数据指标卡片中提取热点。
-    优先匹配：指标名称 + 指标数值/描述。
-    若未找到，则回退到 <h2> 章节标题策略。
+    从 HTML "本周总览" 区域的数据指标中提取热点。
+    支持多种结构：stat-card / stat-value+stat-label / grid 布局。
+    若未找到，则回退到 section-title / h2 章节标题。
     """
     hotspots = []
     soup = BeautifulSoup(html_content, "html.parser")
 
-    # 策略 A：从"本周总览"区域提取 stat-card 指标
-    overview_section = soup.find("section", {"id": "section-1"})
+    overview_section = _find_overview_section(soup)
     if overview_section:
+        # 策略 A-1：class="stat-card" 结构
         stat_cards = overview_section.find_all("div", class_=lambda x: x and "stat-card" in x)
         for card in stat_cards:
             label = card.find("div", class_=lambda x: x and "stat-label" in x)
@@ -107,7 +115,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
             val_text = value.get_text(strip=True) if value else ""
             desc_text = desc.get_text(strip=True) if desc else ""
 
-            if name and val_text and len(name) < 50:
+            if name and val_text and len(name) < 60:
                 description = f"{val_text} {desc_text}".strip()
                 hotspots.append({
                     "title": name,
@@ -116,44 +124,46 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
             if len(hotspots) >= count:
                 return hotspots
 
-    # 策略 B：回退到 <h2> 章节标题
-    text = re.sub(r"<script[^>]*>.*?</script>", "", html_content, flags=re.IGNORECASE | re.DOTALL)
-    text = re.sub(r"<style[^>]*>.*?</style>", "", text, flags=re.IGNORECASE | re.DOTALL)
+        # 策略 A-2：单独的 stat-value + stat-label 结构（无 stat-card 外层）
+        if not hotspots:
+            value_divs = overview_section.find_all("div", class_=lambda x: x and "stat-value" in x)
+            for value_div in value_divs:
+                label_div = value_div.find_next_sibling("div")
+                if label_div and "stat-label" in " ".join(label_div.get("class", [])):
+                    name = label_div.get_text(strip=True)
+                    val_text = value_div.get_text(strip=True)
+                    if name and val_text and len(name) < 60:
+                        hotspots.append({
+                            "title": name,
+                            "description": val_text[:150],
+                        })
+                if len(hotspots) >= count:
+                    return hotspots
 
-    h2_pattern = re.compile(r"<h2[^>]*>(.*?)</h2>", re.IGNORECASE | re.DOTALL)
-    matches = list(h2_pattern.finditer(text))
+    # 策略 B：回退到 section-title / h2 章节标题
+    if len(hotspots) < count:
+        needed = count - len(hotspots)
+        text = re.sub(r"<script[^>]*>.*?</script>", "", html_content, flags=re.IGNORECASE | re.DOTALL)
+        soup2 = BeautifulSoup(text, "html.parser")
 
-    for i, match in enumerate(matches):
-        title = strip_html_tags(match.group(1))
-        if not title:
-            continue
-
-        if any(skip in title for skip in ["来源", "配图", "原文链接", "周报", "简报", "关于我们"]):
-            continue
-
-        start = match.end()
-        end = matches[i + 1].start() if i + 1 < len(matches) else len(text)
-        section = text[start:end]
-
-        section_text = strip_html_tags(section)
-        sentences = re.split(r"(?<=[。！？.!?])\s+", section_text)
-        description = ""
-        for s in sentences:
-            s = s.strip()
-            if len(s) >= 20:
-                description = s[:150]
+        titles = []
+        for elem in soup2.find_all(["h2", "div"]):
+            if elem.name == "div" and "section-title" not in " ".join(elem.get("class", [])):
+                continue
+            title_text = elem.get_text(strip=True)
+            title_text = re.sub(r"\s*\w+\s*Overview\s*$", "", title_text, flags=re.IGNORECASE)
+            if title_text and title_text not in ["本周总览", "Weekly Overview"] and title_text not in [t["title"] for t in titles]:
+                titles.append({"title": title_text, "description": "点击查看详情"})
+            if len(titles) >= needed:
                 break
 
-        if description:
-            hotspots.append({"title": title, "description": description})
+        hotspots.extend(titles)
 
-        if len(hotspots) >= count:
-            break
-
-    return hotspots
+    return hotspots[:count]
 
 
 def build_payload(title: str, summary: str, hotspots: list) -> dict:
+    """构建企微图文消息 payload。"""
     articles = [
         {
             "title": title,
@@ -163,54 +173,51 @@ def build_payload(title: str, summary: str, hotspots: list) -> dict:
         }
     ]
 
-    for idx, hotspot in enumerate(hotspots[:3], start=1):
-        articles.append(
-            {
-                "title": f"热点{idx}：{hotspot['title']}",
-                "description": hotspot["description"],
-                "url": BASE_URL,
-                "picurl": COVER_URL,
-            }
-        )
+    for idx, hotspot in enumerate(hotspots, start=1):
+        articles.append({
+            "title": f"热点{idx}：{hotspot['title']}",
+            "description": hotspot["description"],
+            "url": BASE_URL,
+            "picurl": COVER_URL,
+        })
 
     return {"msgtype": "news", "news": {"articles": articles}}
 
 
-def send(payload: dict):
-    if not WECOM_WEBHOOK_KEY or WECOM_WEBHOOK_KEY == "你的企业微信机器人KEY":
-        print("错误：未设置 WECOM_WEBHOOK_KEY 环境变量")
-        raise SystemExit(1)
+def send_message(payload: dict) -> dict:
+    """调用企业微信机器人 Webhook 发送消息。"""
+    if not WECOM_WEBHOOK_KEY:
+        raise ValueError("缺少环境变量 WECOM_WEBHOOK_KEY")
 
-    url = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={WECOM_WEBHOOK_KEY}"
-    resp = requests.post(url, json=payload, timeout=10)
-    data = resp.json()
-
-    if data.get("errcode") == 0:
-        print("企微推送成功")
-    else:
-        print(f"企微推送失败：{data}")
-        raise SystemExit(1)
+    webhook_url = f"https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key={WECOM_WEBHOOK_KEY}"
+    response = requests.post(webhook_url, json=payload, timeout=30)
+    response.raise_for_status()
+    return response.json()
 
 
-def main():
+def main() -> None:
     html_path = find_html()
     print(f"读取周报 HTML: {html_path}")
 
     html_content = html_path.read_text(encoding="utf-8")
     title = extract_title(html_content)
     summary = extract_summary(html_content)
-    hotspots = extract_hotspots(html_content)
+    hotspots = extract_hotspots(html_content, count=3)
 
     print(f"标题: {title}")
     print(f"摘要: {summary}")
     print(f"热点数: {len(hotspots)}")
-    for i, h in enumerate(hotspots, 1):
-        print(f"  热点{i}: {h['title']}")
 
     payload = build_payload(title, summary, hotspots)
     print("Payload:", json.dumps(payload, ensure_ascii=False, indent=2))
 
-    send(payload)
+    result = send_message(payload)
+    print("企微推送结果:", result)
+
+    if result.get("errcode") != 0:
+        raise RuntimeError(f"企微推送失败：{result}")
+
+    print("企微推送成功")
 
 
 if __name__ == "__main__":
