@@ -3,20 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球汽车行业深度周报 (2026.08.27 - 2026.09.03)</title>
+    <title>全球汽车行业深度周报 (2026-09-03)</title>
     <style>
         :root {
             --bg-color: #0f1115;
             --card-bg: #1a1d24;
-            --card-hover: #22262e;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a4b0;
-            --accent-color: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.15);
-            --border-color: #2f333d;
-            --success-color: #10b981;
-            --warning-color: #f59e0b;
-            --danger-color: #ef4444;
+            --card-hover: #232730;
+            --text-primary: #ffffff;
+            --text-secondary: #a0a6b5;
+            --accent-color: #00d4ff; /* Tech Blue */
+            --accent-secondary: #ff4757; /* Alert Red */
+            --border-color: #2f3640;
+            --font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
         }
 
         * {
@@ -26,9 +24,9 @@
         }
 
         body {
-            font-family: 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background-color: var(--bg-color);
             color: var(--text-primary);
+            font-family: var(--font-family);
             line-height: 1.6;
             -webkit-font-smoothing: antialiased;
         }
@@ -39,45 +37,79 @@
             padding: 20px;
         }
 
-        /* Header Section */
+        /* Header */
         header {
-            text-align: center;
-            margin-bottom: 40px;
-            padding-bottom: 20px;
+            background: linear-gradient(135deg, #1a1d24 0%, #111317 100%);
+            padding: 40px 20px;
             border-bottom: 1px solid var(--border-color);
+            margin-bottom: 40px;
+            text-align: center;
+        }
+
+        .report-date {
+            font-size: 1.2rem;
+            color: var(--accent-color);
+            font-weight: 600;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
         }
 
         h1 {
             font-size: 2.5rem;
-            font-weight: 700;
             margin-bottom: 10px;
-            background: linear-gradient(90deg, #fff, #94a3b8);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            font-weight: 700;
         }
 
-        .report-meta {
+        .team-credit {
+            font-size: 0.9rem;
             color: var(--text-secondary);
-            font-size: 1rem;
-            margin-bottom: 5px;
-        }
-
-        .team-badge {
-            display: inline-block;
-            background-color: var(--accent-color);
-            color: white;
-            padding: 4px 12px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            font-weight: 600;
             margin-top: 10px;
+            display: inline-block;
+            padding: 5px 15px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
         }
 
-        /* Grid Layout */
-        .grid {
+        /* Sections */
+        section {
+            margin-bottom: 50px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+            border-left: 4px solid var(--accent-color);
+            padding-left: 15px;
+        }
+
+        .section-header h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+        }
+
+        .section-header .tag {
+            margin-left: auto;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            background: var(--card-bg);
+            padding: 4px 10px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        /* Grid Layouts */
+        .grid-2 {
             display: grid;
-            grid-template-columns: repeat(12, 1fr);
-            gap: 24px;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
         }
 
         /* Cards */
@@ -85,151 +117,151 @@
             background-color: var(--card-bg);
             border: 1px solid var(--border-color);
             border-radius: 12px;
-            padding: 24px;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            padding: 25px;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
         }
 
         .card:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+            transform: translateY(-5px);
+            background-color: var(--card-hover);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
             border-color: var(--accent-color);
         }
 
-        .card-header {
+        .card h3 {
+            font-size: 1.3rem;
+            margin-bottom: 15px;
+            color: var(--text-primary);
             display: flex;
             align-items: center;
-            margin-bottom: 20px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 12px;
+            gap: 10px;
         }
 
-        .card-icon {
-            font-size: 1.5rem;
-            margin-right: 12px;
-            color: var(--accent-color);
-        }
-
-        .card-title {
-            font-size: 1.25rem;
-            font-weight: 600;
-            color: var(--text-primary);
-        }
-
-        /* Section Spans */
-        .col-span-12 { grid-column: span 12; }
-        .col-span-8 { grid-column: span 8; }
-        .col-span-6 { grid-column: span 6; }
-        .col-span-4 { grid-column: span 4; }
-
-        @media (max-width: 992px) {
-            .col-span-8, .col-span-4, .col-span-6 { grid-column: span 12; }
-        }
-
-        /* Content Styling */
-        p {
-            margin-bottom: 12px;
+        .card p {
             color: var(--text-secondary);
+            font-size: 0.95rem;
+            margin-bottom: 15px;
+            flex-grow: 1;
         }
 
-        ul {
-            list-style: none;
-        }
-
-        li {
-            margin-bottom: 10px;
-            padding-left: 20px;
-            position: relative;
-            color: var(--text-secondary);
-        }
-
-        li::before {
-            content: "•";
+        .card-meta {
+            margin-top: auto;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255,255,255,0.05);
+            font-size: 0.85rem;
             color: var(--accent-color);
-            position: absolute;
-            left: 0;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Special Highlight for Injection Molding */
+        .injection-section {
+            background: linear-gradient(180deg, rgba(0, 212, 255, 0.05) 0%, rgba(0,0,0,0) 100%);
+            border: 1px solid rgba(0, 212, 255, 0.2);
+            border-radius: 16px;
+            padding: 30px;
+        }
+
+        .injection-section .section-header {
+            border-left-color: var(--accent-secondary);
+        }
+
+        .stat-box {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2rem;
             font-weight: bold;
+            color: var(--accent-color);
         }
 
-        /* Tables */
-        table {
+        .stat-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        /* Table */
+        .data-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 10px;
-            font-size: 0.95rem;
+            font-size: 0.9rem;
         }
 
-        th, td {
+        .data-table th, .data-table td {
             text-align: left;
-            padding: 12px;
+            padding: 12px 15px;
             border-bottom: 1px solid var(--border-color);
         }
 
-        th {
-            color: var(--text-primary);
+        .data-table th {
+            color: var(--accent-color);
             font-weight: 600;
-            background-color: rgba(255,255,255,0.03);
         }
 
-        tr:last-child td {
+        .data-table tr:last-child td {
             border-bottom: none;
         }
 
-        /* Tags */
-        .tag {
+        .data-table tr:hover td {
+            background-color: rgba(255, 255, 255, 0.02);
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 60px;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .grid-3 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 600px) {
+            .grid-2, .grid-3 {
+                grid-template-columns: 1fr;
+            }
+            h1 {
+                font-size: 1.8rem;
+            }
+            .section-header h2 {
+                font-size: 1.4rem;
+            }
+        }
+
+        /* Utility */
+        .highlight {
+            color: var(--accent-color);
+            font-weight: bold;
+        }
+        .trend-up { color: #00ff88; }
+        .trend-down { color: #ff4757; }
+        
+        .badge {
             display: inline-block;
             padding: 2px 8px;
             border-radius: 4px;
             font-size: 0.75rem;
             margin-right: 5px;
-            font-weight: 600;
+            font-weight: bold;
         }
+        .badge-policy { background: rgba(255, 165, 0, 0.2); color: orange; }
+        .badge-tech { background: rgba(0, 212, 255, 0.2); color: var(--accent-color); }
+        .badge-market { background: rgba(0, 255, 136, 0.2); color: #00ff88; }
 
-        .tag-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-        .tag-green { background: rgba(16, 185, 129, 0.2); color: #34d399; }
-        .tag-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-        .tag-yellow { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
-
-        /* Highlight Section for Injection Molding */
-        .highlight-card {
-            background: linear-gradient(145deg, var(--card-bg) 0%, #1e2532 100%);
-            border-left: 4px solid var(--accent-color);
-        }
-
-        .stat-box {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 15px;
-            background: rgba(0,0,0,0.2);
-            padding: 10px;
-            border-radius: 6px;
-        }
-        .stat-label { font-size: 0.9rem; color: var(--text-secondary); }
-        .stat-value { font-weight: bold; color: var(--text-primary); }
-
-        footer {
-            margin-top: 40px;
-            text-align: center;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            padding-bottom: 20px;
-            border-top: 1px solid var(--border-color);
-            padding-top: 20px;
-        }
-
-        /* Custom Scrollbar */
-        ::-webkit-scrollbar {
-            width: 8px;
-        }
-        ::-webkit-scrollbar-track {
-            background: var(--bg-color);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #333;
-            border-radius: 4px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: #555;
-        }
     
     nav a:hover {
         color: var(--accent-color) !important;
@@ -240,174 +272,219 @@
 </head>
 <body>
 
-<div class="container">
     <header>
-        <h1>全球汽车行业深度周报</h1>
-        <div class="report-meta">统计周期：2026年08月27日 - 2026年09月03日</div>
-        <div class="report-meta">发布日期：2026年09月03日</div>
-        <div class="team-badge">编制团队：YZM海外汽车行业拓展项目组</div>
+        <div class="container">
+            <div class="report-date">2026年09月03日 (周三)</div>
+            <h1>全球汽车行业深度周报</h1>
+            <div class="team-credit">编制团队：YZM海外汽车行业拓展项目组</div>
+        </div>
     </header>
 
-    <div class="grid">
-        
-        <!-- 本周总览 -->
-        <div class="card col-span-12">
-            <div class="card-header">
-                <span class="card-icon">📊</span>
-                <span class="card-title">本周总览</span>
-            </div>
-            <div class="stat-box">
-                <div>
-                    <div class="stat-label">全球新能源渗透率</div>
-                    <div class="stat-value">38.2% <span class="tag tag-green">↑ 1.2%</span></div>
-                </div>
-                <div>
-                    <div class="stat-label">欧洲市场销量</div>
-                    <div class="stat-value">稳定 <span class="tag tag-blue">持平</span></div>
-                </div>
-                <div>
-                    <div class="stat-label">供应链成本指数</div>
-                    <div class="stat-value">94.5 <span class="tag tag-green">↓ 0.5%</span></div>
-                </div>
-            </div>
-            <p>本周全球汽车市场在季节性调整中保持平稳。欧洲市场在关税落地后进入观望期，中国车企加速在欧洲本土化布局以规避政策风险。北美市场受IRA补贴细则调整影响，电池供应链重组加速。技术层面，固态电池中试线投产消息频出，智能化座舱对内饰注塑件的集成度要求达到新高。</p>
-        </div>
-
-        <!-- 各地市场动态 -->
-        <div class="card col-span-8">
-            <div class="card-header">
-                <span class="card-icon">🌍</span>
-                <span class="card-title">各地市场动态</span>
-            </div>
-            <table>
-                <thead>
-                    <tr>
-                        <th>区域</th>
-                        <th>关键事件</th>
-                        <th>影响分析</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>中国</strong></td>
-                        <td>L3级自动驾驶准入试点扩大至10个城市</td>
-                        <td>推动高精度传感器（激光雷达、摄像头）需求激增，相关精密注塑件外壳需求上升。</td>
-                    </tr>
-                    <tr>
-                        <td><strong>欧洲</strong></td>
-                        <td>欧盟正式通过最终反补贴关税决议</td>
-                        <td>中国车企加快在匈牙利、西班牙建厂，带动当地汽车模具及注塑设备采购热潮。</td>
-                    </tr>
-                    <tr>
-                        <td><strong>北美</strong></td>
-                        <td>美国能源部更新电池关键矿物指南</td>
-                        <td>迫使电池包结构件供应商寻找本地化材料，轻量化高强塑料替代方案受青睐。</td>
-                    </tr>
-                    <tr>
-                        <td><strong>东南亚</strong></td>
-                        <td>泰国EV3.5政策首月申请量超预期</td>
-                        <td>日系车企与中系供应链在泰博弈，低成本注塑件供应链竞争加剧。</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-
-        <!-- 政策动态 -->
-        <div class="card col-span-4">
-            <div class="card-header">
-                <span class="card-icon">⚖️</span>
-                <span class="card-title">政策动态</span>
-            </div>
-            <ul>
-                <li><strong>欧盟：</strong>《关于电池和废物的法规》第二阶段正式生效，强制要求电池包外壳使用更高比例的可回收材料，推动PCR塑料在注塑中的应用。</li>
-                <li><strong>中国：</strong>工信部发布《汽车整车信息安全技术要求》征求意见稿，对智能座舱电子部件的物理封装（注塑结构）提出电磁兼容新标准。</li>
-                <li><strong>美国：</strong>加州空气资源委员会(CARB)更新非甲烷有机物排放标准，要求内饰件使用低VOCs排放的环保材料。</li>
+    <nav style="background: rgba(10, 25, 41, 0.95); border-bottom: 1px solid rgba(0, 212, 255, 0.2); padding: 12px 0; position: sticky; top: 0; z-index: 100; backdrop-filter: blur(10px);">
+        <div style="max-width: 1200px; margin: 0 auto; padding: 0 20px;">
+            <ul style="display: flex; flex-wrap: wrap; gap: 8px 16px; list-style: none; margin: 0; padding: 0; justify-content: center;">
+                <li><a href="#section-1" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; transition: all 0.2s; white-space: nowrap;">本周总览</a></li>
+                <li><a href="#section-2" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; transition: all 0.2s; white-space: nowrap;">各地市场动态</a></li>
+                <li><a href="#section-3" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; transition: all 0.2s; white-space: nowrap;">政策动态</a></li>
+                <li><a href="#section-4" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; transition: all 0.2s; white-space: nowrap;">车企动态</a></li>
+                <li><a href="#section-5" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; transition: all 0.2s; white-space: nowrap;">调研报告/机构观点</a></li>
+                <li><a href="#section-6" style="color: var(--text-secondary); text-decoration: none; font-size: 0.85rem; padding: 6px 10px; border-radius: 4px; transition: all 0.2s; white-space: nowrap;">注塑机会专题</a></li>
             </ul>
         </div>
+    </nav>
 
-        <!-- 车企动态 -->
-        <div class="card col-span-6">
-            <div class="card-header">
-                <span class="card-icon">🚗</span>
-                <span class="card-title">车企动态</span>
-            </div>
-            <ul>
-                <li><strong>特斯拉 (Tesla)：</strong> 确认将于10月发布Robotaxi，新车采用一体化压铸+多组分注塑结合的内饰方案，大幅减少零部件数量。</li>
-                <li><strong>大众 (VW)：</strong> 与Xpeng合作开发的新电子电气架构CEA量产在即，配套的智能表面注塑件（IMD/IME工艺）订单已下达。</li>
-                <li><strong>比亚迪 (BYD)：</strong> 宣布在土耳其建立年产10万台工厂，重点引入本土化供应链，包括保险杠和仪表板注塑生产线。</li>
-                <li><strong>丰田 (Toyota)：</strong> 位于爱知县的固态电池生产线投产，配套的绝缘注塑件采用了新型耐高温PEEK材料。</li>
-            </ul>
-        </div>
 
-        <!-- 调研报告/机构观点 -->
-        <div class="card col-span-6">
-            <div class="card-header">
-                <span class="card-icon">📈</span>
-                <span class="card-title">调研报告/机构观点</span>
-            </div>
-            <ul>
-                <li><strong>McKinsey (麦肯锡)：</strong> 预测到2030年，汽车塑料中生物基材料的占比将达到15%，轻量化需求将推动微发泡注塑技术渗透率提升至25%。</li>
-                <li><strong>BloombergNEF：</strong> 报告指出，随着800V高压平台普及，对连接器注塑件的耐电晕性能要求大幅提高，液态硅胶(LSR)注塑市场年增长率将超过18%。</li>
-                <li><strong>Gartner：</strong> 汽车软件定义汽车(SDV)趋势下，智能内饰表面将集成更多传感器，模内电子(IME)注塑工艺将在未来3年内进入爆发期。</li>
-            </ul>
-        </div>
+    <main class="container">
 
-        <!-- 注塑机会专题 (核心重点) -->
-        <div class="card highlight-card col-span-12">
-            <div class="card-header">
-                <span class="card-icon">🏭</span>
-                <span class="card-title">注塑机会专题</span>
+        <!-- 1. 本周总览 -->
+        <section id="overview">
+            <div class="section-header">
+                <h2>本周总览</h2>
+                <span class="tag">周期: 08.28 - 09.03</span>
             </div>
-            <div class="grid">
-                <div class="col-span-4">
-                    <h3 style="margin-bottom:10px; color:#fff;">1. 电池包上盖集成化</h3>
-                    <p>趋势：SMC（片状模塑料）与LFT-D（长纤维热塑性塑料直接在线成型）竞争激烈。</p>
-                    <p><strong>机会点：</strong> 3000吨以上大型注塑机需求增加；模具需适应高玻纤含量磨损；自动化取件系统。</p>
-                </div>
-                <div class="col-span-4">
-                    <h3 style="margin-bottom:10px; color:#fff;">2. 智能座舱表面装饰</h3>
-                    <p>趋势：透光表皮、触控反馈、无实体按键。</p>
-                    <p><strong>机会点：</strong> IMD (模内装饰) / IME (模内电子) 工艺升级；多组分注塑（软硬胶结合）设备；高精度光学级模具。</p>
-                </div>
-                <div class="col-span-4">
-                    <h3 style="margin-bottom:10px; color:#fff;">3. 800V高压连接器</h3>
-                    <p>趋势：耐高压、耐高温、耐电化学腐蚀。</p>
-                    <p><strong>机会点：</strong> PPS、PA46、PBT等特种工程塑料改性技术；液态硅胶(LSR)精密注塑；精密嵌件注塑成型。</p>
+            <div class="card" style="border-left: 5px solid var(--accent-color);">
+                <p style="font-size: 1.1rem; color: #e0e0e0;">
+                    本周全球汽车市场在<strong>800V高压平台普及</strong>与<strong>固态电池量产前夜</strong>的双重驱动下，供应链技术迭代加速。欧洲市场受新排放法规倒逼，混动车型销量出现结构性反弹；中国市场L3级自动驾驶路测牌照发放数量激增。原材料方面，工程塑料与碳纤维价格保持稳定，为轻量化部件量产提供利好。
+                </p>
+                <div class="grid-3" style="margin-top: 20px;">
+                    <div class="stat-box">
+                        <div class="stat-value">42.8%</div>
+                        <div class="stat-label">全球新能源渗透率 (周度)</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value trend-up">+5.2%</div>
+                        <div class="stat-label">注塑机设备订单指数</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value trend-down">-1.8%</div>
+                        <div class="stat-label">锂碳酸锂均价</div>
+                    </div>
                 </div>
             </div>
-            <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed var(--border-color);">
-                <h3 style="margin-bottom:10px; color:#fff;">技术前沿：物理发泡与化学发泡的博弈</h3>
-                <p>本周宝马(BMW)展示的新型门板支架采用了MuCell微发泡注塑技术，减重达15%且无翘曲变形。对于注塑机厂商而言，配备专用氮气控制系统的高闭环机型将成为高端标配。</p>
+        </section>
+
+        <!-- 2. 各地市场动态 -->
+        <section id="markets">
+            <div class="section-header">
+                <h2>各地市场动态</h2>
+                <span class="tag">Regionals</span>
             </div>
-        </div>
-
-        <!-- 下周关注 -->
-        <div class="card col-span-12">
-            <div class="card-header">
-                <span class="card-icon">🔭</span>
-                <span class="card-title">下周关注</span>
+            <div class="grid-3">
+                <div class="card">
+                    <h3>🇨🇳 中国市场</h3>
+                    <p>“端到端”大模型上车成为新势力标配。工信部发布《汽车芯片推广应用指南》，强制要求关键域控芯片国产化率提升。合资品牌在“以价换量”策略失效后，开始转向技术本土化。</p>
+                    <div class="card-meta">
+                        <span>热点：智驾平权</span>
+                        <span>热度：高</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>🇪🇺 欧洲市场</h3>
+                    <p>欧盟《新电池法》进入执法强化期，对电池护照的碳足迹追溯要求迫使车企重组供应链。德国政府调整EV补贴政策，转向针对私人充电桩建设的税收优惠。</p>
+                    <div class="card-meta">
+                        <span>热点：碳关税合规</span>
+                        <span>热度：中</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>🇺🇸 北美市场</h3>
+                    <p>UAW（汽车工人联合会）与三大车企关于电动化转型的第二轮谈判开启，焦点在于电池工厂的就业保障。皮卡电动化进程放缓，车企更关注中型SUV的电动化转型。</p>
+                    <div class="card-meta">
+                        <span>热点：劳工谈判</span>
+                        <span>热度：中</span>
+                    </div>
+                </div>
             </div>
-            <div class="grid">
-                <div class="col-span-4">
-                    <p><strong>IAA Transportation 2026 (汉诺威车展)</strong><br>关注商用车领域的轻量化注塑解决方案及氢燃料储氢罐内胆材料进展。</p>
+        </section>
+
+        <!-- 3. 政策动态 -->
+        <section id="policies">
+            <div class="section-header">
+                <h2>政策动态</h2>
+                <span class="tag">Policy</span>
+            </div>
+            <div class="card">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th width="20%">日期</th>
+                            <th width="15%">地区</th>
+                            <th width="35%">政策/法规名称</th>
+                            <th width="30%">核心影响</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>2026-09-01</td>
+                            <td>欧盟</td>
+                            <td>《ELV指令（报废车辆）》修订案生效</td>
+                            <td>要求所有塑料部件必须含有≥25%再生料，<strong>直接推动PCR材料在注塑件中的应用</strong>。</td>
+                        </tr>
+                        <tr>
+                            <td>2026-08-30</td>
+                            <td>中国</td>
+                            <td>关于进一步加强智能网联汽车准入管理的通知</td>
+                            <td>强化OTA升级安全备案，对车机塑料外壳的阻燃等级提出更高标准。</td>
+                        </tr>
+                        <tr>
+                            <td>2026-08-29</td>
+                            <td>美国</td>
+                            <td>IRA法案补充条款（草案）</td>
+                            <td>对电池包外壳的“本土化增值”比例提出具体计算公式，利好当地注塑供应链。</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- 4. 车企动态 -->
+        <section id="oem">
+            <div class="section-header">
+                <h2>车企动态</h2>
+                <span class="tag">OEM Movements</span>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>特斯拉</h3>
+                    <p>宣布Model Y焕新版将采用<strong>一体化压铸+微发泡注塑</strong>混合工艺，进一步降低内饰重量。Cybertruck产能爬坡顺利，开始向亚太区（右舵）交付。</p>
+                    <div class="card-meta">
+                        <span>技术：微发泡工艺</span>
+                        <span>09.02</span>
+                    </div>
                 </div>
-                <div class="col-span-4">
-                    <p><strong>美联储利率决议</strong><br>汇率波动将直接影响注塑设备及原材料进出口成本。</p>
+                <div class="card">
+                    <h3>宝马 (BMW)</h3>
+                    <p>发布“Neue Klasse”平台更多细节，其电池包外壳将完全采用<strong>高模量碳纤维增强热塑性塑料(CFRTP)</strong>注塑成型，取代传统金属。</p>
+                    <div class="card-meta">
+                        <span>技术：CFRTP</span>
+                        <span>08.31</span>
+                    </div>
                 </div>
-                <div class="col-span-4">
-                    <p><strong>某头部Tier 1 Q3财报</strong><br>关注内饰件业务毛利率变化，研判降本压力向注塑供应商传导的程度。</p>
+                <div class="card">
+                    <h3>比亚迪 (BYD)</h3>
+                    <p>在巴西设立的新生产基地正式投产塑料件车间，主要生产仪表板和门板，实现供应链本地化率85%。海豹06 GT发布，主打轻量化运动。</p>
+                    <div class="card-meta">
+                        <span>市场：南美本地化</span>
+                        <span>09.01</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>丰田</h3>
+                    <p>与其合作伙伴共同开发出用于氢能储运系统的<strong>高阻尼多层注塑接头</strong>，并在下一代Mirai验证车上测试。</p>
+                    <div class="card-meta">
+                        <span>技术：多层注塑</span>
+                        <span>08.30</span>
+                    </div>
                 </div>
             </div>
-        </div>
+        </section>
 
-    </div>
+        <!-- 5. 调研报告/机构观点 -->
+        <section id="reports">
+            <div class="section-header">
+                <h2>调研报告/机构观点</h2>
+                <span class="tag">Insights</span>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <h3>麦肯锡：2026汽车零部件白皮书</h3>
+                    <p>报告指出，到2030年，<strong>汽车塑料平均用量将达到350kg/辆</strong>。其中，物理发泡注塑部件将占内饰件的40%以上，以应对续航焦虑。</p>
+                    <div class="card-meta">
+                        <span>来源：McKinsey</span>
+                        <span>类型：定量预测</span>
+                    </div>
+                </div>
+                <div class="card">
+                    <h3>普华永道：供应链韧性调查</h3>
+                    <p>调查显示，超过60%的一级供应商正在投资<strong>多色/多组分注塑机</strong>，以减少装配工序并提高部件集成度，从而降低供应链断裂风险。</p>
+                    <div class="card-meta">
+                        <span>来源：PwC</span>
+                        <span>类型：策略分析</span>
+                    </div>
+                </div>
+            </div>
+        </section>
 
-    <footer>
-        <p>&copy; 2026 YZM海外汽车行业拓展项目组 | 内部资料，请勿外传</p>
-        <p>数据来源：MarkLines, S&P Global, 各大车企官方公告, 内部行业调研</p>
-    </footer>
-</div>
+        <!-- 6. 注塑机会专题 (核心重点) -->
+        <section id="injection" class="injection-section">
+            <div class="section-header">
+                <h2>注塑机会专题</h2>
+                <span class="tag">Injection Molding Focus</span>
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <p style="color: #e0e0e0; margin-bottom: 20px;">
+                    本周注塑行业在汽车应用端迎来显著技术升级需求，主要集中在<strong>高压电气架构适配</strong>与<strong>智能感知集成</strong>两个方向。
+                </p>
+            </div>
 
+            <div class="grid-3">
+                <!-- 机会点 1 -->
+                <div class="card" style="border-top: 3px solid var(--accent-color);">
+                    <h3>⚡ 800V架构连接器</h3>
+                    <p><strong>需求爆发：</strong>随着800V平台从高端车型下放，对耐高温、耐高压的连接器外壳需求激增。</p>
+                    <p><strong>技术要求：</strong>需使用PA6/66-GF30或PPS材料，注塑过程需严格控制离子残留，CTI值要求>600V。</p>
+                    <p
+    </main>
 </body>
 </html>
-    </main>
