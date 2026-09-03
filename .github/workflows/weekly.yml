@@ -26,6 +26,16 @@ jobs:
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
 
+      - name: Debug secrets
+        run: |
+          echo "COZE_BOT_ID length: ${#COZE_BOT_ID}"
+          echo "COZE_BOT_ID prefix: ${COZE_BOT_ID:0:8}"
+          echo "COZE_TOKEN length: ${#COZE_WORKLOAD_API_TOKEN}"
+          echo "COZE_TOKEN prefix: ${COZE_WORKLOAD_API_TOKEN:0:10}"
+        env:
+          COZE_WORKLOAD_API_TOKEN: ${{ secrets.COZE_WORKLOAD_API_TOKEN }}
+          COZE_BOT_ID: ${{ secrets.COZE_BOT_ID }}
+
       - name: Generate weekly report HTML from Agent
         env:
           COZE_WORKLOAD_API_TOKEN: ${{ secrets.COZE_WORKLOAD_API_TOKEN }}
