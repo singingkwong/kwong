@@ -60,6 +60,7 @@ jobs:
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add index.html
           git commit -m "auto: $(date +%Y-%m-%d) 汽车行业周报" || echo "No changes to commit"
+          git pull origin main --rebase --autostash || true
           git push
 
       - name: Wait for GitHub Pages deployment
