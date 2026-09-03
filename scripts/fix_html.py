@@ -15,6 +15,7 @@ nav_items = []
 
 for i, m in enumerate(section_matches):
     start, end = m.start(), m.end()
+    tag = m.group(0)
     # section 结束位置
     if i + 1 < len(section_matches):
         section_end = section_matches[i + 1].start()
@@ -25,19 +26,24 @@ for i, m in enumerate(section_matches):
     h2_match = re.search(r'<h2[^>]*>(.*?)</h2>', section_html, re.DOTALL)
     if h2_match:
         title = re.sub(r'<[^>]+>', '', h2_match.group(1)).strip()
-        section_id = (
-            title.replace(" ", "-")
-            .replace("/", "-")
-            .replace("&", "")
-            .replace("（", "")
-            .replace("）", "")
-            .replace("(", "")
-            .replace(")", "")
-            .lower()
-        )
-        section_id = re.sub(r"[^a-z0-9\-]+", "", section_id)
-        section_id = section_id.strip("-") or f"section-{i+1}"
-        nav_items.append((section_id, title, start, end, m.group(0)))
+        # 优先使用 section 已有的 id
+        existing_id_match = re.search(r'\sid=["\']([^"\']+)["\']', tag)
+        if existing_id_match:
+            section_id = existing_id_match.group(1)
+        else:
+            section_id = (
+                title.replace(" ", "-")
+                .replace("/", "-")
+                .replace("&", "")
+                .replace("（", "")
+                .replace("）", "")
+                .replace("(", "")
+                .replace(")", "")
+                .lower()
+            )
+            section_id = re.sub(r"[^a-z0-9\-]+", "", section_id)
+            section_id = section_id.strip("-") or f"section-{i+1}"
+        nav_items.append((section_id, title, start, end, tag))
 
 # 步骤 2：给 section 添加 id（如果还没有）
 offset = 0
@@ -65,9 +71,9 @@ if nav_items_html:
 """
         html = html.replace("</header>", "</header>\n" + nav_html, 1)
     else:
-        # 替换已有的空 <ul> 或重新填充 <ul>
+        # 替换已有的 <ul>...</ul> 内容
         # 找到 nav 里的 <ul>...</ul>
-        ul_match = re.search(r'(<nav[^>]*>.*?<ul[^>]*>)(\s*)(</ul>.*?</nav>)', html, re.DOTALL)
+        ul_match = re.search(r'(<nav[^>]*>.*?<ul[^>]*>)(.*?)(</ul>.*?</nav>)', html, re.DOTALL)
         if ul_match:
             html = html[:ul_match.start(2)] + "\n" + nav_items_html + "            " + html[ul_match.end(2):]
 

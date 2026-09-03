@@ -93,17 +93,33 @@ def extract_summary(html_content: str) -> str:
     return "本周全球汽车市场深度解读，点击查看完整报告。"
 
 
+def _find_section_anchor(soup: BeautifulSoup, title_text: str) -> str:
+    """根据标题文本查找对应 section 的 id 作为锚点。"""
+    title_text = title_text.strip()
+    for section in soup.find_all("section"):
+        h2 = section.find("h2")
+        if not h2:
+            continue
+        section_title = h2.get_text(strip=True)
+        section_title = re.sub(r"\s*\w+\s*Overview\s*$", "", section_title, flags=re.IGNORECASE)
+        if section_title == title_text:
+            return section.get("id", "")
+    return ""
+
+
 def extract_hotspots(html_content: str, count: int = 3) -> list:
     """
     从 HTML "本周总览" 区域的数据指标中提取热点。
     支持多种结构：stat-card / stat-value+stat-label / grid 布局。
     若未找到，则回退到 section-title / h2 章节标题。
+    返回的字典包含 title / description / anchor。
     """
     hotspots = []
     soup = BeautifulSoup(html_content, "html.parser")
 
     overview_section = _find_overview_section(soup)
     if overview_section:
+        overview_id = overview_section.get("id", "overview") or "overview"
         # 策略 A-1：class="stat-card" 结构
         stat_cards = overview_section.find_all("div", class_=lambda x: x and "stat-card" in x)
         for card in stat_cards:
@@ -120,6 +136,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                 hotspots.append({
                     "title": name,
                     "description": description[:150],
+                    "anchor": overview_id,
                 })
             if len(hotspots) >= count:
                 return hotspots
@@ -136,6 +153,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                         hotspots.append({
                             "title": name,
                             "description": val_text[:150],
+                            "anchor": overview_id,
                         })
                 if len(hotspots) >= count:
                     return hotspots
@@ -153,7 +171,8 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
             title_text = elem.get_text(strip=True)
             title_text = re.sub(r"\s*\w+\s*Overview\s*$", "", title_text, flags=re.IGNORECASE)
             if title_text and title_text not in ["本周总览", "Weekly Overview"] and title_text not in [t["title"] for t in titles]:
-                titles.append({"title": title_text, "description": "点击查看详情"})
+                anchor = _find_section_anchor(soup2, title_text)
+                titles.append({"title": title_text, "description": "点击查看详情", "anchor": anchor})
             if len(titles) >= needed:
                 break
 
@@ -163,7 +182,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
 
 
 def build_payload(title: str, summary: str, hotspots: list) -> dict:
-    """构建企微图文消息 payload。"""
+    """构建企微图文消息 payload。热点卡片 url 带章节锚点。"""
     articles = [
         {
             "title": title,
@@ -174,10 +193,12 @@ def build_payload(title: str, summary: str, hotspots: list) -> dict:
     ]
 
     for idx, hotspot in enumerate(hotspots, start=1):
+        anchor = hotspot.get("anchor", "")
+        url = f"{BASE_URL}#{anchor}" if anchor else BASE_URL
         articles.append({
             "title": f"热点{idx}：{hotspot['title']}",
             "description": hotspot["description"],
-            "url": BASE_URL,
+            "url": url,
             "picurl": COVER_URL,
         })
 
