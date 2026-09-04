@@ -23,9 +23,14 @@ for i, m in enumerate(section_matches):
         section_end = len(html)
     
     section_html = html[end:section_end]
+    # 优先匹配 h2，其次匹配 div.section-title
     h2_match = re.search(r'<h2[^>]*>(.*?)</h2>', section_html, re.DOTALL)
-    if h2_match:
-        title = re.sub(r'<[^>]+>', '', h2_match.group(1)).strip()
+    section_title_match = re.search(r'<div[^>]*class=["\'][^"\']*section-title[^"\']*["\'][^>]*>(.*?)</div>', section_html, re.DOTALL)
+    title_match = h2_match or section_title_match
+    if title_match:
+        title = re.sub(r'<[^>]+>', '', title_match.group(1)).strip()
+        # 去掉英文副标题，如 "本周总览 Weekly Overview"
+        title = re.sub(r'\s+[A-Za-z][A-Za-z\s]*$', '', title).strip()
         # 优先使用 section 已有的 id
         existing_id_match = re.search(r'\sid=["\']([^"\']+)["\']', tag)
         if existing_id_match:
