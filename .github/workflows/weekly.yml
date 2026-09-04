@@ -39,6 +39,12 @@ jobs:
           echo "=== index.html last 500 chars ==="
           tail -c 500 index.html
 
+      - name: Fix HTML structure and apply template
+        run: |
+          python scripts/fix_html.py
+          echo "=== index.html head after fix ==="
+          head -20 index.html
+
       - name: Commit and push changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
