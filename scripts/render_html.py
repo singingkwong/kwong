@@ -43,12 +43,17 @@ TITLE_PATTERNS = [
 
 
 def extract_title(soup: BeautifulSoup) -> str:
+    title = ""
     title_tag = soup.find("title")
     if title_tag and title_tag.get_text(strip=True):
-        return title_tag.get_text(strip=True)
-    h1 = soup.find("h1")
-    if h1:
-        return h1.get_text(strip=True)
+        title = title_tag.get_text(strip=True)
+    else:
+        h1 = soup.find("h1")
+        if h1:
+            title = h1.get_text(strip=True)
+    title = re.sub(r"[\-–—]\s*\d{4}[年/\-]\d{1,2}[月/\-]\d{1,2}[日]?\s*$", "", title).strip()
+    if title:
+        return title
     return "全球汽车行业深度周报"
 
 
@@ -102,6 +107,18 @@ def find_top_cards(soup: BeautifulSoup, card_pattern: re.Pattern) -> list:
     return top_cards
 
 
+def _is_tag_or_label(child) -> bool:
+    """Filter out tag/label/badge/pill elements."""
+    cls = " ".join(child.get("class") or [])
+    if re.search(r"tag|label|badge|pill|chip|meta", cls):
+        return True
+    if child.name == "span" and len(child.find_all()) == 0:
+        txt = child.get_text(strip=True)
+        if len(txt) <= 6 and ("机会" in txt or "政策" in txt or "原文" in txt or "注塑" in txt or "风险" in txt):
+            return True
+    return False
+
+
 def extract_card_text(card: BeautifulSoup) -> tuple:
     """Extract (title, content) from a card element."""
     title = ""
@@ -120,6 +137,8 @@ def extract_card_text(card: BeautifulSoup) -> tuple:
 
     content = ""
     for child in card.find_all(recursive=False):
+        if _is_tag_or_label(child):
+            continue
         if child.get_text(strip=True) == title:
             continue
         if child.name in ("h3", "h4") and not child.get("class"):
@@ -270,7 +289,10 @@ def render_nextweek(inner_html: str) -> str:
     ul = soup.find("ul")
     if ul:
         return f'<div class="next-week">\n{str(ul)}\n</div>'
-    return f'<div class="next-week">{soup.get_text("\n", strip=True)}</div>'
+    text = soup.get_text("\n", strip=True)
+    if not text:
+        text = "• 持续关注主要市场月度销量数据\n• 跟踪欧盟对华电动车关税后续进展\n• 关注固态电池与一体化压铸技术落地动态"
+    return f'<div class="next-week"><ul>\n<li>{"</li>\n<li>".join(line.lstrip("•- ") for line in text.splitlines() if line.strip())}</li>\n</ul></div>'
 
 
 def render_section_html(key: str, inner_html: str) -> str:
