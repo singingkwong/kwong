@@ -44,6 +44,7 @@ def fetch_weekly_html() -> str:
         "   - 标签：tag、tag-trend（利好）、tag-risk（风险）、tag-policy（政策）；\n"
         "5. section id 必须固定为：section-1（本周总览）、section-2（各地市场动态）、section-3（政策动态）、"
         "section-4（车企动态）、section-5（调研报告/机构观点）、section-6（注塑机会专题）、section-7（下周关注）；\n"
+        "   section-7 下周关注必须输出，包含 3-5 条下周值得重点关注的事件或数据发布，每条用列表项呈现；\n"
         "6. 在页面顶部报告日期下方显示：编制团队：YZM海外汽车行业拓展项目组；\n"
         "7. 在‘本周总览’区域顶部，必须显式输出 3 个‘本周热点’卡片，供企业微信图文消息使用：\n"
         "   - 容器：<div class='hotspot-grid'>，每个热点：<div class='hotspot-card'>；\n"

@@ -502,9 +502,9 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
   <span class="hero-badge">WEEKLY REPORT</span>
   <h1>全球汽车行业周报</h1>
   <div class="hero-meta">
-    <span>📅 2026年8月31日（周日）</span>
+    <span>📅 {{date}}</span>
     <span>📊 数据周期：8月24日 - 8月31日</span>
-    <span>🏢 编制：数据分析助手</span>
+    <span>🏢 编制：{{team}}</span>
   </div>
 </div>
 </header>
@@ -518,7 +518,10 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 {{oem}}
 {{research}}
 {{injection}}
-{{nextweek}}<footer class="footer">
+{{nextweek}}</main>
+
+<!-- Footer -->
+<footer class="footer">
   <p><strong>数据来源：</strong>{{sources}}</p>
   <p style="margin-top:8px">本报告仅供内部参考，数据以各官方机构发布为准。</p>
   <p style="margin-top:12px;color:var(--text-muted)">© 2026 {{title}} | {{date}}</p>
