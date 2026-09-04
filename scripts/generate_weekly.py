@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """
 调用扣子 Agent 生成汽车行业周报 Markdown。
+渲染 HTML 请使用 scripts/render_weekly.py。
 """
 import json
 import os
@@ -23,37 +24,58 @@ HEADERS = {
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def fetch_weekly_html() -> str:
-    """调用扣子 Bot 直接生成周报 HTML。"""
+def fetch_weekly_markdown() -> str:
+    """调用扣子 Bot 生成周报 Markdown。"""
     today = datetime.now().strftime("%Y年%m月%d日")
     prompt = (
-        f"请生成一份{today}的全球汽车行业深度周报，并直接输出完整的 HTML 文件内容。"
+        f"请生成一份{today}的全球汽车行业深度周报，输出为 Markdown 格式，不要输出 HTML。"
         "基于你搜索到的近7天最新行业数据、政策动态、车企动向和注塑机相关机会，"
-        "严格按照固定模板组织内容：本周总览、各地市场动态、政策动态、车企动态、调研报告/机构观点、"
-        "注塑机会专题、下周关注。"
-        "样式必须固定为以下深色行业报告风格，每次输出保持完全一致：\n"
-        "1. 输出完整独立 HTML，包含 <html><head><body>；\n"
-        "2. 深色主题：body 背景 #0f1115，卡片背景 #1a1d24，主文字 #e0e0e0，次要文字 #a0a0a0，强调色 #00d2ff；\n"
-        "3. 各地市场动态必须覆盖以下全部区域，不得以表格形式遗漏：北美、欧洲、中国、东南亚、南美（巴西/墨西哥）、印度、俄罗斯、澳洲、日韩。每个区域用一段文字或一张卡片独立呈现，包含关键数据、趋势和注塑机会关联；\n"
-        "4. 使用以下固定 class 名（不要自行发明新 class）：\n"
-        "   - 卡片容器：card-grid\n"
-        "   - 卡片：card，卡片标题：card-title，卡片内容：card-content\n"
-        "   - 表格容器：table-container\n"
-        "   - 列表：styled-list\n"
-        "   - 标签：tag、tag-trend（利好）、tag-risk（风险）、tag-policy（政策）；\n"
-        "5. section id 必须固定为：section-1（本周总览）、section-2（各地市场动态）、section-3（政策动态）、"
-        "section-4（车企动态）、section-5（调研报告/机构观点）、section-6（注塑机会专题）、section-7（下周关注）；\n"
-        "6. 在页面顶部报告日期下方显示：编制团队：YZM海外汽车行业拓展项目组；\n"
-        "7. 在‘本周总览’区域顶部，必须显式输出 3 个‘本周热点’卡片，供企业微信图文消息使用：\n"
-        "   - 容器：<div class='hotspot-grid'>，每个热点：<div class='hotspot-card'>；\n"
-        "   - 热点标题：<div class='hotspot-title'>，15-20 字，必须抓人眼球、有新闻感；\n"
-        "   - 热点描述：<div class='hotspot-desc'>，30-40 字，一句话说明影响或数据；\n"
-        "   - 热点标签：<span class='hotspot-tag'>，如‘政策’‘数据’‘车企’‘注塑机会’；\n"
-        "   - 这 3 个热点必须从本周事件中挑选最有热度、最引人瞩目的（如重大突破、销量新高、政策变化、头部车企动作、注塑机会），不要放平淡的常规数据；\n"
-        "   - 如果热点有对应的外部原文链接，必须在热点卡片内用固定格式输出：<a href='原文URL' class='hotspot-source' target='_blank'>原文</a>；\n"
-        "8. 在 <head> 中使用嵌入式 CSS，不要引用外部 CSS 文件；\n"
-        "9. 确保所有 HTML 标签正确闭合，不要出现属性错位或未闭合标签；\n"
-        "10. 不要在 HTML 外面添加任何说明文字，只输出 HTML 代码本身。"
+        "严格按照以下固定模板组织内容，每个章节标题必须保留：\n\n"
+        "```\n"
+        "# 全球汽车行业深度周报\n"
+        "**报告日期**：YYYY年MM月DD日\n"
+        "**编制团队**：YZM海外汽车行业拓展项目组\n\n"
+        "## 一、本周总览\n"
+        "- 5条核心看点，每条用一句话总结，标注来源和日期。\n"
+        "- 必须在开头列出 3 个本周热点，格式如下：\n"
+        "  - **热点1**：标题（15-20字，抓人眼球）｜ 描述（30-40字）\n"
+        "  - **热点2**：...\n"
+        "  - **热点3**：...\n\n"
+        "## 二、各地市场动态\n"
+        "必须覆盖以下全部区域，每个区域单独一个三级标题，包含关键数据、趋势和注塑机会关联：\n"
+        "- 2.1 中国市场\n"
+        "- 2.2 东南亚市场\n"
+        "- 2.3 南亚/印度市场\n"
+        "- 2.4 南美市场\n"
+        "- 2.5 北美市场\n"
+        "- 2.6 欧洲市场\n"
+        "- 2.7 俄罗斯/中东/非洲市场\n"
+        "- 2.8 日韩/澳洲市场\n\n"
+        "## 三、政策动态\n"
+        "- 每条政策用三级标题，格式：3.x 地区/机构：政策名称\n"
+        "- 内容说明政策要点及对注塑行业的影响。\n"
+        "- 每条末尾标注来源和日期，格式：来源 (YYYY-MM-DD)\n\n"
+        "## 四、车企动态\n"
+        "- 每条车企动态用三级标题，格式：4.x 车企：事件标题\n"
+        "- 用 bullet list 列出关键信息。\n"
+        "- 每条末尾标注来源和日期。\n\n"
+        "## 五、调研报告/机构观点\n"
+        "- 每条报告用三级标题，格式：5.x 机构：报告标题\n"
+        "- 内容总结核心观点。\n"
+        "- 每条末尾标注来源和日期。\n\n"
+        "## 六、注塑机会专题\n"
+        "- 每条机会用三级标题，格式：6.x 【注塑机会】事件标题\n"
+        "- 说明驱动因素、机会点、推荐设备/材料。\n\n"
+        "## 七、下周关注\n"
+        "- 用 bullet list 列出 6-8 条下周值得跟踪的事件或数据。\n\n"
+        "## 八、数据来源\n"
+        "- 列出本报告使用的主要数据来源机构名称，用逗号分隔。\n"
+        "```\n\n"
+        "格式要求：\n"
+        "1. 只输出 Markdown，不要输出 HTML、不要输出代码块标记、不要输出任何说明文字；\n"
+        "2. 数据必须标注来源和日期，格式：来源 (YYYY-MM-DD)；\n"
+        "3. 每个区域/政策/车企/报告/机会必须独立成段，内容充实，不要一句话带过；\n"
+        "4. 章节标题必须严格使用上面的编号和名称（一、二、三...），方便后续解析。"
     )
 
     resp = requests.post(
@@ -84,7 +106,6 @@ def fetch_weekly_html() -> str:
     conversation_id = chat_result["data"]["conversation_id"]
     chat_id = chat_result["data"]["id"]
 
-    # 轮询等待完成
     for _ in range(120):
         time.sleep(2)
         retrieve_resp = requests.get(
@@ -106,7 +127,6 @@ def fetch_weekly_html() -> str:
     if status != "completed":
         raise RuntimeError(f"对话未成功完成: {status}, last_error: {last_error}")
 
-    # 获取消息列表
     msg_resp = requests.get(
         f"{COZE_API_BASE}/v3/chat/message/list",
         headers=HEADERS,
@@ -116,7 +136,6 @@ def fetch_weekly_html() -> str:
     msg_resp.raise_for_status()
     msg_result = msg_resp.json()
 
-    # 提取 assistant 的 answer 文本
     for msg in msg_result.get("data", []):
         if msg.get("role") == "assistant" and msg.get("type") == "answer":
             return msg.get("content", "")
@@ -124,12 +143,11 @@ def fetch_weekly_html() -> str:
     raise RuntimeError("未找到有效的回答内容")
 
 
-def clean_html(content: str) -> str:
-    """清理 Agent 返回的内容，只保留 HTML 部分。"""
+def clean_markdown(content: str) -> str:
+    """清理 Agent 返回的内容，只保留 Markdown 部分。"""
     content = content.strip()
-    # 如果内容被 markdown 代码块包裹，提取内部
-    if content.startswith("```html"):
-        content = content[7:]
+    if content.startswith("```markdown"):
+        content = content[len("```markdown"):]
         if content.endswith("```"):
             content = content[:-3]
     elif content.startswith("```"):
@@ -139,41 +157,31 @@ def clean_html(content: str) -> str:
     return content.strip()
 
 
-def save_html(content: str) -> Path:
-    """保存 HTML 文件。"""
-    html_path = ROOT / "index.html"
-    html_path.write_text(content, encoding="utf-8")
-    print(f"HTML 已保存: {html_path}")
-    return html_path
+def save_markdown(content: str) -> Path:
+    """保存 Markdown 文件。"""
+    md_path = ROOT / "weekly.md"
+    md_path.write_text(content, encoding="utf-8")
+    print(f"Markdown 已保存: {md_path}")
+    return md_path
 
 
 def extract_title(content: str) -> str:
-    """从 HTML 中提取标题。"""
-    match = re.search(r"<title>(.*?)</title>", content, re.IGNORECASE)
+    """从 Markdown 中提取标题。"""
+    match = re.search(r"^#\s+(.+)$", content, re.MULTILINE)
     if match:
         return match.group(1).strip()
-    match = re.search(r"<h1[^>]*>(.*?)</h1>", content, re.IGNORECASE | re.DOTALL)
-    if match:
-        return re.sub(r"<[^>]+>", "", match.group(1)).strip()
     return "全球汽车行业周报"
 
 
 def main():
-    print("开始调用 Agent 生成周报 HTML...")
-    content = fetch_weekly_html()
-    content = clean_html(content)
-    html_path = save_html(content)
+    print("开始调用 Agent 生成周报 Markdown...")
+    content = fetch_weekly_markdown()
+    content = clean_markdown(content)
+    md_path = save_markdown(content)
 
     title = extract_title(content)
     print(f"title={title}")
-    print(f"html_path={html_path}")
-
-    # 调用 HTML 修复脚本，确保导航条、编制团队、HTML 闭合完整
-    try:
-        import fix_html
-        fix_html.main()
-    except Exception as e:
-        print(f"fix_html 运行失败（非致命）: {e}")
+    print(f"md_path={md_path}")
 
 
 if __name__ == "__main__":

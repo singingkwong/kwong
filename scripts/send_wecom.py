@@ -257,6 +257,28 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                 if len(hotspots) >= count:
                     return hotspots
 
+    # 策略 B3：从新版 overview-card 卡片中提取
+    if len(hotspots) < count:
+        overview_section = _find_overview_section(soup)
+        if overview_section:
+            overview_id = overview_section.get("id", "overview") or "overview"
+            cards = overview_section.find_all("div", class_=lambda x: x and "overview-card" in (x or "").split())
+            for card in cards:
+                title_elem = card.find(["h3", "h4", "div"], class_=lambda x: x and "title" in (x or ""))
+                desc_elem = card.find("p")
+                if not title_elem:
+                    title_elem = card.find(["h3", "h4"])
+                title = title_elem.get_text(strip=True) if title_elem else ""
+                description = desc_elem.get_text(strip=True) if desc_elem else "点击查看详情"
+                if title and len(title) < 60:
+                    hotspots.append({
+                        "title": title,
+                        "description": description[:150],
+                        "anchor": overview_id,
+                    })
+                if len(hotspots) >= count:
+                    return hotspots
+
     # 策略 C：回退到 section-title / h2 章节标题
     if len(hotspots) < count:
         needed = count - len(hotspots)
