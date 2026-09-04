@@ -24,24 +24,22 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install requests beautifulsoup4 markdown
+          pip install requests beautifulsoup4
 
-      - name: Generate weekly report Markdown from Agent
+      - name: Generate weekly report HTML from Agent
         env:
           COZE_WORKLOAD_API_TOKEN: ${{ secrets.COZE_WORKLOAD_API_TOKEN }}
           COZE_BOT_ID: ${{ secrets.COZE_BOT_ID }}
           COZE_API_BASE_URL: ${{ secrets.COZE_API_BASE_URL || 'https://api.coze.cn' }}
         run: |
           python scripts/generate_weekly.py
-          echo "=== weekly.md first 500 chars ==="
-          head -c 500 weekly.md
+          echo "=== agent.html first 1000 chars ==="
+          head -c 1000 agent.html
           echo ""
-          echo "=== weekly.md last 500 chars ==="
-          tail -c 500 weekly.md
 
-      - name: Render HTML from Markdown template
+      - name: Render HTML from Agent HTML template
         run: |
-          python scripts/render_weekly.py
+          python scripts/render_html.py
           echo "=== index.html head after render ==="
           head -20 index.html
 

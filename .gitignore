@@ -67,6 +67,10 @@ logs/
 *.3gp
 *.f4v
 *.rmvb
+
+# 周报生成中间文件
+weekly.md
+agent.html
 *.vob
 
 # 归档文件
