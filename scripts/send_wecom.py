@@ -156,10 +156,17 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
             else:
                 anchor = "section-2"
 
+            # 如果热点卡片内显式提供了原文链接，优先使用原文链接
+            source_url = ""
+            source_link = card.find("a", class_=lambda x: x and "hotspot-source" in x)
+            if source_link and source_link.get("href"):
+                source_url = source_link["href"].strip()
+
             hotspots.append({
                 "title": title,
                 "description": description[:150],
                 "anchor": anchor,
+                "source_url": source_url,
             })
         if len(hotspots) >= count:
             return hotspots
@@ -252,8 +259,13 @@ def build_payload(title: str, summary: str, hotspots: list) -> dict:
     ]
 
     for idx, hotspot in enumerate(hotspots, start=1):
-        anchor = hotspot.get("anchor", "")
-        url = f"{BASE_URL}#{anchor}" if anchor else BASE_URL
+        # 如果热点有原文链接，优先跳转到原文；否则跳转到周报页面章节锚点
+        source_url = hotspot.get("source_url", "").strip()
+        if source_url and source_url.startswith(("http://", "https://")):
+            url = source_url
+        else:
+            anchor = hotspot.get("anchor", "")
+            url = f"{BASE_URL}#{anchor}" if anchor else BASE_URL
         description = hotspot.get("description", "点击查看详情").strip()
         # 企微描述过长会折叠，控制在 45 字以内更醒目
         if len(description) > 45:
