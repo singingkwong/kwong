@@ -1,461 +1,252 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>全球汽车行业深度周报 - 2026年09月04日</title>
-    <style>
-        :root {
-            --bg-color: #0f1115;
-            --card-bg: #1a1d24;
-            --text-primary: #e0e0e0;
-            --text-secondary: #a0a0a0;
-            --accent-color: #00d2ff;
-            --border-color: #2c3038;
-            --tag-trend-bg: rgba(0, 210, 255, 0.15);
-            --tag-trend-text: #00d2ff;
-            --tag-risk-bg: rgba(255, 77, 79, 0.15);
-            --tag-risk-text: #ff4d4f;
-            --tag-policy-bg: rgba(255, 163, 0, 0.15);
-            --tag-policy-text: #ffa300;
-        }
-
-        body {
-            margin: 0;
-            padding: 20px;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
-            background-color: var(--bg-color);
-            color: var(--text-primary);
-            line-height: 1.6;
-        }
-
-        .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 1px solid var(--border-color);
-            padding-bottom: 20px;
-        }
-
-        .header h1 {
-            font-size: 24px;
-            margin: 0;
-            color: var(--accent-color);
-        }
-
-        .header .date {
-            font-size: 14px;
-            color: var(--text-secondary);
-            margin-top: 5px;
-        }
-
-        .header .team {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-top: 10px;
-            background: rgba(255,255,255,0.05);
-            display: inline-block;
-            padding: 4px 12px;
-            border-radius: 12px;
-        }
-
-        section {
-            margin-bottom: 40px;
-        }
-
-        .section-title {
-            font-size: 18px;
-            border-left: 4px solid var(--accent-color);
-            padding-left: 10px;
-            margin-bottom: 20px;
-            color: var(--text-primary);
-        }
-
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 20px;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 20px;
-            box-sizing: border-box;
-        }
-
-        .card-title {
-            font-size: 16px;
-            font-weight: bold;
-            margin-bottom: 10px;
-            color: var(--text-primary);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-
-        .card-content {
-            font-size: 14px;
-            color: var(--text-secondary);
-        }
-
-        .hotspot-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 15px;
-            margin-bottom: 25px;
-        }
-
-        .hotspot-card {
-            background: linear-gradient(145deg, #232730, #1a1d24);
-            border: 1px solid var(--accent-color);
-            border-radius: 8px;
-            padding: 15px;
-            position: relative;
-        }
-
-        .hotspot-title {
-            font-size: 15px;
-            font-weight: bold;
-            color: #fff;
-            margin-bottom: 8px;
-            line-height: 1.4;
-        }
-
-        .hotspot-desc {
-            font-size: 12px;
-            color: var(--text-secondary);
-            margin-bottom: 10px;
-            height: 36px;
-            overflow: hidden;
-        }
-
-        .hotspot-tag {
-            font-size: 10px;
-            background-color: var(--accent-color);
-            color: #000;
-            padding: 2px 6px;
-            border-radius: 4px;
-            font-weight: bold;
-        }
-
-        .hotspot-source {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 10px;
-            color: var(--accent-color);
-            text-decoration: none;
-        }
-
-        .table-container {
-            width: 100%;
-            overflow-x: auto;
-            background-color: var(--card-bg);
-            border-radius: 8px;
-            padding: 10px;
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 13px;
-        }
-
-        th, td {
-            text-align: left;
-            padding: 10px;
-            border-bottom: 1px solid var(--border-color);
-        }
-
-        th {
-            color: var(--accent-color);
-        }
-
-        .styled-list {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-
-        .styled-list li {
-            margin-bottom: 10px;
-            padding-left: 15px;
-            position: relative;
-        }
-
-        .styled-list li::before {
-            content: "•";
-            color: var(--accent-color);
-            position: absolute;
-            left: 0;
-        }
-
-        .tag {
-            display: inline-block;
-            padding: 2px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            margin-right: 5px;
-        }
-
-        .tag-trend {
-            background-color: var(--tag-tresk-bg);
-            color: var(--tag-trend-text);
-            background-color: var(--tag-trend-bg);
-        }
-
-        .tag-risk {
-            background-color: var(--tag-risk-bg);
-            color: var(--tag-risk-text);
-        }
-
-        .tag-policy {
-            background-color:: var(--tag-policy-bg);
-            color: var(--tag-policy-text);
-        }
-
-        @media (max-width: 768px) {
-            .hotspot-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-    
-    nav a:hover {
-        color: var(--accent-color) !important;
-        background: rgba(0, 212, 255, 0.1);
-    }
-
-</style>
+    <link rel="stylesheet" href="./styles/main.css">
 </head>
 <body>
+<nav class="top-nav">
+    <div class="nav-brand">📊 全球汽车行业周报</div>
+    <ul class="nav-menu">
+        <li><a href="#overview">本周总览</a></li>
+        <li><a href="#markets">各地市场动态</a></li>
+        <li><a href="#policy">政策动态</a></li>
+        <li><a href="#oem">车企动态</a></li>
+        <li><a href="#reports">调研报告/机构观点</a></li>
+        <li><a href="#injection">注塑机会专题</a></li>
+        <li><a href="#sources">数据来源</a></li>
+    </ul>
+</nav>
 
-    <div class="header">
-        <h1>全球汽车行业深度周报</h1>
-        <div class="date">2026年09月04日</div>
-        <div class="team">编制团队：YZM海外汽车行业拓展项目组</div>
-    </div>
-
-    <!-- Section 1: 本周总览 -->
-    <section id="section-1">
-        <div class="section-title">本周总览</div>
-        
-        <div class="hotspot-grid">
-            <div class="hotspot-card">
-                <a href="#" class="hotspot-source">原文</a>
-                <div class="hotspot-title">欧盟通过“汽车塑料循环法案”</div>
-                <div class="hotspot-desc">强制要求新车塑料回收率超95%，彻底重塑零部件供应链材料标准。</div>
-                <span class="hotspot-tag">政策</span>
+    <div class="container">
+        <header class="hero">
+            <div class="hero-badge">WEEKLY INSIGHT</div>
+            <h1>全球汽车行业深度周报</h1>
+            <div class="hero-meta">
+                <span class="hero-date">2026年09月04日</span>
+                <span class="hero-divider"></span>
+                <span class="hero-team">编制团队：YZM海外汽车行业拓展项目组</span>
             </div>
-            <div class="hotspot-card">
-                <a href="#" class="hotspot-source">原文</a>
-                <div class="hotspot-title">特斯拉Model Q量产启动</div>
-                <div class="hotspot-desc">上海工厂首发，创新采用微发泡注塑仪表板，单车降本超200美元。</div>
-                <span class="hotspot-tag">车企</span>
-            </div>
-            <div class="hotspot-card">
-                <a href="#" class="hotspot-source">原文</a>
-                <div class="hotspot-title">固态电池试产线投产</div>
-                <div class="hotspot-desc">急需耐高温特种工程塑料外壳，高精密注塑机订单迎来爆发式增长。</。</div>
+        </header>
+        <main>
+<section id="overview">
+<h2><span>本周总览</span></h2>
+<div class="hotspot-grid">
+<div class="hotspot-card">
+<a class="hotspot-source" href="#">原文</a>
+<div class="hotspot-title">欧盟通过“汽车塑料循环法案”</div>
+<div class="hotspot-desc">强制要求新车塑料回收率超95%，彻底重塑零部件供应链材料标准。</div>
+<span class="hotspot-tag">政策</span>
+</div>
+<div class="hotspot-card">
+<a class="hotspot-source" href="#">原文</a>
+<div class="hotspot-title">特斯拉Model Q量产启动</div>
+<div class="hotspot-desc">上海工厂首发，创新采用微发泡注塑仪表板，单车降本超200美元。</div>
+<span class="hotspot-tag">车企</span>
+</div>
+<div class="hotspot-card">
+<a class="hotspot-source" href="#">原文</a>
+<div class="hotspot-title">固态电池试产线投产</div>
+<div class="hotspot-desc">急需耐高温特种工程塑料外壳，高精密注塑机订单迎来爆发式增长。
                 <span class="hotspot-tag">注塑机会</span>
-            </div>
-        </div>
+</div>
+</div>
+<div class="card-grid">
+<div class="card">
+<div class="card-title">核心数据概览</div>
+<div class="card-content">
+<ul class="styled-list">
+<li><strong>全球新能源车(NEV)渗透率：</strong>本周达到38.2%，同比上升5.1个百分点。</li>
+<li><strong>注塑机采购指数：</strong>汽车板块PMI指数52.4，处于扩张区间，主要受轻量化需求驱动。</li>
+<li><strong>原材料价格：</strong>工程塑料（PA6/PA66）价格震荡下行，平均跌幅1.2%，利好零部件毛利。</li>
+</ul>
+</div>
+</div>
+<div class="card">
+<div class="card-title">行业风向标</div>
+<div class="card-content">
+<p>本周行业焦点集中在“合规性”与“降本”的双重压力下。欧盟新法规迫使车企加速生物基塑料与可回收材料的研发应用。与此同时，为了应对激烈的价格战，微发泡注塑（MuCell）和薄壁化技术在内饰件中的渗透率显著提升，成为车企降本增效的关键路径。</p>
+</div>
+</div>
+</div>
+</div>
+</section>
+<section id="markets">
+<h2><span>各地市场动态</span></h2>
+<div class="card-grid">
+<div class="card">
+<div class="card-title">中国市场 <span class="tag tag-trend">增长</span></div>
+<div class="card-content">
+<ul class="styled-list">
+<li><strong>销量表现：</strong>8月新能源车批发销量突破95万辆，环比增长12%，比亚迪与小米汽车领跑。</li>
+<li><strong>供应链动态：</strong>华东地区注塑模具厂产能利用率维持在85%以上，主要由于秋季新车型的密集试产。</li>
+<li><strong>技术趋势：</strong>智能表面（Smart Surface）需求激增，透光表皮与触控开关的一体化注塑成为主流配置。</li>
+</ul>
+</div>
+</div>
+<div class="card">
+<div class="card-title">欧洲市场 <span class="tag tag-risk">调整</span></div>
+<div class="card-content">
+<ul class="styled-list">
+<li><strong>政策影响：</strong>受“塑料循环法案”草案通过影响，多家OEM暂停传统PVC材料采购，转向TPO和TPU。</li>
+<li><strong>车企动向：</strong>大众集团宣布在西班牙工厂新增一条大型精密注塑产线，专用于生产纯电车型电池包上盖。</li>
+<li><strong>市场情绪：</strong>豪华车品牌内饰件开始大规模采用“生物基复合材料”，以提升品牌ESG形象。</li>
+</ul>
+</div>
+</div>
+<div class="card">
+<div class="card-title">北美市场 <span class="tag tag-trend">复苏</span></div>
+<div class="card-content">
+<ul class="styled-list">
+<li><strong>IRA法案效应：</strong>本土化供应链要求迫使一级供应商（Tier 1）加速在美国本土建设注塑工厂。</li>
+<li><strong>皮卡市场：</strong>福特与通用的新一代全尺寸皮卡大量采用长玻纤注塑（LFT）前端模块，以替代金属件减重。</li>
+</ul>
+</div>
+</div>
+</div>
+</section>
+<section id="policy">
+<h2><span>政策动态</span></h2>
+<div class="card-grid">
+<div class="card">
+<div class="card-title">欧盟：汽车塑料循环法案 <span class="tag tag-policy">法规</span></div>
+<div class="card-content">
+<p>欧盟议会正式通过新法案，要求2030年起所有新投放市场的汽车塑料零部件必须包含至少25%的再生塑料，且报废率回收率需达到95%。这对注塑件的材料配方和连接工艺（需便于拆解）提出了极高要求。</p>
+</div>
+</div>
+<div class="card">
+<div class="card-title">中国：新能源车购置税延续 <span class="tag tag-policy">利好</span></div>
+<div class="card-content">
+<p>财政部明确新能源汽车车辆购置税减免政策延长至2027年底，稳定了市场预期，促使零部件企业敢于在大型精密注塑设备上进行长期资本支出（CAPEX）投入。</p>
+</div>
+</div>
+</div>
+</section>
+<section id="oem">
+<h2><span>车企动态</span></h2>
+<div class="table-container">
+<table>
+<thead>
+<tr>
+<th>车企/供应商</th>
+<th>动态描述</th>
+<th>关联注塑技术/机会</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>特斯拉 (Tesla)</strong></td>
+<td>Model Q车型进入量产阶段，内饰件极度简化。</td>
+<td>微发泡注塑、大型一体化内饰件（减少拼接）。</td>
+</tr>
+<tr>
+<td><strong>比亚迪 (BYD)</strong></td>
+<td>发布“海狮07”改款，强调全车环保材料。</td>
+<td>生物基塑料应用、免喷涂注塑工艺。</td>
+</tr>
+<tr>
+<td><strong>麦格纳 (Magna)</strong></td>
+<td>获得欧洲豪华品牌新一代座椅骨架订单。</td>
+<td>高玻纤含量PA6/GF30高强度注塑。</td>
+</tr>
+<tr>
+<td><strong>丰田 (Toyota)</strong></td>
+<td>固态电池试产线启动，寻求耐高温外壳方案。</td>
+<td>PPS/PEEK等耐高温特种工程塑料精密注塑。</td>
+</tr>
+</tbody>
+</table>
+</div>
+</section>
+<section id="reports">
+<h2><span>调研报告/机构观点</span></h2>
+<div class="card-grid">
+<div class="card">
+<div class="card-title">MarkLines：全球注塑机装机预测</div>
+<div class="card-content">
+<p>报告指出，2026-2028年全球汽车行业将迎来注塑设备更新换代潮。锁模力在3000T以上的大型注塑机需求年复合增长率预计达到8.5%，主要驱动力来自于电池包壳体、前端模块等大型结构件的“以塑代钢”趋势。</p>
+</div>
+</div>
+<div class="card">
+<div class="card-title">麦肯锡：汽车内饰材料变革</div>
+<div class="card-content">
+<p>调研显示，70%的消费者愿意为含有“再生材料”的内饰支付溢价。这建议Tier 1供应商应尽快建立完善的“物理回收-造粒-再注塑”闭环生产线，并配备相应的自动化检测设备。</p>
+</div>
+</div>
+</div>
+</section>
+<section id="injection">
+<h2><span>注塑机会专题</span></h2>
+<div class="card-grid">
+<div class="card">
+<div class="card-title">技术趋势：多组分/双色注塑 <span class="tag tag-trend">热点</span></div>
+<div class="card-content">
+<p><strong>应用场景：</strong> 智能座舱中的透光饰条、带密封条的车窗导轨、软硬结合的按键。</p>
+<p><strong>机会点：</strong> 随着车内氛围灯和触控反馈需求的增加，传统单色注塑无法满足需求。精密多组分注塑机（如双色机、包胶机）及配套模具需求旺盛。重点关注硬质PMMA/PC与软质TPE/TPU的共注成型工艺。</p>
+</div>
+</div>
+<div class="card">
+<div class="card-title">材料应用：电池包上盖 <span class="tag tag-trend">高增长</span></div>
+<div class="card" style="background: #232730; border:none; padding:10px; margin-top:10px;">
+<div class="card-title" style="font-size:14px;">PPS (聚苯硫醚)</div>
+<div class="card-content" style="font-size:12px;">具有极佳的耐高温性（>200℃）和阻燃性（UL94 V-0），无需喷漆即可满足电池包绝缘要求。</div>
+</div>
+<div class="card" style="background: #232730; border:none; padding:10px; margin-top:10px;">
+<div class="card-title" style="font-size:14px;">长玻纤PP (LFT-PP)</div>
+<div class="card-content" style="font-size:12px;">成本低于PPS，机械强度高，适用于对耐温要求稍低的电池包底护板或非承载上盖。</div>
+</div>
+<p><strong>设备需求：</strong> 针对PPS材料的高腐蚀性，注塑机螺杆料筒需采用耐腐蚀耐磨合金钢（如H13+特殊涂层）。</p>
+</div>
+<div class="card">
+<div class="card-title">工艺创新：在线检测与自动化</div>
+<div class="card-content">
+<p>为了应对欧盟新法规对零部件质量一致性的严苛要求，主机厂要求供应商在注塑生产线上集成<strong>视觉检测系统（CCD）</strong>和<strong>自动化称重系统</strong>。</p>
+<p><strong>机会点：</strong> 能够提供“注塑机+机械手+检测单元”一站式交
+        
+        
+</p></div></div></div>
+</section>
+<section id="sources">
 
-        <div class="card-grid">
-            <div class="card">
-                <div class="card-title">核心数据概览</div>
-                <div class="card-content">
-                    <ul class="styled-list">
-                        <li><strong>全球新能源车(NEV)渗透率：</strong>本周达到38.2%，同比上升5.1个百分点。</li>
-                        <li><strong>注塑机采购指数：</strong>汽车板块PMI指数52.4，处于扩张区间，主要受轻量化需求驱动。</li>
-                        <li><strong>原材料价格：</strong>工程塑料（PA6/PA66）价格震荡下行，平均跌幅1.2%，利好零部件毛利。</li>
+        <h2><span>数据来源</span></h2>
+        <div class="card">
+            <p class="sources-intro">本报告数据与资讯来源于以下公开渠道及行业数据库：</p>
+            <div class="grid-3">
+                <div class="source-col">
+                    <h4>行业数据库</h4>
+                    <ul>
+                        <li>MarkLines 付费数据库</li>
+                        <li>乘联会 (CPCA)</li>
+                        <li>中汽协 (CAAM)</li>
+                        <li>ACEA（欧洲）</li>
+                    </ul>
+                </div>
+                <div class="source-col">
+                    <h4>区域市场</h4>
+                    <ul>
+                        <li>GAIKINDO（印尼）</li>
+                        <li>TAI / FTI（泰国）</li>
+                        <li>ANFAVEA / Fenabrave（巴西）</li>
+                        <li>SIAM（印度）、AEB（俄罗斯）</li>
+                    </ul>
+                </div>
+                <div class="source-col">
+                    <h4>媒体与研报</h4>
+                    <ul>
+                        <li>盖世汽车、36氪、界面新闻</li>
+                        <li>AlixPartners、麦肯锡</li>
+                        <li>Maybank、爱建证券</li>
                     </ul>
                 </div>
             </div>
-            <div class="card">
-                <div class="card-title">行业风向标</div>
-                <div class="card-content">
-                    <p>本周行业焦点集中在“合规性”与“降本”的双重压力下。欧盟新法规迫使车企加速生物基塑料与可回收材料的研发应用。与此同时，为了应对激烈的价格战，微发泡注塑（MuCell）和薄壁化技术在内饰件中的渗透率显著提升，成为车企降本增效的关键路径。</p>
-                </div>
-            </div>
         </div>
-    </section>
-
-    <!-- Section 2: 各地市场动态 -->
-    <section id="section-2">
-        <div class="section-title">各地市场动态</div>
-        <div class="card-grid">
-            <div class="card">
-                <div class="card-title">中国市场 <span class="tag tag-trend">增长</span></div>
-                <div class="card-content">
-                    <ul class="styled-list">
-                        <li><strong>销量表现：</strong>8月新能源车批发销量突破95万辆，环比增长12%，比亚迪与小米汽车领跑。</li>
-                        <li><strong>供应链动态：</strong>华东地区注塑模具厂产能利用率维持在85%以上，主要由于秋季新车型的密集试产。</li>
-                        <li><strong>技术趋势：</strong>智能表面（Smart Surface）需求激增，透光表皮与触控开关的一体化注塑成为主流配置。</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">欧洲市场 <span class="tag tag-risk">调整</span></div>
-                <div class="card-content">
-                    <ul class="styled-list">
-                        <li><strong>政策影响：</strong>受“塑料循环法案”草案通过影响，多家OEM暂停传统PVC材料采购，转向TPO和TPU。</li>
-                        <li><strong>车企动向：</strong>大众集团宣布在西班牙工厂新增一条大型精密注塑产线，专用于生产纯电车型电池包上盖。</li>
-                        <li><strong>市场情绪：</strong>豪华车品牌内饰件开始大规模采用“生物基复合材料”，以提升品牌ESG形象。</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">北美市场 <span class="tag tag-trend">复苏</span></div>
-                <div class="card-content">
-                    <ul class="styled-list">
-                        <li><strong>IRA法案效应：</strong>本土化供应链要求迫使一级供应商（Tier 1）加速在美国本土建设注塑工厂。</li>
-                        <li><strong>皮卡市场：</strong>福特与通用的新一代全尺寸皮卡大量采用长玻纤注塑（LFT）前端模块，以替代金属件减重。</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section 3: 政策动态 -->
-    <section id="section-3">
-        <div class="section-title">政策动态</div>
-        <div class="card-grid">
-            <div class="card">
-                <div class="card-title">欧盟：汽车塑料循环法案 <span class="tag tag-policy">法规</span></div>
-                <div class="card-content">
-                    <p>欧盟议会正式通过新法案，要求2030年起所有新投放市场的汽车塑料零部件必须包含至少25%的再生塑料，且报废率回收率需达到95%。这对注塑件的材料配方和连接工艺（需便于拆解）提出了极高要求。</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">中国：新能源车购置税延续 <span class="tag tag-policy">利好</span></div>
-                <div class="card-content">
-                    <p>财政部明确新能源汽车车辆购置税减免政策延长至2027年底，稳定了市场预期，促使零部件企业敢于在大型精密注塑设备上进行长期资本支出（CAPEX）投入。</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section 4: 车企动态 -->
-    <section id="section-4">
-        <div class="section-title">车企动态</div>
-        <div class="table-container">
-            <table>
-                <thead>
-                    <tr>
-                        <th>车企/供应商</th>
-                        <th>动态描述</th>
-                        <th>关联注塑技术/机会</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td><strong>特斯拉 (Tesla)</strong></td>
-                        <td>Model Q车型进入量产阶段，内饰件极度简化。</td>
-                        <td>微发泡注塑、大型一体化内饰件（减少拼接）。</td>
-                    </tr>
-                    <tr>
-                        <td><strong>比亚迪 (BYD)</strong></td>
-                        <td>发布“海狮07”改款，强调全车环保材料。</td>
-                        <td>生物基塑料应用、免喷涂注塑工艺。</td>
-                    </tr>
-                    <tr>
-                        <td><strong>麦格纳 (Magna)</strong></td>
-                        <td>获得欧洲豪华品牌新一代座椅骨架订单。</td>
-                        <td>高玻纤含量PA6/GF30高强度注塑。</td>
-                    </tr>
-                    <tr>
-                        <td><strong>丰田 (Toyota)</strong></td>
-                        <td>固态电池试产线启动，寻求耐高温外壳方案。</td>
-                        <td>PPS/PEEK等耐高温特种工程塑料精密注塑。</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-    </section>
-
-    <!-- Section 5: 调研报告/机构观点 -->
-    <section id="section-5">
-        <div class="section-title">调研报告/机构观点</div>
-        <div class="card-grid">
-            <div class="card">
-                <div class="card-title">MarkLines：全球注塑机装机预测</div>
-                <div class="card-content">
-                    <p>报告指出，2026-2028年全球汽车行业将迎来注塑设备更新换代潮。锁模力在3000T以上的大型注塑机需求年复合增长率预计达到8.5%，主要驱动力来自于电池包壳体、前端模块等大型结构件的“以塑代钢”趋势。</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">麦肯锡：汽车内饰材料变革</div>
-                <div class="card-content">
-                    <p>调研显示，70%的消费者愿意为含有“再生材料”的内饰支付溢价。这建议Tier 1供应商应尽快建立完善的“物理回收-造粒-再注塑”闭环生产线，并配备相应的自动化检测设备。</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- Section 6: 注塑机会专题 -->
-    <section id="section-6">
-        <div class="section-title">注塑机会专题</div>
-        <div class="card-grid">
-            <div class="card">
-                <div class="card-title">技术趋势：多组分/双色注塑 <span class="tag tag-trend">热点</span></div>
-                <div class="card-content">
-                    <p><strong>应用场景：</strong> 智能座舱中的透光饰条、带密封条的车窗导轨、软硬结合的按键。</p>
-                    <p><strong>机会点：</strong> 随着车内氛围灯和触控反馈需求的增加，传统单色注塑无法满足需求。精密多组分注塑机（如双色机、包胶机）及配套模具需求旺盛。重点关注硬质PMMA/PC与软质TPE/TPU的共注成型工艺。</p>
-                </div>
-            </div>
-            <div class="card">
-                <div class="card-title">材料应用：电池包上盖 <span class="tag tag-trend">高增长</span></div>
-                <div class="card" style="background: #232730; border:none; padding:10px; margin-top:10px;">
-                    <div class="card-title" style="font-size:14px;">PPS (聚苯硫醚)</div>
-                    <div class="card-content" style="font-size:12px;">具有极佳的耐高温性（>200℃）和阻燃性（UL94 V-0），无需喷漆即可满足电池包绝缘要求。</div>
-                </div>
-                <div class="card" style="background: #232730; border:none; padding:10px; margin-top:10px;">
-                    <div class="card-title" style="font-size:14px;">长玻纤PP (LFT-PP)</div>
-                    <div class="card-content" style="font-size:12px;">成本低于PPS，机械强度高，适用于对耐温要求稍低的电池包底护板或非承载上盖。</div>
-                </div>
-                <p><strong>设备需求：</strong> 针对PPS材料的高腐蚀性，注塑机螺杆料筒需采用耐腐蚀耐磨合金钢（如H13+特殊涂层）。</p>
-            </div>
-            <div class="card">
-                <div class="card-title">工艺创新：在线检测与自动化</div>
-                <div class="card-content">
-                    <p>为了应对欧盟新法规对零部件质量一致性的严苛要求，主机厂要求供应商在注塑生产线上集成<strong>视觉检测系统（CCD）</strong>和<strong>自动化称重系统</strong>。</p>
-                    <p><strong>机会点：</strong> 能够提供“注塑机+机械手+检测单元”一站式交
-        <!-- 数据来源 -->
-        <section id="sources">
-            <h2>数据来源</h2>
-            <div class="card">
-                <p style="margin-bottom: 15px;">本报告数据与资讯来源于以下公开渠道及行业数据库，所有引用均标注来源及日期：</p>
-                <div class="grid-3">
-                    <div>
-                        <h4>行业数据库</h4>
-                        <ul style="list-style: disc; padding-left: 20px; color: var(--text-secondary);">
-                            <li>MarkLines 付费数据库</li>
-                            <li>乘联会 (CPCA)</li>
-                            <li>中汽协 (CAAM)</li>
-                            <li>ACEA（欧洲）</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4>区域市场</h4>
-                        <ul style="list-style: disc; padding-left: 20px; color: var(--text-secondary);">
-                            <li>GAIKINDO（印尼）</li>
-                            <li>TAI / FTI（泰国）</li>
-                            <li>ANFAVEA / Fenabrave（巴西）</li>
-                            <li>SIAM（印度）、AEB（俄罗斯）</li>
-                        </ul>
-                    </div>
-                    <div>
-                        <h4>媒体与研报</h4>
-                        <ul style="list-style: disc; padding-left: 20px; color: var(--text-secondary);">
-                            <li>盖世汽车、36氪、界面新闻</li>
-                            <li>AlixPartners、麦肯锡</li>
-                            <li>Maybank、爱建证券</li>
-                        </ul>
-                    </div>
-                </div>
-            </div>
-        </section>
-    </main>
+    
+</section>
+        </main>
+    </div>
 </body>
+
 </html>
