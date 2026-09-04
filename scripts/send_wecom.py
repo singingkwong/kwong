@@ -37,13 +37,18 @@ def strip_html_tags(text: str) -> str:
 
 
 def extract_title(html_content: str) -> str:
-    """从 HTML <title> 或 <h1> 中提取标题。"""
+    """从 HTML <title> 或 <h1> 中提取标题，并把日期放到括号里。"""
+    # 优先用 <title>，通常包含日期
     match = re.search(r"<title>(.*?)</title>", html_content, re.IGNORECASE | re.DOTALL)
     if match:
         title = strip_html_tags(match.group(1))
         if title:
+            m = re.search(r"(\d{4}年\d{2}月\d{2}日)\s*(.+)", title)
+            if m:
+                return f"{m.group(2)}（{m.group(1)}）"
             return title
 
+    # 回退到 <h1>
     match = re.search(r"<h1[^>]*>(.*?)</h1>", html_content, re.IGNORECASE | re.DOTALL)
     if match:
         title = strip_html_tags(match.group(1))
@@ -63,7 +68,7 @@ def _find_overview_section(soup: BeautifulSoup):
 
 
 def extract_summary(html_content: str) -> str:
-    """从 HTML 的"本周总览"区域提取摘要，否则取第一段有意义的正文。"""
+    """从 HTML 的"本周总览"区域提取摘要。"""
     soup = BeautifulSoup(html_content, "html.parser")
 
     overview_section = _find_overview_section(soup)
@@ -82,6 +87,17 @@ def extract_summary(html_content: str) -> str:
                 clean = re.sub(r"^核心摘要[：:]\s*", "", text)
                 if len(clean) >= 30:
                     return clean[:200]
+
+        # 如果只有卡片，把前 2-3 张卡片的描述拼接成摘要
+        cards = overview_section.find_all("div", class_=lambda x: x and "card" in x.split())
+        parts = []
+        for card in cards[:3]:
+            content = card.find("div", class_=lambda x: x and "card-content" in x)
+            if content:
+                parts.append(content.get_text(strip=True))
+        if parts:
+            summary = " ".join(parts)
+            return summary[:200]
 
     # 回退：取 body 中第一个有意义的段落
     body = soup.find("body") or soup
@@ -212,6 +228,34 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                             })
                     if len(hotspots) >= count:
                         return hotspots
+
+    # 策略 B2：从"本周总览"的 .card 卡片中提取（a4276fa 等旧版样式）
+    if len(hotspots) < count:
+        overview_section = _find_overview_section(soup)
+        if overview_section:
+            overview_id = overview_section.get("id", "overview") or "overview"
+            cards = overview_section.find_all("div", class_=lambda x: x and "card" in x.split() and "hotspot-card" not in x and "stat-card" not in x)
+            for card in cards:
+                title_elem = card.find("div", class_=lambda x: x and "card-title" in x)
+                desc_elem = card.find("div", class_=lambda x: x and "card-content" in x)
+                if not title_elem:
+                    continue
+                # 复制标题元素并移除 tag，避免把 tag 文本算进标题
+                title_copy = BeautifulSoup(str(title_elem), "html.parser").find()
+                for tag in title_copy.find_all("span", class_=lambda x: x and "tag" in x):
+                    tag.decompose()
+                title_clean = title_copy.get_text(strip=True)
+                if not title_clean:
+                    title_clean = title_elem.get_text(strip=True)
+                description = desc_elem.get_text(strip=True) if desc_elem else "点击查看详情"
+                if title_clean and len(title_clean) < 60:
+                    hotspots.append({
+                        "title": title_clean,
+                        "description": description[:150],
+                        "anchor": overview_id,
+                    })
+                if len(hotspots) >= count:
+                    return hotspots
 
     # 策略 C：回退到 section-title / h2 章节标题
     if len(hotspots) < count:
