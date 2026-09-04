@@ -43,9 +43,15 @@ def fetch_weekly_html() -> str:
         "4. section id 必须固定为：section-1（本周总览）、section-2（各地市场动态）、section-3（政策动态）、"
         "section-4（车企动态）、section-5（调研报告/机构观点）、section-6（注塑机会专题）、section-7（下周关注）；\n"
         "5. 在页面顶部报告日期下方显示：编制团队：YZM海外汽车行业拓展项目组；\n"
-        "6. 在 <head> 中使用嵌入式 CSS，不要引用外部 CSS 文件；\n"
-        "7. 确保所有 HTML 标签正确闭合，不要出现属性错位或未闭合标签；\n"
-        "8. 不要在 HTML 外面添加任何说明文字，只输出 HTML 代码本身。"
+        "6. 在‘本周总览’区域顶部，必须显式输出 3 个‘本周热点’卡片，供企业微信图文消息使用：\n"
+        "   - 容器：<div class='hotspot-grid'>，每个热点：<div class='hotspot-card'>；\n"
+        "   - 热点标题：<div class='hotspot-title'>，15-20 字，必须抓人眼球、有新闻感；\n"
+        "   - 热点描述：<div class='hotspot-desc'>，30-40 字，一句话说明影响或数据；\n"
+        "   - 热点标签：<span class='hotspot-tag'>，如‘政策’‘数据’‘车企’‘注塑机会’；\n"
+        "   - 这 3 个热点必须从本周事件中挑选最有热度、最引人瞩目的（如重大突破、销量新高、政策变化、头部车企动作、注塑机会），不要放平淡的常规数据；\n"
+        "7. 在 <head> 中使用嵌入式 CSS，不要引用外部 CSS 文件；\n"
+        "8. 确保所有 HTML 标签正确闭合，不要出现属性错位或未闭合标签；\n"
+        "9. 不要在 HTML 外面添加任何说明文字，只输出 HTML 代码本身。"
     )
 
     resp = requests.post(

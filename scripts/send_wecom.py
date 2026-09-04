@@ -107,58 +107,106 @@ def _find_section_anchor(soup: BeautifulSoup, title_text: str) -> str:
     return ""
 
 
+def _find_section_by_title(soup: BeautifulSoup, title_text: str) -> str:
+    """根据标题文本查找 section 的 id 作为锚点。"""
+    title_text = re.sub(r"\s*\w+\s*Overview\s*$", "", title_text.strip(), flags=re.IGNORECASE)
+    for section in soup.find_all("section"):
+        for tag in ["h2", "h3", "div"]:
+            heading = section.find(tag, class_=lambda x: x and ("section-title" in x or "title" in x))
+            if not heading:
+                heading = section.find(tag)
+            if heading:
+                section_title = re.sub(r"\s*\w+\s*Overview\s*$", "", heading.get_text(strip=True), flags=re.IGNORECASE)
+                if section_title == title_text:
+                    return section.get("id", "")
+    return ""
+
+
 def extract_hotspots(html_content: str, count: int = 3) -> list:
     """
-    从 HTML "本周总览" 区域的数据指标中提取热点。
-    支持多种结构：stat-card / stat-value+stat-label / grid 布局。
-    若未找到，则回退到 section-title / h2 章节标题。
+    从 HTML 中提取 3 个本周热点，用于企微图文消息小卡片。
+    优先使用 Agent 显式生成的 hotspot-card，否则回退到 stat-card 或章节标题。
     返回的字典包含 title / description / anchor。
     """
     hotspots = []
     soup = BeautifulSoup(html_content, "html.parser")
 
-    overview_section = _find_overview_section(soup)
-    if overview_section:
-        overview_id = overview_section.get("id", "overview") or "overview"
-        # 策略 A-1：class="stat-card" 结构
-        stat_cards = overview_section.find_all("div", class_=lambda x: x and "stat-card" in x)
-        for card in stat_cards:
-            label = card.find("div", class_=lambda x: x and "stat-label" in x)
-            value = card.find("div", class_=lambda x: x and "stat-value" in x)
-            desc = card.find("p")
+    # 策略 A：优先使用 Agent 显式生成的 hotspot-card
+    hotspot_cards = soup.find_all("div", class_=lambda x: x and "hotspot-card" in x)
+    for card in hotspot_cards:
+        title_elem = card.find(["div", "h3", "h4"], class_=lambda x: x and "hotspot-title" in x)
+        desc_elem = card.find("div", class_=lambda x: x and "hotspot-desc" in x)
+        tag_elem = card.find("span", class_=lambda x: x and "hotspot-tag" in x)
 
-            name = label.get_text(strip=True) if label else ""
-            val_text = value.get_text(strip=True) if value else ""
-            desc_text = desc.get_text(strip=True) if desc else ""
+        title = title_elem.get_text(strip=True) if title_elem else ""
+        description = desc_elem.get_text(strip=True) if desc_elem else ""
+        tag = tag_elem.get_text(strip=True) if tag_elem else ""
 
-            if name and val_text and len(name) < 60:
-                description = f"{val_text} {desc_text}".strip()
-                hotspots.append({
-                    "title": name,
-                    "description": description[:150],
-                    "anchor": overview_id,
-                })
-            if len(hotspots) >= count:
-                return hotspots
+        if title and description:
+            # 从标题中推断锚点：政策 -> section-3，车企 -> section-4，注塑 -> section-6，默认 section-2
+            title_lower = title.lower()
+            if "政策" in tag or "政策" in title_lower or "法规" in title_lower:
+                anchor = "section-3"
+            elif "车企" in tag or "车企" in title_lower or "比亚迪" in title_lower or "特斯拉" in title_lower or "大众" in title_lower:
+                anchor = "section-4"
+            elif "注塑" in tag or "注塑" in title_lower or "压铸" in title_lower or "模具" in title_lower:
+                anchor = "section-6"
+            elif "数据" in tag or "销量" in title_lower or "渗透" in title_lower or "同比" in title_lower or "%" in title:
+                anchor = "section-2"
+            else:
+                anchor = "section-2"
 
-        # 策略 A-2：单独的 stat-value + stat-label 结构（无 stat-card 外层）
-        if not hotspots:
-            value_divs = overview_section.find_all("div", class_=lambda x: x and "stat-value" in x)
-            for value_div in value_divs:
-                label_div = value_div.find_next_sibling("div")
-                if label_div and "stat-label" in " ".join(label_div.get("class", [])):
-                    name = label_div.get_text(strip=True)
-                    val_text = value_div.get_text(strip=True)
-                    if name and val_text and len(name) < 60:
-                        hotspots.append({
-                            "title": name,
-                            "description": val_text[:150],
-                            "anchor": overview_id,
-                        })
+            hotspots.append({
+                "title": title,
+                "description": description[:150],
+                "anchor": anchor,
+            })
+        if len(hotspots) >= count:
+            return hotspots
+
+    # 策略 B：从"本周总览"区域的数据指标中提取
+    if len(hotspots) < count:
+        overview_section = _find_overview_section(soup)
+        if overview_section:
+            overview_id = overview_section.get("id", "overview") or "overview"
+            stat_cards = overview_section.find_all("div", class_=lambda x: x and "stat-card" in x)
+            for card in stat_cards:
+                label = card.find("div", class_=lambda x: x and "stat-label" in x)
+                value = card.find("div", class_=lambda x: x and "stat-value" in x)
+                desc = card.find("p")
+
+                name = label.get_text(strip=True) if label else ""
+                val_text = value.get_text(strip=True) if value else ""
+                desc_text = desc.get_text(strip=True) if desc else ""
+
+                if name and val_text and len(name) < 60:
+                    description = f"{val_text} {desc_text}".strip()
+                    hotspots.append({
+                        "title": name,
+                        "description": description[:150],
+                        "anchor": overview_id,
+                    })
                 if len(hotspots) >= count:
                     return hotspots
 
-    # 策略 B：回退到 section-title / h2 章节标题
+            # 单独的 stat-value + stat-label 结构
+            if len(hotspots) < count:
+                value_divs = overview_section.find_all("div", class_=lambda x: x and "stat-value" in x)
+                for value_div in value_divs:
+                    label_div = value_div.find_next_sibling("div")
+                    if label_div and "stat-label" in " ".join(label_div.get("class", [])):
+                        name = label_div.get_text(strip=True)
+                        val_text = value_div.get_text(strip=True)
+                        if name and val_text and len(name) < 60:
+                            hotspots.append({
+                                "title": name,
+                                "description": val_text[:150],
+                                "anchor": overview_id,
+                            })
+                    if len(hotspots) >= count:
+                        return hotspots
+
+    # 策略 C：回退到 section-title / h2 章节标题
     if len(hotspots) < count:
         needed = count - len(hotspots)
         text = re.sub(r"<script[^>]*>.*?</script>", "", html_content, flags=re.IGNORECASE | re.DOTALL)
@@ -171,7 +219,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
             title_text = elem.get_text(strip=True)
             title_text = re.sub(r"\s*\w+\s*Overview\s*$", "", title_text, flags=re.IGNORECASE)
             if title_text and title_text not in ["本周总览", "Weekly Overview"] and title_text not in [t["title"] for t in titles]:
-                anchor = _find_section_anchor(soup2, title_text)
+                anchor = _find_section_by_title(soup2, title_text)
                 titles.append({"title": title_text, "description": "点击查看详情", "anchor": anchor})
             if len(titles) >= needed:
                 break
@@ -179,6 +227,17 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
         hotspots.extend(titles)
 
     return hotspots[:count]
+
+
+def _polish_hotspot_title(idx: int, title: str) -> str:
+    """美化热点卡片标题，使其更抓人。"""
+    title = title.strip()
+    # 去掉已有前缀避免重复
+    title = re.sub(r"^热点\d*[：:]\s*", "", title)
+    # 限制长度：企微标题过长会被截断
+    if len(title) > 22:
+        title = title[:21] + "…"
+    return f"热点{idx}｜{title}"
 
 
 def build_payload(title: str, summary: str, hotspots: list) -> dict:
@@ -195,9 +254,13 @@ def build_payload(title: str, summary: str, hotspots: list) -> dict:
     for idx, hotspot in enumerate(hotspots, start=1):
         anchor = hotspot.get("anchor", "")
         url = f"{BASE_URL}#{anchor}" if anchor else BASE_URL
+        description = hotspot.get("description", "点击查看详情").strip()
+        # 企微描述过长会折叠，控制在 45 字以内更醒目
+        if len(description) > 45:
+            description = description[:44] + "…"
         articles.append({
-            "title": f"热点{idx}：{hotspot['title']}",
-            "description": hotspot["description"],
+            "title": _polish_hotspot_title(idx, hotspot["title"]),
+            "description": description,
             "url": url,
             "picurl": COVER_URL,
         })
