@@ -109,15 +109,22 @@ def extract_summary(html_content: str) -> str:
     return "本周全球汽车市场深度解读，点击查看完整报告。"
 
 
+def _clean_section_title(title: str) -> str:
+    """清理章节标题中的英文前缀/后缀，如 'Markets各地市场动态' -> '各地市场动态'。"""
+    title = title.strip()
+    title = re.sub(r"^[A-Za-z]+\s*", "", title).strip()
+    title = re.sub(r"\s*[A-Za-z]+\s*$", "", title).strip()
+    return title
+
+
 def _find_section_anchor(soup: BeautifulSoup, title_text: str) -> str:
     """根据标题文本查找对应 section 的 id 作为锚点。"""
-    title_text = title_text.strip()
+    title_text = _clean_section_title(title_text)
     for section in soup.find_all("section"):
         h2 = section.find("h2")
         if not h2:
             continue
-        section_title = h2.get_text(strip=True)
-        section_title = re.sub(r"\s*\w+\s*Overview\s*$", "", section_title, flags=re.IGNORECASE)
+        section_title = _clean_section_title(h2.get_text(strip=True))
         if section_title == title_text:
             return section.get("id", "")
     return ""
@@ -125,14 +132,14 @@ def _find_section_anchor(soup: BeautifulSoup, title_text: str) -> str:
 
 def _find_section_by_title(soup: BeautifulSoup, title_text: str) -> str:
     """根据标题文本查找 section 的 id 作为锚点。"""
-    title_text = re.sub(r"\s*\w+\s*Overview\s*$", "", title_text.strip(), flags=re.IGNORECASE)
+    title_text = _clean_section_title(title_text)
     for section in soup.find_all("section"):
         for tag in ["h2", "h3", "div"]:
             heading = section.find(tag, class_=lambda x: x and ("section-title" in x or "title" in x))
             if not heading:
                 heading = section.find(tag)
             if heading:
-                section_title = re.sub(r"\s*\w+\s*Overview\s*$", "", heading.get_text(strip=True), flags=re.IGNORECASE)
+                section_title = _clean_section_title(heading.get_text(strip=True))
                 if section_title == title_text:
                     return section.get("id", "")
     return ""
@@ -155,6 +162,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
         tag_elem = card.find("span", class_=lambda x: x and "hotspot-tag" in x)
 
         title = title_elem.get_text(strip=True) if title_elem else ""
+        title = re.sub(r"^[A-Za-z]+\s*", "", title).strip()
         description = desc_elem.get_text(strip=True) if desc_elem else ""
         tag = tag_elem.get_text(strip=True) if tag_elem else ""
 
@@ -199,6 +207,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                 desc = card.find("p")
 
                 name = label.get_text(strip=True) if label else ""
+                name = re.sub(r"^[A-Za-z]+\s*", "", name).strip()
                 val_text = value.get_text(strip=True) if value else ""
                 desc_text = desc.get_text(strip=True) if desc else ""
 
@@ -219,6 +228,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                     label_div = value_div.find_next_sibling("div")
                     if label_div and "stat-label" in " ".join(label_div.get("class", [])):
                         name = label_div.get_text(strip=True)
+                        name = re.sub(r"^[A-Za-z]+\s*", "", name).strip()
                         val_text = value_div.get_text(strip=True)
                         if name and val_text and len(name) < 60:
                             hotspots.append({
@@ -247,6 +257,8 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                 title_clean = title_copy.get_text(strip=True)
                 if not title_clean:
                     title_clean = title_elem.get_text(strip=True)
+                # 去掉标题中常见的英文前缀，如 "Overview本周总览" -> "本周总览"
+                title_clean = re.sub(r"^[A-Za-z]+\s*", "", title_clean).strip()
                 description = desc_elem.get_text(strip=True) if desc_elem else "点击查看详情"
                 if title_clean and len(title_clean) < 60:
                     hotspots.append({
@@ -269,6 +281,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                 if not title_elem:
                     title_elem = card.find(["h3", "h4"])
                 title = title_elem.get_text(strip=True) if title_elem else ""
+                title = re.sub(r"^[A-Za-z]+\s*", "", title).strip()
                 description = desc_elem.get_text(strip=True) if desc_elem else "点击查看详情"
                 if title and len(title) < 60:
                     hotspots.append({
@@ -290,8 +303,10 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
             if elem.name == "div" and "section-title" not in " ".join(elem.get("class", [])):
                 continue
             title_text = elem.get_text(strip=True)
-            title_text = re.sub(r"\s*\w+\s*Overview\s*$", "", title_text, flags=re.IGNORECASE)
-            if title_text and title_text not in ["本周总览", "Weekly Overview"] and title_text not in [t["title"] for t in titles]:
+            # 去掉开头或结尾常见的英文前缀/后缀，如 "Markets各地市场动态" -> "各地市场动态"
+            title_text = re.sub(r"^[A-Za-z]+\s*", "", title_text).strip()
+            title_text = re.sub(r"\s*[A-Za-z]+\s*$", "", title_text).strip()
+            if title_text and title_text not in ["本周总览"] and title_text not in [t["title"] for t in titles]:
                 anchor = _find_section_by_title(soup2, title_text)
                 titles.append({"title": title_text, "description": "点击查看详情", "anchor": anchor})
             if len(titles) >= needed:
