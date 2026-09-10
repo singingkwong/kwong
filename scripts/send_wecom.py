@@ -172,37 +172,50 @@ def _infer_anchor(title: str, tag: str = "") -> str:
     policy / oem / research / injection / nextweek。
     """
     t = f"{title} {tag}".lower()
+    tl = title.lower()
 
     def has(*words: str) -> bool:
         return any(w.lower() in t for w in words)
 
-    if has("注塑", "模具", "压铸", "轻量化", "碳纤维", "复合材料", "工程塑料", "改性塑料", "注塑机"):
-        return "injection"
-    if has("政策", "法规", "关税", "补贴", "双反", "监管", "新规", "合规", "贸易"):
+    def title_has(*words: str) -> bool:
+        return any(w.lower() in tl for w in words)
+
+    # 1) 政策（最高优先，避免被注塑/车企关键词抢走）
+    if has("政策", "法规", "关税", "补贴", "双反", "监管", "新规", "合规", "贸易",
+           "cbam", "ira", "禁燃", "豁免", "碳边境", "财政部", "商务部"):
         return "policy"
-    if has("车企", "整车", "主机厂", "品牌", "比亚迪", "特斯拉", "丰田", "大众",
+    # 2) 车企
+    if has("车企", "整车", "主机厂", "比亚迪", "特斯拉", "丰田", "大众",
            "宝马", "奔驰", "吉利", "奇瑞", "长安", "长城", "宁德时代", "蔚来",
-           "小鹏", "理想", "stellantis", "现代", "起亚", "oem"):
+           "小鹏", "理想", "stellantis", "现代", "起亚", "工厂", "投产",
+           "扩产", "量产", "产能", "oem"):
         return "oem"
+    # 3) 调研/机构
     if has("报告", "调研", "研报", "机构", "麦肯锡", "bcg", "贝恩", "德勤",
            "普华永道", "alixpartners", "评级", "预测", "观点", "research"):
         return "research"
-    if has("下周", "前瞻", "日程", "关注", "数据发布", "nextweek"):
+    # 4) 下周关注
+    if has("下周", "前瞻", "日程", "数据发布", "nextweek"):
         return "nextweek"
-    # 区域市场：按关键词定位到具体区域锚点
+    # 5) 区域市场
     if has("巴西", "南美", "argentina", "阿根廷"):
         return "sa"
     if has("泰国", "印尼", "越南", "马来", "东南亚", "东盟", "sea"):
         return "sea"
     if has("欧洲", "欧盟", "德国", "法国", "意大利", "西班牙", "acea", "eu"):
         return "eu"
-    if has("北美", "美国", "加拿大", "墨西哥", "na", "u.s"):
+    if has("北美", "美国", "加拿大", "na", "u.s"):
         return "na"
-    if has("印度", "俄罗斯", "澳洲", "澳大利亚", "日本", "韩国", "中东", "非洲"):
+    if has("印度", "俄罗斯", "澳洲", "澳大利亚", "日本", "韩国", "日韩", "中东", "非洲"):
         return "other"
     if has("中国", "国内", "乘联会", "中汽协", "cpca", "caam", "china"):
         return "china"
-    if has("销量", "同比", "环比", "渗透率", "市场", "%", "出口"):
+    # 6) 注塑专题：仅当标题明确聚焦注塑/压铸/模具/材料工艺（避免描述顺带提及误判）
+    if title_has("注塑", "模具", "压铸", "一体化压铸", "改性塑料", "工程塑料",
+                 "碳纤维", "复合材料", "轻量化", "注塑机"):
+        return "injection"
+    # 7) 市场面兜底
+    if has("销量", "同比", "环比", "渗透率", "市场", "出口", "占比", "增长"):
         return "overview"
     return "overview"
 

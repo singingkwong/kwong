@@ -52,6 +52,8 @@ REGIONS: List[Dict[str, str]] = [
     {"name": "澳大利亚", "key": "other", "en": "Australia", "cls": "region-other"},
     {"name": "日本", "key": "other", "en": "Japan", "cls": "region-other"},
     {"name": "韩国", "key": "other", "en": "Korea", "cls": "region-other"},
+    {"name": "日韩", "key": "other", "en": "Japan & Korea", "cls": "region-other"},
+    {"name": "亚洲", "key": "other", "en": "Asia", "cls": "region-other"},
 ]
 
 MARKETS_TITLE = "各地市场动态"
@@ -170,21 +172,68 @@ def _link_html(link: str) -> str:
             f'<span class="src-link-ico">🔗</span>原文</a>')
 
 
+def _el_text(el) -> str:
+    return clean_text(el.get_text(" ", strip=True)) if el is not None else ""
+
+
+def _card_title(c) -> str:
+    """从一张卡片中提取标题，兼容 Agent 真实类名与通用标签。"""
+    for sel in (".hotspot-title", ".card-title"):
+        el = c.select_one(sel)
+        if el:
+            clone = BeautifulSoup(str(el), "html.parser").find()
+            for sp in clone.find_all("span"):
+                sp.decompose()
+            return _el_text(clone)
+    for tag in ("h3", "h4", "h5"):
+        el = c.find(tag)
+        if el:
+            return _el_text(el)
+    strong = c.find(["strong", "b"])
+    return _el_text(strong)
+
+
+def _card_body(c) -> str:
+    """从一张卡片中提取正文，兼容 .card-content / .hotspot-desc / .news-body 及整体文本。"""
+    for sel in (".card-content", ".hotspot-desc", ".news-body"):
+        el = c.select_one(sel)
+        if el:
+            return _el_text(el)
+    clone_root = BeautifulSoup(str(c), "html.parser").find()
+    if clone_root:
+        for sel in (".hotspot-title", ".card-title", ".hotspot-tag", ".tag",
+                    ".tag-trend", ".tag-policy", ".tag-risk", ".news-source"):
+            for el in clone_root.select(sel):
+                el.decompose()
+        return _el_text(clone_root)
+    return _el_text(c)
+
+
 def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
-    """从一段 HTML 中提取标题+正文+原文链接（优先 .card / .news-card，其次 li / p）。"""
+    """从一段 HTML 中提取标题+正文+原文链接。
+
+    兼容 Agent 真实结构：.hotspot-card(.hotspot-title/.hotspot-desc/.hotspot-source)、
+    .card(.card-title/.card-content/.source-link)，以及模板卡片类、li、p。
+    """
     soup = BeautifulSoup(body, "html.parser")
     cards: List[Dict[str, object]] = []
 
-    # 优先识别带 card 类的块
-    candidates = soup.select(".card, .news-card, .region-card, .policy-card, .oem-card, .research-card, .inj-card, .kp-card")
+    candidates = soup.select(
+        ".card, .hotspot-card, .news-card, .region-card, .policy-card, "
+        ".oem-card, .research-card, .inj-card, .kp-card"
+    )
     for c in candidates:
-        title_el = c.find(["h3", "h4", "h5", "strong", "b"])
-        title = clean_text(title_el.get_text()) if title_el else ""
-        body_text = clean_text(c.get_text(" ", strip=True))
-        if title and body_text:
-            if body_text.startswith(title):
-                body_text = body_text[len(title):].strip(" -—:：")
-            item: Dict[str, str] = {"title": title, "body": body_text}
+        # 跳过 .card-grid / .hotspot-grid 等容器（类名前缀误匹配）
+        if c.get("class") and any(x in c.get("class", []) for x in ("card-grid", "hotspot-grid", "kp-grid", "overview-grid")):
+            continue
+        title = _card_title(c)
+        body_text = _card_body(c)
+        if title and body_text.startswith(title):
+            body_text = body_text[len(title):].strip(" -—:：|")
+        if not title and len(body_text) >= 12:
+            title = body_text[:24]
+        if title or body_text:
+            item: Dict[str, object] = {"title": title or "", "body": body_text}
             link = _first_link(c)
             if link:
                 item["link"] = link
@@ -193,20 +242,13 @@ def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
     if cards:
         return cards
 
-    # 其次：li 列表
+    # 其次：li 列表（政策/车企/调研常用 ul.styled-list > li）
     li_cards: List[Dict[str, object]] = []
     for li in soup.find_all("li"):
-        txt = clean_text(li.get_text(" ", strip=True))
-        if len(txt) < 12:
+        txt = _el_text(li)
+        if len(txt) < 10:
             continue
-        strong = li.find(["strong", "b"])
-        title = clean_text(strong.get_text()) if strong else ""
-        if title and txt.startswith(title):
-            body_txt = txt[len(title):].strip(" -—:：")
-        else:
-            title = txt[:28]
-            body_txt = txt
-        item: Dict[str, str] = {"title": title, "body": body_txt}
+        item: Dict[str, object] = {"title": "", "body": txt}
         link = _first_link(li)
         if link:
             item["link"] = link
@@ -214,20 +256,39 @@ def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
     if li_cards:
         return li_cards
 
-    # 最后：p 段落
+    # 最后：p 段落（总览引言等）
     for p in soup.find_all("p"):
-        txt = clean_text(p.get_text(" ", strip=True))
+        txt = _el_text(p)
         if len(txt) < 20:
             continue
-        strong = p.find(["strong", "b"])
-        title = clean_text(strong.get_text()) if strong else txt[:28]
-        body_txt = txt if not strong or not txt.startswith(title) else txt[len(title):].strip(" -—:：")
-        item: Dict[str, str] = {"title": title, "body": body_txt}
+        item = {"title": "", "body": txt}
         link = _first_link(p)
         if link:
             item["link"] = link
         cards.append(item)
     return cards
+
+
+def extract_hotspot_cards(full_html: str) -> List[Dict[str, object]]:
+    """提取 Agent 总览热点卡（.hotspot-grid > .hotspot-card）。
+
+    这类卡片位于所有 <section> 之前，需从完整 HTML 单独解析。
+    返回 title/body/link/tags。
+    """
+    soup = BeautifulSoup(full_html, "html.parser")
+    out: List[Dict[str, object]] = []
+    for c in soup.select(".hotspot-card"):
+        title = _el_text(c.select_one(".hotspot-title"))
+        desc = _el_text(c.select_one(".hotspot-desc"))
+        tags = [_el_text(t) for t in c.select(".hotspot-tag")]
+        if not title:
+            continue
+        item: Dict[str, object] = {"title": title, "body": desc, "tags": tags}
+        link = _first_link(c)
+        if link:
+            item["link"] = link
+        out.append(item)
+    return out
 
 
 def extract_li_items(body: str) -> List[str]:
@@ -259,9 +320,15 @@ def extract_summary(overview_body: str) -> str:
 # ---------------------------------------------------------------------------
 # 区块 HTML 生成（严格对齐新模板类名）
 # ---------------------------------------------------------------------------
-def build_key_points_html(overview: Dict[str, str]) -> str:
-    """本周总览：.key-points > .kp-grid > .kp-card（注塑相关用 .injection）。"""
-    cards = extract_cards_from_body(overview["body"])
+def build_key_points_html(overview: Dict[str, str], hotspots: List[Dict[str, object]] | None = None) -> str:
+    """本周总览：.key-points > .kp-grid > .kp-card（注塑相关用 .injection）。
+
+    优先使用 Agent 的总览热点卡（.hotspot-card，通常 3 张）；
+    兜底使用 overview 区块内解析出的卡片。
+    """
+    cards = list(hotspots or [])
+    if not cards:
+        cards = extract_cards_from_body(overview["body"])
     if not cards:
         cards = [{"title": "本周要点", "body": extract_summary(overview["body"])}]
 
@@ -281,13 +348,23 @@ def build_key_points_html(overview: Dict[str, str]) -> str:
       {link_html}
     </div>''')
 
+    # 引言段（overview 区块内的 <p>，hotspot 卡已在 section 之外单独处理）
+    soup = BeautifulSoup(overview["body"], "html.parser")
+    intro = ""
+    for p in soup.find_all("p"):
+        txt = clean_text(p.get_text(" ", strip=True))
+        if len(txt) >= 30:
+            intro = txt
+            break
+    intro_html = f'    <p style="margin-bottom:24px;color:var(--text-soft);">{highlight_numbers(intro)}</p>\n' if intro else ""
+
     return f'''  <!-- Key Points -->
   <section class="key-points" id="overview">
     <div class="key-points-header">
       <h2>本周总览</h2>
       <span class="line"></span>
     </div>
-    <div class="kp-grid">
+{intro_html}    <div class="kp-grid">
 {chr(10).join(cards_html)}
     </div>
   </section>
@@ -301,58 +378,98 @@ def _match_region(name: str) -> Dict[str, str]:
     return {"name": name, "key": "other", "en": name, "cls": "region-other"}
 
 
+# 区域分组顺序与展示信息
+REGION_ORDER: List[Dict[str, str]] = [
+    {"key": "china", "label": "中国市场", "cls": "region-cn"},
+    {"key": "sea", "label": "东南亚市场", "cls": "region-sea"},
+    {"key": "sa", "label": "南美市场", "cls": "region-sa"},
+    {"key": "eu", "label": "欧洲市场", "cls": "region-eu"},
+    {"key": "na", "label": "北美市场", "cls": "region-na"},
+    {"key": "other", "label": "其他市场", "cls": "region-other"},
+]
+
+
+def classify_region(text: str) -> str:
+    """根据一段文本（卡片标题/正文）判断所属区域 key。"""
+    for r in REGIONS:
+        if r["name"] in text:
+            return r["key"]
+    return "other"
+
+
+def _strip_region_prefix(title: str) -> str:
+    """去掉卡片标题开头的区域名前缀，如"欧洲 大众集团..." -> "大众集团..."。"""
+    t = title.strip()
+    for r in sorted(REGIONS, key=lambda x: -len(x["name"])):
+        for prefix in (r["name"] + " ", r["name"] + "　", r["name"] + "：", r["name"] + ":"):
+            if t.startswith(prefix):
+                return t[len(prefix):].strip()
+    return t
+
+
 def build_markets_html(markets: Optional[Dict[str, str]]) -> str:
     """各地市场动态：.section#markets 内含多个 .subsection.region-* + .news-card。"""
     subsections: List[str] = []
 
     if markets:
-        grouped: List[Dict[str, str]] = []
         full = markets["body"]
-        head_pattern = re.compile(r"<(h3)([^>]*)>(.*?)</\1>", re.IGNORECASE | re.DOTALL)
-        hm = list(head_pattern.finditer(full))
-        # 仅当 h3 是区域名（较短、不以句号结尾）时才作为分组标题
-        valid = [m for m in hm if len(clean_text(re.sub(r"<[^>]+>", "", m.group(3)))) <= 20]
-        if valid:
-            for i, m in enumerate(valid):
+        # 先提取所有市场卡片（Agent 用 .card-grid>.card，标题以区域名开头）
+        all_cards = extract_cards_from_body(full)
+
+        # 若存在显式区域小标题（h3/h4 为区域名），按块分组；否则按卡片文本关键词归类
+        head_pattern = re.compile(r"<(h3|h4)([^>]*)>(.*?)</\1>", re.IGNORECASE | re.DOTALL)
+        hm = [m for m in head_pattern.finditer(full)
+              if len(clean_text(re.sub(r"<[^>]+>", "", m.group(3)))) <= 12]
+
+        region_cards: Dict[str, List[Dict[str, object]]] = {r["key"]: [] for r in REGION_ORDER}
+        if hm:
+            for i, m in enumerate(hm):
                 name = clean_text(re.sub(r"<[^>]+>", "", m.group(3)))
+                key = _match_region(name)["key"]
                 start = m.end()
-                end = valid[i + 1].start() if i + 1 < len(valid) else len(full)
-                grouped.append({"name": name, "body": full[start:end]})
+                end = hm[i + 1].start() if i + 1 < len(hm) else len(full)
+                region_cards[key].extend(extract_cards_from_body(full[start:end]))
         else:
-            grouped = [{"name": "其他市场", "body": full}]
+            def region_by_prefix(t: str) -> str:
+                for r in sorted(REGIONS, key=lambda x: -len(x["name"])):
+                    if t == r["name"] or t.startswith(r["name"] + " ") or t.startswith(r["name"]):
+                        # 仅当前缀是区域名（其后紧跟空白/标点/tag）
+                        rest = t[len(r["name"]):]
+                        if rest == "" or rest[0] in " 　:：（(":
+                            return r["key"]
+                return ""
 
-        # region key -> 展示信息
-        region_order = [
-            ("china", "中国市场", "region-cn"),
-            ("sea", "东南亚市场", "region-sea"),
-            ("sa", "南美市场", "region-sa"),
-            ("eu", "欧洲市场", "region-eu"),
-            ("na", "北美市场", "region-na"),
-            ("other", "其他市场", "region-other"),
-        ]
-        grouped_map: Dict[str, Dict[str, str]] = {}
-        for g in grouped:
-            region = _match_region(g["name"])
-            grouped_map.setdefault(region["key"], g)
+            for c in all_cards:
+                title = str(c.get("title", "")).strip()
+                key = region_by_prefix(title)
+                if key:
+                    c["title"] = ""  # 区域名已作为 subsection 标题，卡片不再重复
+                else:
+                    key = classify_region(title + str(c.get("body", "")))
+                region_cards[key].append(c)
 
-        for key, label, cls in region_order:
-            g = grouped_map.get(key)
+        for r in REGION_ORDER:
+            key, label, cls = r["key"], r["label"], r["cls"]
             cards_html: List[str] = []
-            if g:
-                cards = extract_cards_from_body(g["body"])
-                for c in cards[:5]:
-                    t = escape_html(str(c.get("title", "")))
-                    b = highlight_numbers(str(c.get("body", "")))
+            for c in region_cards[key][:6]:
+                title = _strip_region_prefix(str(c.get("title", "")))
+                body_text = str(c.get("body", "")).strip()
+                if not title:
+                    # 区域汇总卡：无卡片标题，直接展示正文（去掉末尾"原文"）
+                    body_text = re.sub(r"\s*原文$", "", body_text)
+                    b = highlight_numbers(body_text)
+                    lk = _link_html(str(c.get("link", "")))
+                    cards_html.append(
+                        f'      <div class="news-card"><div class="news-body">{b}</div>{lk}</div>'
+                    )
+                else:
+                    t = escape_html(title)
+                    b = highlight_numbers(re.sub(r"\s*原文$", "", body_text))
                     lk = _link_html(str(c.get("link", "")))
                     cards_html.append(
                         f'      <div class="news-card"><h4>{t}</h4>'
                         f'<div class="news-body">{b}</div>{lk}</div>'
                     )
-                if not cards_html:
-                    for it in extract_li_items(g["body"])[:5]:
-                        cards_html.append(
-                            f'      <div class="news-card"><div class="news-body">{highlight_numbers(it)}</div></div>'
-                        )
             if not cards_html:
                 cards_html.append(
                     '      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>'
@@ -379,6 +496,21 @@ def build_markets_html(markets: Optional[Dict[str, str]]) -> str:
 '''
 
 
+def _derive_title(card: Dict[str, object], max_len: int = 24) -> str:
+    """无标题卡片（li/p 列表）时，从正文首句提炼一个精简标题。"""
+    title = str(card.get("title", "")).strip()
+    if title:
+        return title
+    body = str(card.get("body", "")).strip()
+    # 优先按中文逗号/分号/冒号切出前段
+    for sep in ("。", "；", ";", "，", "：", ":"):
+        if sep in body:
+            head = body.split(sep)[0].strip()
+            if 6 <= len(head) <= max_len:
+                return head
+    return body[:max_len]
+
+
 def build_simple_card_section(sec: Optional[Dict[str, str]], *, section_id: str,
                               title: str, num: str, card_class: str,
                               keywords: List[str], empty_text: str) -> str:
@@ -387,8 +519,15 @@ def build_simple_card_section(sec: Optional[Dict[str, str]], *, section_id: str,
     if sec:
         cards = extract_cards_from_body(sec["body"])
         for c in cards[:8]:
-            t = escape_html(str(c.get("title", "")))
-            b = highlight_numbers(str(c.get("body", "")))
+            title_text = re.sub(r"^(动态|利好|风险|关注|机会|政策|调研|观点)\s*", "",
+                                _derive_title(c)).strip()
+            t = escape_html(title_text)
+            body_text = str(c.get("body", ""))
+            # 正文若以标题开头，去掉重复标题
+            tt = str(c.get("title", "")).strip()
+            if not tt and body_text.startswith(_derive_title(c)):
+                body_text = body_text[len(_derive_title(c)):].strip(" ，。；;：:")
+            b = highlight_numbers(body_text)
             lk = _link_html(str(c.get("link", "")))
             if card_class == "oem-card":
                 cards_html.append(
@@ -561,7 +700,10 @@ def render(agent_html: str, *, team: str = DEFAULT_TEAM) -> str:
 
     summary = extract_summary(overview["body"])
 
-    overview_html = build_key_points_html(overview)
+    # Agent 总览热点卡（.hotspot-grid > .hotspot-card），位于所有 section 之前
+    hotspots = extract_hotspot_cards(full_html)
+
+    overview_html = build_key_points_html(overview, hotspots)
     markets_html = build_markets_html(markets)
     policy_html = build_simple_card_section(
         policy, section_id="policy", title="政策动态", num="POLICY",
