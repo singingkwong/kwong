@@ -209,6 +209,64 @@ def _card_body(c) -> str:
     return _el_text(c)
 
 
+def _split_card_by_links(card_el) -> List[Dict[str, object]]:
+    """当一张卡片里含 >=2 个原文链接时，按链接把内容拆成多条。
+
+    Agent 偶发会把多条独立动态合并进一张 .card（正文用"原文"分隔，每条跟一个链接）。
+    策略：按文档顺序遍历，链接之前累积的文本归属该链接，文本末尾的"原文"去除。
+    """
+    anchors = card_el.find_all("a")
+    links = [a.get("href", "").strip() for a in anchors if a.get("href", "").startswith("http")]
+    if len(links) < 2:
+        return []
+
+    # 正文文本：取 .card-content/.hotspot-desc/.news-body 优先，否则整卡
+    content_el = card_el.select_one(".card-content, .hotspot-desc, .news-body")
+    if content_el:
+        body_raw = str(content_el)
+    else:
+        body_raw = str(card_el)
+    # 去掉正文内可能的链接标签，保留纯文本与换行边界
+    body_text = re.sub(r"<a[^>]*>.*?</a>", " ", body_raw, flags=re.DOTALL)
+    body_text = re.sub(r"<br\s*/?>", "\n", body_text)
+    body_text = re.sub(r"</(p|div|li)>", "\n", body_text)
+    body_text = clean_text(re.sub(r"<[^>]+>", "\n", body_text))
+
+    # 拆分多条动态：按换行切，再把过短碎片并入上一条
+    raw_lines = [ln.strip() for ln in re.split(r"[\n]+", body_text) if ln.strip()]
+    # 去掉"原文"残留与纯标签词
+    lines: List[str] = []
+    for ln in raw_lines:
+        ln = re.sub(r"\s*原文\s*$", "", ln).strip()
+        ln = re.sub(r"^原文\s*", "", ln).strip()
+        if len(ln) < 6:
+            continue
+        lines.append(ln)
+    # 若没有换行边界，则按"。原文"或句号粗拆（保守，仅在明显多条时）
+    if len(lines) < len(links) and len(links) >= 2:
+        flat = " ".join(lines)
+        # 按中文句号切，保留句号
+        sents = re.split(r"(?<=。)", flat)
+        lines = [s.strip() for s in sents if len(s.strip()) >= 10]
+
+    if len(lines) < 2:
+        return []
+
+    # 链接按顺序配对到每一条动态
+    results: List[Dict[str, object]] = []
+    seen = set()
+    for i, t in enumerate(lines):
+        t = re.sub(r"\s+", " ", t).strip()
+        if len(t) < 8 or t in seen:
+            continue
+        seen.add(t)
+        item: Dict[str, object] = {"title": "", "body": t}
+        if i < len(links):
+            item["link"] = links[i]
+        results.append(item)
+    return results
+
+
 def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
     """从一段 HTML 中提取标题+正文+原文链接。
 
@@ -230,6 +288,14 @@ def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
         body_text = _card_body(c)
         if title and body_text.startswith(title):
             body_text = body_text[len(title):].strip(" -—:：|")
+
+        # 一张卡片里若含多个原文链接（Agent 偶发把多条动态合并进一张卡），
+        # 按链接把正文拆成多条，链接就近归属其前面的文本。
+        chunks = _split_card_by_links(c)
+        if chunks:
+            cards.extend(chunks)
+            continue
+
         if not title and len(body_text) >= 12:
             title = body_text[:24]
         if title or body_text:
