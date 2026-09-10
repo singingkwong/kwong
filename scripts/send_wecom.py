@@ -411,14 +411,19 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
 
 
 def _polish_hotspot_title(idx: int, title: str) -> str:
-    """美化热点卡片标题，使其更抓人。"""
+    """精简吸睛的热点卡片标题：用 ①②③ 序号对应本周总览一二三点，直接接原标题。"""
     title = title.strip()
-    # 去掉已有前缀避免重复
-    title = re.sub(r"^热点\d*[：:]\s*", "", title)
-    # 限制长度：企微标题过长会被截断
-    if len(title) > 22:
-        title = title[:21] + "…"
-    return f"热点{idx}｜{title}"
+    # 去掉已有前缀避免重复（"热点1｜"、"热点1："、"① " 等）
+    title = re.sub(r"^[热点]*\d*\s*[｜|:：.、]\s*", "", title)
+    title = re.sub(r"^[①②③④⑤⑥⑦⑧⑨⑩]\s*", "", title)
+    title = title.strip()
+    # 圆圈序号，明确对应本周总览第 1/2/3 点
+    circled = "①②③④⑤⑥⑦⑧⑨⑩"
+    prefix = circled[idx - 1] if 1 <= idx <= len(circled) else str(idx)
+    # 限制长度：企微标题过长会被截断（序号占 1 字，正文留 23 字）
+    if len(title) > 23:
+        title = title[:22] + "…"
+    return f"{prefix} {title}"
 
 
 def build_payload(title: str, summary: str, hotspots: list) -> dict:
