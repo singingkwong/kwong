@@ -12,6 +12,7 @@
 import os
 import re
 import sys
+from datetime import datetime, timedelta, timezone
 from html.parser import HTMLParser
 from bs4 import BeautifulSoup
 
@@ -332,6 +333,24 @@ def build_html(title: str, date: str, team: str, nav_html: str, sections: list) 
 """
 
 
+def get_last_week_range() -> str:
+    """基于北京时间返回上周一到上周日的日期范围，如 9月1日 - 9月7日。"""
+    now = datetime.now(timezone.utc).astimezone(timezone(timedelta(hours=8)))
+    # 上周一 = 今天 - (今天星期几偏移 + 7天)
+    monday = now - timedelta(days=now.weekday() + 7)
+    sunday = monday + timedelta(days=6)
+    return f"{monday.month}月{monday.day}日 - {sunday.month}月{sunday.day}日"
+
+
+def update_data_period(html: str) -> str:
+    """把页面中的数据周期更新为上周一到上周日。"""
+    period = get_last_week_range()
+    # 匹配常见写法：数据周期：8月24日 - 8月31日 / 数据周期：2026.08.24-08.31 等
+    pattern = re.compile(r"(数据周期[：:]\s*)(\d{1,2}月\d{1,2}日\s*[-~]\s*\d{1,2}月\d{1,2}日|\d{4}\.\d{2}\.\d{2}\s*[-~]\s*\d{2}\.\d{2})", re.IGNORECASE)
+    html = pattern.sub(lambda m: m.group(1) + period, html)
+    return html
+
+
 def fix_html(html: str) -> str:
     # 先简单修复未闭合标签
     html = fix_unclosed_tags(html)
@@ -345,6 +364,9 @@ def fix_html(html: str) -> str:
     sections = ensure_sources_section(sections)
     nav_html = build_nav(sections)
     result = build_html(title, date, team, nav_html, sections)
+
+    # 自动修正数据周期为上周一到上周日
+    result = update_data_period(result)
 
     # 最终再修复一次，防止模板拼接引入的问题
     result = fix_unclosed_tags(result)

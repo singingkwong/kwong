@@ -43,6 +43,23 @@ def extract_title(html_content: str) -> str:
     if match:
         title = strip_html_tags(match.group(1))
         if title:
+            # 清理前缀符号和多余空白
+            title = re.sub(r"^[\-\|\s]+", "", title).strip()
+            # 如果包含竖线，取主标题部分
+            if "|" in title:
+                parts = [p.strip() for p in title.split("|")]
+                # 日期部分：匹配 YYYY年MM月DD日
+                date_part = next((p for p in parts if re.search(r"\d{4}年\d{2}月\d{2}日", p)), "")
+                # 主标题：包含"周报"且不包含完整日期，或最长的非日期部分
+                main_part = next(
+                    (p for p in parts if ("周报" in p or "汽车行业" in p) and not re.search(r"\d{4}年\d{2}月\d{2}日", p)),
+                    parts[0]
+                )
+                # 去掉主标题前可能残留的短日期前缀（如"09月10日 "）
+                main_part = re.sub(r"^\d{1,2}月\d{1,2}日\s*", "", main_part).strip()
+                if date_part:
+                    return f"{main_part}（{date_part}）"
+                return main_part
             m = re.search(r"(\d{4}年\d{2}月\d{2}日)\s*(.+)", title)
             if m:
                 return f"{m.group(2)}（{m.group(1)}）"
