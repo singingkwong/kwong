@@ -13,6 +13,8 @@ import os
 import re
 import sys
 from datetime import datetime, timedelta, timezone
+
+TIMEZONE = timezone(timedelta(hours=8))  # 北京时间
 from html.parser import HTMLParser
 from bs4 import BeautifulSoup
 
@@ -325,6 +327,7 @@ def build_html(title: str, date: str, team: str, nav_html: str, sections: list) 
         f'<section id="{s["id"]}">\n{s["content_html"]}\n</section>'
         for s in sections
     )
+    period = get_last_week_range()
 
     return f"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -347,6 +350,8 @@ def build_html(title: str, date: str, team: str, nav_html: str, sections: list) 
                 <h1>{title}</h1>
                 <div class="hero-meta">
                     <span class="hero-date">{date}</span>
+                    <span class="hero-divider"></span>
+                    <span class="hero-period">📊 数据周期：{period}</span>
                     <span class="hero-divider"></span>
                     <span class="hero-team">{team}</span>
                 </div>
@@ -391,7 +396,9 @@ def fix_html(html: str) -> str:
     sections = extract_sections(soup)
     sections = ensure_sources_section(sections)
     nav_html = build_nav(sections)
-    result = build_html(title, date, team, nav_html, sections)
+    # 更新时间固定为当前北京时间，避免 Agent 生成旧日期
+    today_cn = datetime.now(TIMEZONE).strftime("%Y年%m月%d日")
+    result = build_html(title, today_cn, team, nav_html, sections)
 
     # 自动修正数据周期为上周一到上周日
     result = update_data_period(result)

@@ -57,6 +57,9 @@ def extract_title(html_content: str) -> str:
                 )
                 # 去掉主标题前可能残留的短日期前缀（如"09月10日 "）
                 main_part = re.sub(r"^\d{1,2}月\d{1,2}日\s*", "", main_part).strip()
+                # 如果主标题已包含日期范围，直接返回，避免重复拼接
+                if re.search(r"\d{4}[年.]\d{2}[月.]\d{2}", main_part):
+                    return main_part
                 if date_part:
                     return f"{main_part}（{date_part}）"
                 return main_part
