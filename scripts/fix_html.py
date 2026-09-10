@@ -141,16 +141,39 @@ def clean_section_title(title: str) -> str:
     return title
 
 
+def clean_header_title(raw_title: str) -> tuple[str, str]:
+    """清理标题，返回 (title, date)。"""
+    title = raw_title.strip()
+    date = ""
+
+    # 尝试提取日期：YYYY.MM.DD-YYYY.MM.DD 或 YYYY年MM月DD日
+    m = re.search(r"(\d{4}年\d{2}月\d{2}日)", title)
+    if m:
+        date = m.group(1)
+
+    # 去掉开头的前缀如 "-09月10日 "
+    title = re.sub(r"^[-–—\s]*\d{1,2}月\d{1,2}日\s*", "", title)
+    # 去掉竖线及后面的日期
+    title = re.sub(r"\s*[|｜]\s*\d{4}[年./]\d{2}[月./]\d{2}[日]?.*$", "", title)
+    # 去掉末尾括号内的日期范围或日期
+    title = re.sub(r"（[^（）]*?\d{4}[^（）]*?）", "", title)
+    title = re.sub(r"\(\s*\d{4}.*?\)", "", title)
+    # 去掉纯日期前缀
+    title = re.sub(r"^\d{4}[年./]\d{2}[月./]\d{2}[日]?\s*", "", title)
+    return title.strip(), date
+
+
 def extract_header_info(soup: BeautifulSoup):
     title = "全球汽车行业深度周报"
     date = ""
     team = "编制团队：YZM海外汽车行业拓展项目组"
 
+    raw_title = ""
     header = soup.body.find("div", class_="header") or soup.body.find("header")
     if header:
         h1 = header.find("h1")
         if h1:
-            title = h1.get_text(strip=True)
+            raw_title = h1.get_text(strip=True)
         date_div = header.find("div", class_="date")
         if date_div:
             date = date_div.get_text(strip=True)
@@ -159,10 +182,15 @@ def extract_header_info(soup: BeautifulSoup):
             team = team_div.get_text(strip=True)
 
     # 如果 body 开头是 h1 但没 header div
-    if not date:
+    if not raw_title:
         h1 = soup.body.find("h1")
         if h1:
-            title = h1.get_text(strip=True)
+            raw_title = h1.get_text(strip=True)
+
+    if raw_title:
+        title, extracted_date = clean_header_title(raw_title)
+        if extracted_date and not date:
+            date = extracted_date
 
     # 从 title 标签提取日期兜底
     if not date and soup.title:
