@@ -149,8 +149,29 @@ def get_overview_section(sections: List[Dict[str, str]], full_html: str) -> Dict
     return {"title": "本周总览", "body": full_html[:6000]}
 
 
+def _first_link(el) -> str:
+    """返回元素内第一个 http(s) 外部链接 href；没有则返回空串。"""
+    if el is None:
+        return ""
+    a = el.find("a", href=True)
+    if a:
+        href = a["href"].strip()
+        if href.startswith(("http://", "https://", "www.")):
+            return href
+    return ""
+
+
+def _link_html(link: str) -> str:
+    """生成"原文"按钮 HTML；无链接返回空串。"""
+    if not link:
+        return ""
+    href = escape_html(link)
+    return (f'<a class="src-link" href="{href}" target="_blank" rel="noopener nofollow">'
+            f'<span class="src-link-ico">🔗</span>原文</a>')
+
+
 def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
-    """从一段 HTML 中提取标题+正文（优先 .card / .news-card，其次 li / p）。"""
+    """从一段 HTML 中提取标题+正文+原文链接（优先 .card / .news-card，其次 li / p）。"""
     soup = BeautifulSoup(body, "html.parser")
     cards: List[Dict[str, object]] = []
 
@@ -163,7 +184,11 @@ def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
         if title and body_text:
             if body_text.startswith(title):
                 body_text = body_text[len(title):].strip(" -—:：")
-            cards.append({"title": title, "body": body_text})
+            item: Dict[str, str] = {"title": title, "body": body_text}
+            link = _first_link(c)
+            if link:
+                item["link"] = link
+            cards.append(item)
 
     if cards:
         return cards
@@ -181,7 +206,11 @@ def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
         else:
             title = txt[:28]
             body_txt = txt
-        li_cards.append({"title": title, "body": body_txt})
+        item: Dict[str, str] = {"title": title, "body": body_txt}
+        link = _first_link(li)
+        if link:
+            item["link"] = link
+        li_cards.append(item)
     if li_cards:
         return li_cards
 
@@ -193,7 +222,11 @@ def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
         strong = p.find(["strong", "b"])
         title = clean_text(strong.get_text()) if strong else txt[:28]
         body_txt = txt if not strong or not txt.startswith(title) else txt[len(title):].strip(" -—:：")
-        cards.append({"title": title, "body": body_txt})
+        item: Dict[str, str] = {"title": title, "body": body_txt}
+        link = _first_link(p)
+        if link:
+            item["link"] = link
+        cards.append(item)
     return cards
 
 
@@ -239,11 +272,13 @@ def build_key_points_html(overview: Dict[str, str]) -> str:
         is_inj = any(k in title + body for k in INJECTION_KEYWORDS)
         cls = "kp-card injection" if is_inj else "kp-card"
         badge = '<span class="injection-badge">⚡ 注塑机会</span>' if is_inj else ""
+        link_html = _link_html(str(c.get("link", "")))
         cards_html.append(f'''    <div class="{cls}">
       <span class="kp-num">{idx:02d}</span>
       {badge}
       <h3>{escape_html(title)}</h3>
       <p>{highlight_numbers(body)}</p>
+      {link_html}
     </div>''')
 
     return f'''  <!-- Key Points -->
@@ -308,9 +343,10 @@ def build_markets_html(markets: Optional[Dict[str, str]]) -> str:
                 for c in cards[:5]:
                     t = escape_html(str(c.get("title", "")))
                     b = highlight_numbers(str(c.get("body", "")))
+                    lk = _link_html(str(c.get("link", "")))
                     cards_html.append(
                         f'      <div class="news-card"><h4>{t}</h4>'
-                        f'<div class="news-body">{b}</div></div>'
+                        f'<div class="news-body">{b}</div>{lk}</div>'
                     )
                 if not cards_html:
                     for it in extract_li_items(g["body"])[:5]:
@@ -353,15 +389,16 @@ def build_simple_card_section(sec: Optional[Dict[str, str]], *, section_id: str,
         for c in cards[:8]:
             t = escape_html(str(c.get("title", "")))
             b = highlight_numbers(str(c.get("body", "")))
+            lk = _link_html(str(c.get("link", "")))
             if card_class == "oem-card":
                 cards_html.append(
                     f'    <div class="oem-card"><h3><span class="oem-tag">动态</span>{t}</h3>'
-                    f'<p>{b}</p></div>'
+                    f'<p>{b}</p>{lk}</div>'
                 )
             elif card_class == "policy-card":
-                cards_html.append(f'    <div class="policy-card"><h3>{t}</h3><p>{b}</p></div>')
+                cards_html.append(f'    <div class="policy-card"><h3>{t}</h3><p>{b}</p>{lk}</div>')
             else:
-                cards_html.append(f'    <div class="research-card"><h3>{t}</h3><p>{b}</p></div>')
+                cards_html.append(f'    <div class="research-card"><h3>{t}</h3><p>{b}</p>{lk}</div>')
     if not cards_html:
         if card_class == "oem-card":
             cards_html.append(f'    <div class="oem-card"><p>{escape_html(empty_text)}</p></div>')
@@ -389,7 +426,8 @@ def build_injection_html(sec: Optional[Dict[str, str]]) -> str:
         for c in cards[:6]:
             t = escape_html(str(c.get("title", "")))
             b = highlight_numbers(str(c.get("body", "")))
-            cards_html.append(f'      <div class="inj-card"><h3>⚡ {t}</h3><p>{b}</p></div>')
+            lk = _link_html(str(c.get("link", "")))
+            cards_html.append(f'      <div class="inj-card"><h3>⚡ {t}</h3><p>{b}</p>{lk}</div>')
     if not cards_html:
         cards_html.append(
             '      <div class="inj-card"><h3>⚡ 持续关注</h3>'

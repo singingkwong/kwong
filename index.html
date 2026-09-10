@@ -212,6 +212,21 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
   font-size:13px;color:var(--text-secondary);
   line-height:1.75;
 }
+/* 原文链接按钮（全局：总览/市场/政策/车企/调研/注塑通用） */
+.src-link{
+  display:inline-flex;align-items:center;gap:4px;
+  margin-top:10px;padding:4px 12px;border-radius:999px;
+  font-size:12px;font-weight:500;color:#7cc8ff;
+  background:rgba(124,200,255,.10);
+  border:1px solid rgba(124,200,255,.32);
+  text-decoration:none;cursor:pointer;
+  transition:background .2s,border-color .2s,transform .2s,color .2s;
+}
+.src-link .src-link-ico{font-size:11px;line-height:1}
+.src-link:hover{
+  color:#fff;background:rgba(124,200,255,.20);
+  border-color:rgba(124,200,255,.6);transform:translateY(-1px);
+}
 .kp-card.injection{
   border-color:rgba(255,138,61,.4);
   background:linear-gradient(135deg,rgba(255,138,61,.12),rgba(255,138,61,.03));
@@ -744,30 +759,35 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
       
       <h3>中国新能源渗透率突破55%</h3>
       <p>8月中国新能源乘用车零售<strong>同比增长32%</strong>，渗透率达到<strong>55.8%</strong>，创历史新高，比亚迪、吉利领跑。</p>
+      
     </div>
     <div class="kp-card">
       <span class="kp-num">02</span>
       
       <h3>欧盟对华关税靴子落地</h3>
       <p>欧盟正式实施对华电动车反补贴关税，部分车企税率超<strong>35%</strong>，出口承压，本地化建厂加速。</p>
+      
     </div>
     <div class="kp-card injection">
       <span class="kp-num">03</span>
       <span class="injection-badge">⚡ 注塑机会</span>
       <h3>一体化压铸订单放量</h3>
       <p>多家主机厂推进一体化压铸与工程塑料替代，注塑机及轻量化内饰件需求<strong>环比增长18%</strong>，注塑机会显著。</p>
+      
     </div>
     <div class="kp-card">
       <span class="kp-num">04</span>
       
       <h3>巴西市场同比回暖</h3>
       <p>巴西8月新车销量<strong>同比增长9.4%</strong>，中国品牌市占率<strong>提升至12%</strong>，本地化产能布局提速。</p>
+      
     </div>
     <div class="kp-card">
       <span class="kp-num">05</span>
       
       <h3>特斯拉交付超预期</h3>
       <p>特斯拉三季度全球交付约<strong>48万辆</strong>，<strong>环比增长12%</strong>，Model Y改款拉动需求。</p>
+      
     </div>
     </div>
   </section>
