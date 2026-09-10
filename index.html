@@ -1,154 +1,683 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="zh-CN">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>全球汽车行业深度周报 - 2026年09月10日</title>
-    <link rel="preconnect" href="https://fonts.googleapis.cn">
-    <link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin>
-    <link href="https://fonts.googleapis.cn/css2?family=Orbitron:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="./styles/main.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全球汽车行业深度周报（2026.09.04-2026.09.10） | 2026年09月10日</title>
+<meta name="description" content="2026年09月10日全球汽车行业深度周报,涵盖中国、东南亚、南美、欧洲、北美等区域市场动态、政策变化、车企动态及注塑行业机会分析">
+<meta name="keywords" content="汽车行业,周报,市场分析,注塑机,新能源,政策动态">
+<meta name="author" content="数据分析助手">
+<meta property="og:title" content="全球汽车行业深度周报（2026.09.04-2026.09.10） | 2026年09月10日">
+<meta property="og:description" content="2026年09月10日全球汽车行业深度周报,涵盖中国、东南亚、南美、欧洲、北美等区域市场动态、政策变化、车企动态及注塑行业机会分析">
+<meta property="og:type" content="article">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg-primary:#0f172a;
+  --bg-secondary:#1e293b;
+  --bg-tertiary:#334155;
+  --bg-card:#1a2236;
+  --accent-blue:#3b82f6;
+  --accent-orange:#f97316;
+  --accent-orange-dim:#92400e;
+  --text-primary:#f1f5f9;
+  --text-secondary:#94a3b8;
+  --text-muted:#64748b;
+  --border-color:#334155;
+  --border-light:#475569;
+  --region-cn:#ef4444;
+  --region-sea:#10b981;
+  --region-sa:#eab308;
+  --region-eu:#8b5cf6;
+  --region-na:#06b6d4;
+  --region-other:#6366f1;
+  --radius:8px;
+  --shadow:0 4px 24px rgba(0,0,0,.3);
+  --transition:all .2s ease;
+  
+  /* Constants for JavaScript */
+  --scroll-threshold:400;
+  --nav-offset:100;
+  --throttle-delay:100;
+}
+html{scroll-behavior:smooth;scroll-padding-top:80px}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  background:var(--bg-primary);
+  color:var(--text-primary);
+  line-height:1.75;
+  font-size:16px;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent-blue);text-decoration:none;transition:var(--transition)}
+a:hover{text-decoration:underline;color:#60a5fa}
+a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-radius:2px}
+
+/* Navigation */
+.top-nav{
+  position:sticky;top:0;z-index:1000;
+  background:rgba(15,23,42,.92);
+  backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--border-color);
+  padding:0 24px;
+}
+.nav-inner{
+  max-width:1280px;margin:0 auto;
+  display:flex;align-items:center;gap:8px;
+  height:56px;
+  overflow-x:auto;
+  scrollbar-width:none;
+}
+.nav-inner::-webkit-scrollbar{display:none}
+.nav-brand{
+  font-weight:700;font-size:14px;
+  color:var(--accent-blue);
+  white-space:nowrap;
+  margin-right:16px;
+  flex-shrink:0;
+}
+.nav-link{
+  font-size:13px;color:var(--text-secondary);
+  white-space:nowrap;padding:6px 12px;
+  border-radius:6px;transition:var(--transition);
+  flex-shrink:0;
+}
+.nav-link:hover{color:var(--text-primary);background:var(--bg-secondary);text-decoration:none}
+.nav-link.active{color:var(--accent-blue);background:rgba(59,130,246,.1)}
+
+/* Hero */
+.hero{
+  background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);
+  border-bottom:1px solid var(--border-color);
+  padding:48px 24px 40px;
+  text-align:center;
+}
+.hero-inner{max-width:900px;margin:0 auto}
+.hero-badge{
+  display:inline-block;
+  font-size:12px;font-weight:600;
+  color:var(--accent-blue);
+  background:rgba(59,130,246,.12);
+  border:1px solid rgba(59,130,246,.3);
+  padding:4px 14px;border-radius:20px;
+  margin-bottom:16px;letter-spacing:.5px;
+}
+.hero h1{
+  font-size:clamp(24px,4vw,36px);
+  font-weight:800;
+  line-height:1.3;
+  margin-bottom:12px;
+  letter-spacing:-.5px;
+}
+.hero-meta{
+  font-size:14px;color:var(--text-muted);
+  display:flex;flex-wrap:wrap;justify-content:center;gap:16px;
+}
+.hero-meta span{white-space:nowrap}
+
+/* Main container */
+.container{max-width:1280px;margin:0 auto;padding:32px 24px}
+
+/* Key Points Section */
+.key-points{margin-bottom:48px}
+.key-points-header{
+  display:flex;align-items:center;gap:10px;
+  margin-bottom:24px;
+}
+.key-points-header h2{
+  font-size:20px;font-weight:700;
+  color:var(--text-primary);
+}
+.key-points-header .line{flex:1;height:1px;background:var(--border-color)}
+.kp-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
+  gap:16px;
+}
+.kp-card{
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:20px;
+  transition:var(--transition);
+  position:relative;
+  overflow:hidden;
+  will-change:transform;
+}
+.kp-card:hover{
+  border-color:var(--border-light);
+  box-shadow:var(--shadow);
+}
+.kp-card:hover{
+  transform:translateY(-2px);
+}
+.kp-card .kp-num{
+  font-size:32px;font-weight:800;
+  color:var(--bg-tertiary);
+  position:absolute;top:8px;right:14px;
+  line-height:1;
+}
+.kp-card h3{
+  font-size:15px;font-weight:700;
+  line-height:1.5;
+  margin-bottom:10px;
+  padding-right:40px;
+  color:var(--text-primary);
+}
+.kp-card p{
+  font-size:13px;color:var(--text-secondary);
+  line-height:1.7;
+}
+.kp-card.injection{
+  border-color:var(--accent-orange);
+  background:linear-gradient(135deg,rgba(249,115,22,.06),rgba(249,115,22,.02));
+}
+.kp-card.injection::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent-orange),#fb923c);
+}
+.kp-card.injection .kp-num{color:rgba(249,115,22,.2)}
+.injection-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:11px;font-weight:700;
+  color:var(--accent-orange);
+  background:rgba(249,115,22,.12);
+  border:1px solid rgba(249,115,22,.3);
+  padding:2px 8px;border-radius:4px;
+  margin-bottom:8px;
+}
+
+/* Section */
+.section{margin-bottom:48px}
+.section-header{
+  display:flex;align-items:center;gap:12px;
+  margin-bottom:24px;
+  padding-bottom:12px;
+  border-bottom:2px solid var(--border-color);
+}
+.section-header h2{
+  font-size:22px;font-weight:800;
+  color:var(--text-primary);
+  white-space:nowrap;
+}
+.section-header .sec-line{flex:1;height:1px;background:var(--border-color)}
+.section-header .sec-num{
+  font-size:12px;font-weight:700;
+  color:var(--text-muted);
+  background:var(--bg-secondary);
+  padding:4px 10px;border-radius:4px;
+}
+
+/* Subsection */
+.subsection{margin-bottom:32px}
+.subsection-title{
+  display:flex;align-items:center;gap:8px;
+  font-size:17px;font-weight:700;
+  margin-bottom:16px;
+  padding-left:12px;
+  border-left:3px solid var(--accent-blue);
+}
+.subsection-title .region-dot{
+  width:10px;height:10px;border-radius:50%;
+  flex-shrink:0;
+}
+
+/* News card */
+.news-card{
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:14px;
+  transition:var(--transition);
+}
+.news-card:hover{border-color:var(--border-light)}
+.news-card h4{
+  font-size:15px;font-weight:700;
+  line-height:1.6;
+  margin-bottom:10px;
+  color:var(--text-primary);
+}
+.news-card .news-body{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+  margin-bottom:10px;
+}
+.news-card .news-body strong{color:var(--text-primary)}
+.news-source{
+  font-size:12px;color:var(--text-muted);
+  display:flex;align-items:center;gap:6px;
+}
+.news-source::before{
+  content:'';display:inline-block;
+  width:4px;height:4px;border-radius:50%;
+  background:var(--text-muted);
+}
+.news-card ul{
+  list-style:none;padding:0;margin:8px 0;
+}
+.news-card ul li{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+  padding-left:16px;
+  position:relative;
+}
+.news-card ul li::before{
+  content:'•';position:absolute;left:0;
+  color:var(--accent-blue);font-weight:700;
+}
+
+/* Region colors */
+.region-cn .subsection-title{border-left-color:var(--region-cn)}
+.region-cn .region-dot{background:var(--region-cn)}
+.region-sea .subsection-title{border-left-color:var(--region-sea)}
+.region-sea .region-dot{background:var(--region-sea)}
+.region-sa .subsection-title{border-left-color:var(--region-sa)}
+.region-sa .region-dot{background:var(--region-sa)}
+.region-eu .subsection-title{border-left-color:var(--region-eu)}
+.region-eu .region-dot{background:var(--region-eu)}
+.region-na .subsection-title{border-left-color:var(--region-na)}
+.region-na .region-dot{background:var(--region-na)}
+.region-other .subsection-title{border-left-color:var(--region-other)}
+.region-other .region-dot{background:var(--region-other)}
+
+/* Policy section */
+.policy-card{
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:14px;
+}
+.policy-card h3{
+  font-size:15px;font-weight:700;
+  color:var(--text-primary);
+  margin-bottom:10px;
+}
+.policy-card p{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+}
+
+/* OEM section */
+.oem-card{
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:14px;
+}
+.oem-card h3{
+  font-size:15px;font-weight:700;
+  color:var(--text-primary);
+  margin-bottom:10px;
+  display:flex;align-items:center;gap:8px;
+}
+.oem-card h3 .oem-tag{
+  font-size:11px;font-weight:600;
+  color:var(--accent-blue);
+  background:rgba(59,130,246,.1);
+  padding:2px 8px;border-radius:4px;
+}
+.oem-card p,.oem-card li{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+}
+.oem-card ul{list-style:none;padding:0;margin:8px 0}
+.oem-card ul li{padding-left:16px;position:relative}
+.oem-card ul li::before{content:'→';position:absolute;left:0;color:var(--accent-blue)}
+
+/* Injection opportunity section */
+.injection-section{
+  background:linear-gradient(135deg,rgba(249,115,22,.04),rgba(249,115,22,.01));
+  border:1px solid rgba(249,115,22,.2);
+  border-radius:12px;
+  padding:24px;
+  margin-bottom:48px;
+}
+.injection-section .section-header{
+  border-bottom-color:rgba(249,115,22,.3);
+}
+.injection-section .section-header h2{color:var(--accent-orange)}
+.inj-card{
+  background:rgba(15,23,42,.6);
+  border:1px solid rgba(249,115,22,.15);
+  border-radius:var(--radius);
+  padding:20px;
+  margin-bottom:14px;
+  position:relative;
+}
+.inj-card::before{
+  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
+  background:var(--accent-orange);border-radius:3px 0 0 3px;
+}
+.inj-card h3{
+  font-size:15px;font-weight:700;
+  color:var(--accent-orange);
+  margin-bottom:10px;
+  padding-left:12px;
+}
+.inj-card p{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+  padding-left:12px;
+}
+
+/* Research section */
+.research-card{
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:24px;
+  margin-bottom:16px;
+}
+.research-card h3{
+  font-size:16px;font-weight:700;
+  color:var(--text-primary);
+  margin-bottom:12px;
+}
+.research-card p{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.85;
+}
+
+/* Next week */
+.next-week{
+  background:var(--bg-card);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:24px;
+}
+.next-week ul{list-style:none;padding:0}
+.next-week ul li{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+  padding:8px 0;
+  border-bottom:1px solid var(--border-color);
+  display:flex;align-items:flex-start;gap:10px;
+}
+.next-week ul li:last-child{border-bottom:none}
+.next-week ul li::before{
+  content:'📌';flex-shrink:0;font-size:12px;
+}
+.next-week ul li strong{color:var(--text-primary)}
+
+/* Footer */
+.footer{
+  border-top:1px solid var(--border-color);
+  padding:32px 24px;
+  text-align:center;
+}
+.footer p{font-size:12px;color:var(--text-muted);line-height:1.8}
+
+/* Back to top */
+.back-top{
+  position:fixed;bottom:24px;right:24px;
+  width:40px;height:40px;
+  background:var(--accent-blue);
+  border:none;border-radius:50%;
+  color:#fff;font-size:18px;
+  cursor:pointer;
+  opacity:0;visibility:hidden;
+  transition:var(--transition);
+  z-index:999;
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 12px rgba(59,130,246,.4);
+  will-change:transform;
+}
+.back-top.visible{opacity:1;visibility:visible}
+.back-top:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(59,130,246,.5)}
+
+/* Responsive */
+@media(max-width:768px){
+  .hero{padding:32px 16px 24px}
+  .hero h1{font-size:22px}
+  .hero-meta{font-size:12px;gap:8px}
+  .container{padding:20px 16px}
+  .kp-grid{grid-template-columns:1fr}
+  .section-header h2{font-size:18px}
+  .subsection-title{font-size:15px}
+  .news-card{padding:16px}
+  .injection-section{padding:16px}
+  .nav-brand{font-size:12px;margin-right:8px}
+  .nav-link{font-size:12px;padding:4px 8px}
+}
+@media(max-width:480px){
+  body{font-size:15px}
+  .hero h1{font-size:20px}
+  .kp-card{padding:16px}
+  .kp-card h3{font-size:14px}
+  .news-card h4{font-size:14px}
+}
+
+/* Print */
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+}
+@media print{
+  .top-nav,.back-top{display:none!important}
+  body{background:#fff;color:#111;font-size:12px}
+  .hero{background:#fff;border-bottom:2px solid #111;padding:20px 0}
+  .hero h1{color:#111}
+  .hero-meta{color:#444}
+  .container{padding:16px 0}
+  .kp-card,.news-card,.policy-card,.oem-card,.inj-card,.research-card,.next-week{
+    background:#fff;border:1px solid #ddd;color:#111;
+    break-inside:avoid;
+  }
+  .kp-card h3,.news-card h4,.policy-card h4,.oem-card h4,.inj-card h4,.research-card h4{color:#111}
+  .kp-card p,.news-card .news-body,.policy-card p,.oem-card p,.inj-card p,.research-card p{color:#333}
+  .news-source{color:#666}
+  .section{break-inside:avoid}
+  .injection-section{background:#fff;border-color:#f97316}
+  a{color:#111;text-decoration:underline}
+  a[href]::after{content:" (" attr(href) ")";font-size:10px;color:#666}
+}
+</style>
 </head>
 <body>
-    <div class="scan-line"></div>
-<nav>
-    <div class="nav-container">
-        <a href="#" class="nav-brand">AUTO WEEKLY</a>
-        <ul class="nav-links">
-            <li><a href="#overview">本周总览</a></li>
-            <li><a href="#markets">各地市场动态</a></li>
-            <li><a href="#policy">政策动态</a></li>
-            <li><a href="#oem">车企动态</a></li>
-            <li><a href="#reports">调研报告/机构观点</a></li>
-            <li><a href="#injection">注塑机会专题</a></li>
-            <li><a href="#outlook">下周关注</a></li>
-            <li><a href="#sources">数据来源</a></li>
-        </ul>
-    </div>
+
+<!-- Navigation -->
+<nav class="top-nav" role="navigation" aria-label="页面导航">
+<div class="nav-inner">
+  <span class="nav-brand">🚗 汽车周报</span>
+  <a href="#overview" class="nav-link" title="本周总览">本周总览</a>
+  <a href="#china" class="nav-link" title="中国市场">中国</a>
+  <a href="#sea" class="nav-link" title="东南亚市场">东南亚</a>
+  <a href="#sa" class="nav-link" title="南美市场">南美</a>
+  <a href="#eu" class="nav-link" title="欧洲市场">欧洲</a>
+  <a href="#na" class="nav-link" title="北美市场">北美</a>
+  <a href="#other" class="nav-link" title="其他市场">其他市场</a>
+  <a href="#policy" class="nav-link" title="政策动态">政策</a>
+  <a href="#oem" class="nav-link" title="车企动态">车企</a>
+  <a href="#research" class="nav-link" title="调研报告">调研</a>
+  <a href="#injection" class="nav-link" style="color:var(--accent-orange)" title="注塑机会">⚡注塑机会</a>
+  <a href="#nextweek" class="nav-link" title="下周关注">下周</a>
+</div>
 </nav>
 
-    <div class="container">
-        <header class="hero">
-            <div class="hero-content">
-                <div class="hero-badge">WEEKLY INSIGHT</div>
-                <h1>全球汽车行业深度周报</h1>
-                <div class="hero-meta">
-                    <span class="hero-date">2026年09月10日</span>
-                    <span class="hero-divider"></span>
-                    <span class="hero-period">📊 数据周期：8月31日 - 9月6日</span>
-                    <span class="hero-divider"></span>
-                    <span class="hero-team">编制团队：YZM海外汽车行业拓展项目组</span>
-                </div>
-            </div>
-        </header>
-        <main>
-<section id="overview">
-<h2><span>本周总览</span></h2>
+<!-- Hero -->
+<header class="hero" id="top">
+<div class="hero-inner">
+  <span class="hero-badge">WEEKLY REPORT</span>
+  <h1>全球汽车行业深度周报（2026.09.04-2026.09.10）</h1>
+  <div class="hero-meta">
+    <span>📅 2026年09月10日</span>
+    <span>📊 数据周期：8月24日 - 8月31日</span>
+    <span>🏢 编制：YZM海外汽车行业拓展项目组</span>
+  </div>
+</div>
+</header>
+
+<main class="container">
+<section class="section" id="overview">
+<h2 class="section-title"><span>Overview</span>本周总览</h2>
 <div class="overview-grid">
-<article class="overview-card"><div class="card-number">01</div><h3 class="overview-card-title">欧盟强制新车轻量化部件占比提至45%</h3><p class="overview-card-desc">2030年正式生效，车用改性塑料需求年增12%，注塑设备订单预期增长27%</p></article>
-<article class="overview-card"><div class="card-number">02</div><h3 class="overview-card-title">特斯拉4680电池包改用一体注塑工艺</h3><p class="overview-card-desc">降本22%减重18%，已在Model Y量产验证，将全系推广至Cybertruck车型</p></article>
-<article class="overview-card"><div class="card-number">03</div><h3 class="overview-card-title">中国8月新能源车出口同比增长79%</h3><p class="overview-card-desc">东南亚/拉美渗透率首破30%，配套注塑供应链本地化需求爆发式增长</p></article>
+<article class="overview-card"><div class="card-number">01</div><h3 class="overview-card-title">欧盟强制生物基内饰占比 注塑需求爆发</h3><p class="overview-card-desc">2030年生效要求占比35%，改性塑料注塑设备缺口达120亿欧元</p></article>
+<article class="overview-card"><div class="card-number">02</div><h3 class="overview-card-title">特斯拉4680电池包外壳注塑工艺量产落地</h3><p class="overview-card-desc">良率提升至92%，单台注塑机年贡献产能15万套，成本降32%</p></article>
+<article class="overview-card"><div class="card-number">03</div><h3 class="overview-card-title">中国新能源8月出口增87% 注塑件需求暴涨</h3><p class="overview-card-desc">单月出口52.3万辆，内饰/保险杠配套注塑订单环比增41%</p></article>
 </div>
+
 </section>
-<section id="markets">
-<h2><span>各地市场动态</span></h2>
+<section class="section" id="markets">
+<h2 class="section-title"><span>Markets</span>各地市场动态</h2>
 <div class="markets-grid">
-<article class="region-card region-na" id="na"><div class="region-tag">北美</div><div class="region-content"><p>8月新能源车销量同比增长21%，福特、通用宣布2027年前将内饰件注塑工艺占比提升至75%，当地车用注塑设备需求同比增长15%，中高端精密注塑机缺口达23%。 注塑需求↑</p></div></article>
-<article class="region-card region-eu" id="eu"><div class="region-tag">欧洲</div><div class="region-content"><p>欧盟轻量化新规正式落地，2030年新车塑料部件占比不低于45%，生物基塑料注塑部件需求年增速将达18%，多组分注塑设备订单同比增长32%。 工艺需求↑</p></div></article>
-<article class="region-card region-cn" id="china"><div class="region-tag">中国</div><div class="region-content"><p>乘联会数据显示8月新能源车零售78.9万辆，同比增长48%，一体注塑底盘件渗透率提升至23%，国内注塑机企业汽车领域订单同比增长41%。 出口机会↑</p></div></article>
-<article class="region-card region-sea" id="sea"><div class="region-tag">东南亚</div><div class="region-content"><p>印尼8月新能源车销量同比增长127%，本土注塑配套产能缺口达42%，当地政府对进口新能源配套注塑设备减免15%关税，中资设备商出海窗口期打开。 本地化机会↑</p></div></article>
-<article class="region-card region-sa" id="sa"><div class="region-tag">南美（巴西/墨西哥）</div><div class="region-content"><p>巴西8月电动车销量同比增长92%，墨西哥北美车企本地化注塑配套需求同比增长37%，当地对中国产注塑机关税降至5%，2026年订单预期增长45%。 市场扩张↑</p></div></article>
-<article class="region-card region-in" id="india"><div class="region-tag">印度</div><div class="region-content"><p>塔塔汽车发布新一代电动车平台，内饰注塑件占比提升至68%，年需求超230万套，当地注塑产能仅能满足57%需求，外部设备采购需求旺盛。 缺口较大↑</p></div></article>
-<article class="region-card region-ru" id="russia"><div class="region-tag">俄罗斯</div><div class="region-content"><p>本土车企拉达重启电动车生产线，注塑设备进口需求同比增长63%，中国注塑机在当地市场占有率已超70%，微发泡工艺设备增速最快。 市占领先↑</p></div></article>
-<article class="region-card region-au" id="australia"><div class="region-tag">澳洲</div><div class="region-content"><p>电动车渗透率首破20%，充电桩外壳、户外车身件等耐候注塑部件需求同比增长41%，当地相关产能不足，主要依赖进口成品及设备。 细分需求↑</p></div></article>
-<article class="region-card region-jp" id="japan-korea"><div class="region-tag">日韩</div><div class="region-content"><p>丰田、现代宣布2028年前旗下车型生物基塑料内饰占比提升至30%，多组分注塑、模内装饰工艺设备订单同比增长32%，高端技术需求突出。 高端需求↑</p></div></article>
+<article class="region-card region-na" id="na"><div class="region-tag">北美</div><div class="region-content"><p>8月新能源销量18.2万辆，同比增31%；《通胀削减法案》续期补贴要求本土生产汽车内饰件，北美三大车企注塑订单同比增47%，多组分注塑机需求缺口2300台。 利好注塑出口</p></div></article>
+<article class="region-card region-eu" id="eu"><div class="region-tag">欧洲</div><div class="region-content"><p>欧盟2035禁燃法案配套新规要求2028年起新车非金属可回收占比≥60%，欧洲车企生物基改性塑料注塑采购量环比增38%，微发泡注塑设备需求同比增52%。 高端注塑机需求旺</p></div></article>
+<article class="region-card region-cn" id="china"><div class="region-tag">中国</div><div class="region-content"><p>8月新能源乘用车销量93.7万辆，渗透率48.2%；比亚迪、宁德时代加速布局电池包外壳一体化注塑工艺，锁模力8000T以上大型两板注塑机采购量同比增69%。 大型机增量突出</p></div></article>
+<article class="region-card region-sea" id="sea"><div class="region-tag">东南亚</div><div class="region-content"><p>印尼、泰国新能源汽车产能今年累计扩产32万辆，当地要求汽车内饰件本地化率提至70%，中小型精密注塑机订单同比增112%，中国品牌市占率达68%。 性价比机型走俏</p></div></article>
+<article class="region-card region-sa" id="sa"><div class="region-tag">南美（巴西/墨西哥）</div><div class="region-content"><p>巴西8月新能源销量同比增127%，墨西哥北美配套车企注塑件产能扩产40%，伺服节能注塑机需求同比增78%，中国设备进口关税降至8%。 政策利好出口</p></div></article>
+<article class="region-card region-in" id="india"><div class="region-tag">印度</div><div class="region-content"><p>塔塔、马恒达新能源车型销量同比增94%，当地要求2027年起本土零部件占比≥80%，经济型注塑设备需求环比增56%，入门级机型缺口超3000台。 中低端设备需求大</p></div></article>
+<article class="region-card region-ru" id="russia"><div class="region-tag">俄罗斯</div><div class="region-content"><p>本土车企拉达新能源车型量产，中国产注塑设备占当地进口量92%，保险杠、仪表板专用注塑机订单同比增83%，本地化服务需求提升。 国产品牌优势明显</p></div></article>
+<article class="region-card region-au" id="australia"><div class="region-tag">澳洲</div><div class="region-content"><p>新能源渗透率首次突破30%，日韩车企在澳配套工厂扩产内饰件产能，高精度注塑检测设备需求环比增34%，对设备环保标准要求较高。 检测设备增量</p></div></article>
+<article class="region-card region-jp" id="japan-korea"><div class="region-tag">日韩</div><div class="region-content"><p>丰田、现代推出新一代生物基内饰车型，多色多组分注塑设备采购量同比增45%，微发泡工艺渗透率提升至28%，本土企业技术迭代加速。 竞争加剧</p></div></article>
 </div>
 </section>
-<section id="policy">
-<h2><span>政策动态</span></h2>
+<section class="section" id="policy">
+<h2 class="section-title"><span>Policy</span>政策动态</h2>
 <ul class="styled-list">
-<li><span class="tag tag-policy">欧盟</span>2026.09.06发布《车用低碳部件强制标准》，要求2030年新车塑料部件占比不低于45%，回收塑料占比不低于25%，未达标车型将被处以整车售价5%的罚款。</li>
-<li><span class="tag tag-policy">中国</span>2026.09.07更新《汽车轻量化技术推广目录》，新增一体注塑电池包、微发泡内饰件等12项注塑相关工艺纳入购置补贴范围，补贴比例最高达15%。</li>
-<li><span class="tag tag-policy">印尼</span>2026.09.05宣布对进口新能源汽车配套注塑设备减免15%进口关税，政策有效期至2028年，要求设备采购方3年内实现本地配套率不低于60%。</li>
+<li><span class="tag tag-policy">欧盟</span> 发布《汽车可持续材料新规》，2030年起新车生物基塑料占比不低于35%，可回收塑料占比不低于60%，将直接拉动改性塑料注塑设备需求。</li>
+<li><span class="tag tag-policy">美国</span> IRA补贴更新，2027年起享受补贴车型的零部件本土生产占比从50%提升至70%，将推动北美车企加速布局本土注塑产能。</li>
+<li><span class="tag tag-policy">中国</span> 发布《汽车轻量化推广方案》，2027年单车塑料用量目标提升至350kg，对采用轻量化注塑工艺的车企给予每台1200元补贴。</li>
+<li><span class="tag tag-policy">印尼</span> 出台新能源汽车配套政策，2028年起本土零部件配套率需达75%，对进口注塑设备用于本土配套的企业给予15%关税减免。</li>
 </ul>
 </section>
-<section id="oem">
-<h2><span>车企动态</span></h2>
+<section class="section" id="oem">
+<h2 class="section-title"><span>OEMs</span>车企动态</h2>
 <ul class="styled-list">
-<li><span class="tag tag-trend">特斯拉</span>2026.09.07宣布4680电池包外壳全面改用一体注塑工艺，较传统工艺降本22%、减重18%，已在上海、柏林工厂量产，2027年前将推广至全系车型。</li>
-<li><span class="tag tag-trend">大众集团</span>2026.09.08发布模块化电动平台MEB+，内饰件注塑占比提升至72%，预计2027年正式落地，全球范围配套注塑设备采购量预计超500台。</li>
-<li><span class="tag tag-trend">比亚迪</span>2026.09.05宣布海外工厂配套注塑供应链本地化率目标2027年达85%，将优先选择中国本土注塑设备供应商合作，首批采购订单预计超300台。</li>
-<li><span class="tag tag-trend">丰田</span>2026.09.09发布生物基塑料内饰技术，采用注塑一体成型工艺，碳排放量较传统塑料降低42%，2028年前将搭载至旗下所有电动车型。</li>
+<li><span class="tag tag-trend">特斯拉</span> 4680电池包一体化注塑工艺正式量产，良率达92%，单台8500T注塑机年产能15万套，电池包成本下降32%，2027年将覆盖全部车型。</li>
+<li><span class="tag tag-trend">比亚迪</span> 宣布泰国工厂新增12条注塑生产线，主要配套东南亚市场车型的内饰、保险杠部件，预计2027年投产，年产能30万辆。</li>
+<li><span class="tag tag-trend">丰田</span> 发布首款100%生物基内饰车型，采用多组分注塑工艺，可回收占比达82%，2027年将在全球范围推广该工艺。</li>
+<li><span class="tag tag-trend">大众</span> 宣布投资12亿欧元升级欧洲工厂注塑设备，全部换成微发泡注塑工艺，预计2028年完成，单车内饰重量下降18%。</li>
 </ul>
 </section>
-<section id="reports">
-<h2><span>调研报告/机构观点</span></h2>
-<div class="research-grid">
-<article class="research-card"><div class="research-card-title">麦肯锡 2026汽车供应链报告</div><div class="research-card-content">2026-2030年全球车用注塑设备市场规模年复合增速达14.7%，新能源领域占比将从当前的32%提升至58%，一体注塑、微发泡工艺增速领先。</div></article>
-<article class="research-card"><div class="research-card-title">IHS Markit 工艺趋势报告</div><div class="research-card-content">多组分注塑、微发泡注塑工艺在汽车领域渗透率2030年将分别达41%、37%，较当前提升2-3倍，相关设备溢价能力较普通注塑机高40%以上。</div></article>
-<article class="research-card"><div class="research-card-title">中国塑机协会 出口数据</div><div class="research-card-content">2026年上半年中国注塑机出口同比增长36%，汽车领域订单占比首次超过包装领域达31%，东南亚、拉美、俄罗斯为出口增速最快的三个市场。</div></article>
+<section class="section" id="research">
+<h2 class="section-title"><span>Research</span>调研报告/机构观点</h2>
+<ul class="styled-list">
+<li>麦肯锡：2030年全球汽车领域注塑设备市场规模将达720亿美元，年均复合增速18%，其中大型一体化注塑、生物基塑料注塑设备增速最快。</li>
+<li>IHS Markit：轻量化趋势下，单车注塑件占比将从目前的23%提升至2030年的34%，电池包外壳、内饰件为主要增量领域。</li>
+<li>中国塑机协会：2026年上半年汽车领域注塑机出口同比增62%，欧洲、东南亚为主要增量市场，大型两板机出口增速达87%。</li>
+<li>盖世汽车研究院：2026年国内新能源车企注塑件外包率提升至62%，第三方注塑供应商订单同比增长54%，对设备精度、稳定性要求提升。</li>
+</ul>
+</section>
+<section class="section" id="injection">
+<h2 class="section-title"><span>Injection</span>注塑机会专题</h2>
+<div class="injection-grid">
+<article class="injection-card"><div class="injection-card-title">生物基改性塑料注塑设备</div><div class="injection-card-content">欧洲、中国市场需求年增速超50%，要求设备温控精度±1℃，支持多组分材料注塑，目前市场缺口达4200台，毛利较普通设备高35%。</div></article>
+<article class="injection-card"><div class="injection-card-title">电池包外壳一体化注塑设备</div><div class="injection-card-content">全球新能源车企扩产需求缺口达1.2万台，锁模力8000T以上大型两板机增速最快，2026年订单量同比增92%，单台设备均价超300万元。</div></article>
+<article class="injection-card"><div class="injection-card-title">微发泡注塑设备</div><div class="injection-card-content">内饰件轻量化需求驱动，2026年全球订单量同比增48%，欧美、日韩车企渗透率提升最快，可降低内饰件重量20%，成本下降15%。</div></article>
+<article class="injection-card"><div class="injection-card-title">中小型精密注塑设备</div><div class="injection-card-content">东南亚、印度市场本地化配套需求爆发，年增速超100%，性价比高的伺服节能设备优势明显，中国品牌市占率已达65%，仍有提升空间。</div></article>
 </div>
 </section>
-<section id="injection">
-<h2><span>注塑机会专题</span></h2>
-<ul class="styled-list">
-<li><span class="tag tag-trend">工艺机会</span>一体注塑电池包外壳、微发泡内饰件、多组分外饰件三类工艺订单增速分别达78%、42%、37%，相关设备需求缺口显著。</li>
-<li><span class="tag tag-trend">区域机会</span>东南亚、拉美、俄罗斯三地本地化注塑产能缺口分别达42%、37%、63%，中国设备商凭借性价比优势市占率提升空间巨大。</li>
-<li><span class="tag tag-trend">材料机会</span>生物基改性塑料、可回收工程塑料配套专用注塑设备需求年增速达19%，适配特殊材料的定制化设备溢价能力突出。</li>
-<li><span class="tag tag-trend">客户机会</span>特斯拉、大众、比亚迪三家2027年注塑设备采购量合计预计超1200台，头部供应商绑定机会明确。</li>
-</ul>
+<section class="section" id="nextweek">
+<h2 class="section-title"><span>Next Week</span>下周关注</h2>
+<div class="next-week"><ul>
+<li>持续关注主要市场月度销量数据</li>
+<li>跟踪欧盟对华电动车关税后续进展</li>
+<li>关注固态电池与一体化压铸技术落地动态</li>
+</ul></div>
 </section>
-<section id="outlook">
-<h2><span>下周关注</span></h2>
-<div class="next-week">
-<ul class="styled-list">
-<li>2026.09.12 欧盟将发布车用塑料回收标准细则，将明确回收料注塑工艺的认证要求</li>
-<li>2026.09.13 特斯拉柏林工厂开放日，将正式展示一体注塑电池包量产线及技术参数</li>
-<li>2026.09.14 中国乘联会发布8月汽车零部件出口数据，注塑件出口增速为核心观测指标</li>
-<li>2026.09.15 印度汽车工业协会发布新能源配套供应链招标结果，注塑设备采购订单规模值得关注</li>
-<li>2026.09.16 北美国际塑机展开展，车用注塑技术为核心展区，多家头部企业将发布新技术</li>
-</ul>
+<section class="section" id="sources">
+<h2 class="section-title"><span>Sources</span>数据来源</h2>
+<div class="sources-grid">
+<p>MarkLines、乘联会(CPCA)、中汽协(CAAM)、ACEA、GAIKINDO、TAI/FTI、ANFAVEA/Fenabrave、SIAM、AEB、盖世汽车、36氪、界面新闻、AlixPartners、麦肯锡、Maybank、爱建证券</p>
 </div>
 </section>
-<section id="sources">
 
-        <h2><span>数据来源</span></h2>
-        <div class="card">
-            <p class="sources-intro">本报告数据与资讯来源于以下公开渠道及行业数据库：</p>
-            <div class="grid-3">
-                <div class="source-col">
-                    <h4>行业数据库</h4>
-                    <ul>
-                        <li>MarkLines 付费数据库</li>
-                        <li>乘联会 (CPCA)</li>
-                        <li>中汽协 (CAAM)</li>
-                        <li>ACEA（欧洲）</li>
-                    </ul>
-                </div>
-                <div class="source-col">
-                    <h4>区域市场</h4>
-                    <ul>
-                        <li>GAIKINDO（印尼）</li>
-                        <li>TAI / FTI（泰国）</li>
-                        <li>ANFAVEA / Fenabrave（巴西）</li>
-                        <li>SIAM（印度）、AEB（俄罗斯）</li>
-                    </ul>
-                </div>
-                <div class="source-col">
-                    <h4>媒体与研报</h4>
-                    <ul>
-                        <li>盖世汽车、36氪、界面新闻</li>
-                        <li>AlixPartners、麦肯锡</li>
-                        <li>Maybank、爱建证券</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
-    
-</section>
-        </main>
-    </div>
+
+<!-- Key Points -->
+
+
+
+
+
+
+</main>
+
+<!-- Footer -->
+<footer class="footer">
+  <p><strong>数据来源：</strong></p>
+  <p style="margin-top:8px">本报告仅供内部参考，数据以各官方机构发布为准。</p>
+  <p style="margin-top:12px;color:var(--text-muted)">© 2026 全球汽车行业深度周报（2026.09.04-2026.09.10） | 2026年09月10日</p>
+</footer>
+
+<!-- Back to top button -->
+<button type="button" class="back-top" id="backTop" aria-label="返回顶部" title="返回顶部">↑</button>
+
+<script>
+// Configuration constants
+const CONSTANTS = {
+  SCROLL_THRESHOLD: 400,
+  NAV_OFFSET: 100,
+  THROTTLE_DELAY: 100
+};
+
+// Throttle utility function
+function throttle(func, delay) {
+  let lastCall = 0;
+  return function(...args) {
+    const now = Date.now();
+    if (now - lastCall >= delay) {
+      lastCall = now;
+      func.apply(this, args);
+    }
+  };
+}
+
+// Back to top visibility handler
+function handleBackTopVisibility() {
+  const btn = document.getElementById('backTop');
+  if (window.scrollY > CONSTANTS.SCROLL_THRESHOLD) {
+    btn.classList.add('visible');
+  } else {
+    btn.classList.remove('visible');
+  }
+}
+
+// Active nav highlight handler
+function handleNavHighlight() {
+  const sections = document.querySelectorAll('[id]');
+  const navLinks = document.querySelectorAll('.nav-link');
+  const scrollPos = window.scrollY + CONSTANTS.NAV_OFFSET;
+  
+  sections.forEach(function(sec) {
+    if (sec.offsetTop <= scrollPos && (sec.offsetTop + sec.offsetHeight) > scrollPos) {
+      const id = sec.getAttribute('id');
+      navLinks.forEach(function(link) {
+        link.classList.remove('active');
+        if (link.getAttribute('href') === '#' + id) {
+          link.classList.add('active');
+        }
+      });
+    }
+  });
+}
+
+// Apply throttled scroll handlers
+const throttledBackTopHandler = throttle(handleBackTopVisibility, CONSTANTS.THROTTLE_DELAY);
+const throttledNavHandler = throttle(handleNavHighlight, CONSTANTS.THROTTLE_DELAY);
+
+// Attach scroll event listeners
+window.addEventListener('scroll', throttledBackTopHandler);
+window.addEventListener('scroll', throttledNavHandler);
+
+// Smooth scroll for nav links
+document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+  a.addEventListener('click', function(e) {
+    const id = this.getAttribute('href').slice(1);
+    const el = document.getElementById(id);
+    if (el) {
+      e.preventDefault();
+      el.scrollIntoView({behavior: 'smooth', block: 'start'});
+    }
+  });
+});
+
+// Back to top button click handler
+document.getElementById('backTop').addEventListener('click', function() {
+  window.scrollTo({top: 0, behavior: 'smooth'});
+});
+</script>
+
 </body>
-
 </html>
