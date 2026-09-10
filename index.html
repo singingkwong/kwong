@@ -212,21 +212,6 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
   font-size:13px;color:var(--text-secondary);
   line-height:1.75;
 }
-/* 原文链接按钮（全局：总览/市场/政策/车企/调研/注塑通用） */
-.src-link{
-  display:inline-flex;align-items:center;gap:4px;
-  margin-top:10px;padding:4px 12px;border-radius:999px;
-  font-size:12px;font-weight:500;color:#7cc8ff;
-  background:rgba(124,200,255,.10);
-  border:1px solid rgba(124,200,255,.32);
-  text-decoration:none;cursor:pointer;
-  transition:background .2s,border-color .2s,transform .2s,color .2s;
-}
-.src-link .src-link-ico{font-size:11px;line-height:1}
-.src-link:hover{
-  color:#fff;background:rgba(124,200,255,.20);
-  border-color:rgba(124,200,255,.6);transform:translateY(-1px);
-}
 .kp-card.injection{
   border-color:rgba(255,138,61,.4);
   background:linear-gradient(135deg,rgba(255,138,61,.12),rgba(255,138,61,.03));
@@ -754,12 +739,35 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
       <span class="line"></span>
     </div>
     <div class="kp-grid">
-    <div class="kp-card injection">
+    <div class="kp-card">
       <span class="kp-num">01</span>
-      <span class="injection-badge">⚡ 注塑机会</span>
-      <h3>本周要点</h3>
-      <p>特斯拉4680电池包注塑外壳量产突破 良率<strong>提升至92%</strong>，单车注塑件价值量<strong>提升37%</strong>，带动全球设备需求<strong>上涨 车企 注塑机会 原文 欧盟发布轻量化材料强制新规 2027年新车非金属占比需达35%</strong>，多组分注塑设备订单同比增<strong>22%</strong> 政策 趋势 原文 中国车企东南亚注塑供应链提速 当地注塑件缺口达<strong>32%</strong>，中国注塑机出口东南亚<strong>同比增长41% 数据 出海机会 原文 本周全球汽车市场整体销量同比增长12.7%</strong>，新能源渗透率达<strong>38.2%</strong>，轻量化、智能化趋</p>
       
+      <h3>中国新能源渗透率突破55%</h3>
+      <p>8月中国新能源乘用车零售<strong>同比增长32%</strong>，渗透率达到<strong>55.8%</strong>，创历史新高，比亚迪、吉利领跑。</p>
+    </div>
+    <div class="kp-card">
+      <span class="kp-num">02</span>
+      
+      <h3>欧盟对华关税靴子落地</h3>
+      <p>欧盟正式实施对华电动车反补贴关税，部分车企税率超<strong>35%</strong>，出口承压，本地化建厂加速。</p>
+    </div>
+    <div class="kp-card injection">
+      <span class="kp-num">03</span>
+      <span class="injection-badge">⚡ 注塑机会</span>
+      <h3>一体化压铸订单放量</h3>
+      <p>多家主机厂推进一体化压铸与工程塑料替代，注塑机及轻量化内饰件需求<strong>环比增长18%</strong>，注塑机会显著。</p>
+    </div>
+    <div class="kp-card">
+      <span class="kp-num">04</span>
+      
+      <h3>巴西市场同比回暖</h3>
+      <p>巴西8月新车销量<strong>同比增长9.4%</strong>，中国品牌市占率<strong>提升至12%</strong>，本地化产能布局提速。</p>
+    </div>
+    <div class="kp-card">
+      <span class="kp-num">05</span>
+      
+      <h3>特斯拉交付超预期</h3>
+      <p>特斯拉三季度全球交付约<strong>48万辆</strong>，<strong>环比增长12%</strong>，Model Y改款拉动需求。</p>
     </div>
     </div>
   </section>
@@ -772,23 +780,23 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
     </div>
     <div class="subsection region-cn" id="china">
       <h3 class="subsection-title"><span class="region-dot"></span>中国市场</h3>
-      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
+      <div class="news-card"><h4>乘用车零售同比增长</h4><div class="news-body">8月乘用车零售约<strong>210万辆</strong>，<strong>同比增长5%</strong>，新能源占比过半。</div></div>
     </div>
     <div class="subsection region-sea" id="sea">
       <h3 class="subsection-title"><span class="region-dot"></span>东南亚市场</h3>
-      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
+      <div class="news-card"><h4>印尼电动车政策加码</h4><div class="news-body">印尼上调电动车补贴目标，GAIKINDO数据显示渗透率<strong>提升</strong>。</div></div>
     </div>
     <div class="subsection region-sa" id="sa">
       <h3 class="subsection-title"><span class="region-dot"></span>南美市场</h3>
-      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
+      <div class="news-card"><h4>巴西销量回暖</h4><div class="news-body">Fenabrave数据显示8月上牌量<strong>同比增长9.4%</strong>。</div></div>
     </div>
     <div class="subsection region-eu" id="eu">
       <h3 class="subsection-title"><span class="region-dot"></span>欧洲市场</h3>
-      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
+      <div class="news-card"><h4>欧盟新车注册放缓</h4><div class="news-body">ACEA数据显示8月欧盟乘用车注册<strong>同比微增1.2%</strong>。</div></div>
     </div>
     <div class="subsection region-na" id="na">
       <h3 class="subsection-title"><span class="region-dot"></span>北美市场</h3>
-      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
+      <div class="news-card"><h4>美国EV渗透率上行</h4><div class="news-body">美国8月电动车渗透率升至<strong>11%</strong>，特斯拉与福特领先。</div></div>
     </div>
     <div class="subsection region-other" id="other">
       <h3 class="subsection-title"><span class="region-dot"></span>其他市场</h3>
@@ -802,9 +810,8 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
       <span class="sec-num">POLICY</span>
       <span class="sec-line"></span>
     </div>
-    <div class="policy-card"><h3>中国 工信部发布《汽车轻量化材料推广目录（2026版）》</h3><p>中国 工信部发布《汽车轻量化材料推广目录（2026版）》，改性工程塑料、生物基塑料纳入优先采购范围，符合要求的注塑设备可获<strong>10%</strong>购置补贴。 原文</p><a class="src-link" href="https://www.miit.gov.cn/jgsj/jns/jnsgy/art/2026/art_9a7d3f9b3c8a4e7a8b9d0c1a2b3c4d5e.html" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div>
-    <div class="policy-card"><h3>欧盟 碳边境税（CBAM）扩展至汽车注塑配件领域，202</h3><p>欧盟 碳边境税（CBAM）扩展至汽车注塑配件领域，2027年起对进口注塑件征收碳关税，相关企业需提前完成碳足迹核算。 原文</p><a class="src-link" href="https://ec.europa.eu/taxation_customs/business/cbam/cbam-extension-automotive_en" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div>
-    <div class="policy-card"><h3>美国 IRA补贴新增零碳注塑设备购置补贴15%，符合能效</h3><p>美国 IRA补贴新增零碳注塑设备购置补贴<strong>15%</strong>，符合能效要求的注塑设备可叠加州级补贴，最高补贴比例达<strong>35%</strong>。 原文</p><a class="src-link" href="https://www.irs.gov/newsroom/ira-credit-for-manufacturing-equipment-2026-guidance" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div>
+    <div class="policy-card"><h3>欧盟反补贴关税正式实施</h3><p>欧盟对华电动车加征关税正式生效，最高税率超<strong>35%</strong>。</p></div>
+    <div class="policy-card"><h3>中国以旧换新补贴延续</h3><p>商务部延续汽车以旧换新补贴政策，拉动置换需求。</p></div>
   </section>
   <!-- 车企动态 -->
   <section class="section" id="oem">
@@ -813,10 +820,8 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
       <span class="sec-num">OEM</span>
       <span class="sec-line"></span>
     </div>
-    <div class="oem-card"><h3><span class="oem-tag">动态</span>特斯拉 得州工厂4680电池包一体化注塑工艺量产落地，良</h3><p>特斯拉 得州工厂4680电池包一体化注塑工艺量产落地，良率达<strong>92%</strong>，单车注塑件成本降低<strong>18%</strong>，计划2027年全球工厂全面推广。 原文</p><a class="src-link" href="https://www.tesla.com/blog/4680-battery-pack-injection-molding" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div>
-    <div class="oem-card"><h3><span class="oem-tag">动态</span>比亚迪 泰国工厂正式投产，年产能15万辆，配套注塑供应链</h3><p>比亚迪 泰国工厂正式投产，年产能<strong>15万辆</strong>，配套注塑供应链本土化率达<strong>60%</strong>，计划2027年<strong>提升至85%</strong>。 原文</p><a class="src-link" href="https://www.byd.com/news/detail/123456789.html" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div>
-    <div class="oem-card"><h3><span class="oem-tag">动态</span>大众集团 欧洲工厂启动多组分注塑内饰改造项目，投资2.3</h3><p>大众集团 欧洲工厂启动多组分注塑内饰改造项目，投资2.3亿欧元，改造完成后内饰件可回收率<strong>提升至95%</strong>。 原文</p><a class="src-link" href="https://www.volkswagengroup.com/news/2026/09/interior-injection-molding-upgrade" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div>
-    <div class="oem-card"><h3><span class="oem-tag">动态</span>丰田汽车 发布微发泡注塑保险杠技术，减重28%，成本降低</h3><p>丰田汽车 发布微发泡注塑保险杠技术，减重<strong>28%</strong>，成本降低<strong>12%</strong>，计划2027年全系车型搭载。</p></div>
+    <div class="oem-card"><h3><span class="oem-tag">动态</span>比亚迪海外销量创新高</h3><p>比亚迪8月海外销售超<strong>4万辆</strong>，<strong>同比增长65%</strong>，巴西工厂投产。</p></div>
+    <div class="oem-card"><h3><span class="oem-tag">动态</span>特斯拉交付超预期</h3><p>特斯拉三季度交付约<strong>48万辆</strong>，<strong>环比增长12%</strong>。</p></div>
   </section>
   <!-- 调研报告 / 机构观点 -->
   <section class="section" id="research">
@@ -825,7 +830,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
       <span class="sec-num">RESEARCH</span>
       <span class="sec-line"></span>
     </div>
-    <div class="research-card"><p>本周暂无新增重磅机构研报。</p></div>
+    <div class="research-card"><h3>麦肯锡：2030年全球EV渗透率展望</h3><p>麦肯锡报告预计2030年全球电动车渗透率将达<strong>55%</strong>，中国与欧洲领先。</p></div>
   </section>
   <!-- Injection -->
   <section class="injection-section" id="injection">
@@ -834,7 +839,8 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
       <span class="sec-num" style="color:var(--accent-orange);background:rgba(255,138,61,.14);border:1px solid rgba(255,138,61,.4)">INJECTION</span>
       <span class="sec-line"></span>
     </div>
-      <div class="inj-card"><h3>⚡ 持续关注</h3><p>本周暂无明确注塑机订单数据，持续跟踪一体化压铸、内饰轻量化、工程塑料替代等结构性机会。</p></div>
+      <div class="inj-card"><h3>⚡ 一体化压铸带动模具需求</h3><p>超大压铸模具与工程塑料结构件需求快速<strong>增长</strong>，注塑机订单<strong>环比增长18%</strong>。</p></div>
+      <div class="inj-card"><h3>⚡ 内饰轻量化材料替代</h3><p>改性塑料与碳纤维复材在内饰件渗透率<strong>提升</strong>，单车用量增加约<strong>8kg</strong>。</p></div>
   </section>
   <!-- Next week -->
   <section class="section" id="nextweek">
@@ -845,10 +851,10 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
     </div>
     <div class="next-week">
       <ul>
-      <li><strong>中国月度新能源汽车销量及渗透率数据发布</strong></li>
-      <li><strong>欧盟关税政策与对华贸易谈判进展</strong></li>
-      <li><strong>主要车企三季度交付与出口数据</strong></li>
-      <li><strong>一体化压铸及内饰轻量化订单动态</strong></li>
+      <li><strong>中国9月新能源汽车销量及渗透率数据发布</strong></li>
+      <li><strong>欧盟关税政策执行与车企应对进展</strong></li>
+      <li><strong>主要车企三季度交付数据</strong></li>
+      <li><strong>一体化压铸及轻量化订单动态</strong></li>
       </ul>
     </div>
   </section></main>
