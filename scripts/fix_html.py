@@ -133,6 +133,8 @@ def clean_section_title(title: str) -> str:
     """去掉英文副标题等多余内容，保留中文标题。"""
     # 去除英文说明，如 "本周总览 Weekly Overview"
     title = re.sub(r"\s*[A-Za-z][A-Za-z\s/-]*$", "", title).strip()
+    # 去除标题前面的英文，如 "Sources数据来源"、"Injection注塑机会专题"
+    title = re.sub(r"^[A-Za-z][A-Za-z\s/-]*\s*", "", title).strip()
     # 去除括号里的英文
     title = re.sub(r"\s*[（(][A-Za-z\s/-]+[）)]", "", title).strip()
     return title
@@ -278,11 +280,13 @@ def build_nav(sections: list) -> str:
     for s in sections:
         items.append(f'<li><a href="#{s["id"]}">{s["title"]}</a></li>')
     return (
-        '<nav class="top-nav">\n'
-        '    <div class="nav-brand">📊 全球汽车行业周报</div>\n'
-        '    <ul class="nav-menu">\n        '
-        + "\n        ".join(items)
-        + '\n    </ul>\n'
+        '<nav>\n'
+        '    <div class="nav-container">\n'
+        '        <a href="#" class="nav-brand">AUTO WEEKLY</a>\n'
+        '        <ul class="nav-links">\n            '
+        + "\n            ".join(items)
+        + '\n        </ul>\n'
+        '    </div>\n'
         '</nav>\n'
     )
 
@@ -299,18 +303,24 @@ def build_html(title: str, date: str, team: str, nav_html: str, sections: list) 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{title} - {date}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.cn">
+    <link rel="preconnect" href="https://fonts.gstatic.cn" crossorigin>
+    <link href="https://fonts.googleapis.cn/css2?family=Orbitron:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="./styles/main.css">
 </head>
 <body>
+    <div class="scan-line"></div>
 {nav_html}
     <div class="container">
         <header class="hero">
-            <div class="hero-badge">WEEKLY INSIGHT</div>
-            <h1>{title}</h1>
-            <div class="hero-meta">
-                <span class="hero-date">{date}</span>
-                <span class="hero-divider"></span>
-                <span class="hero-team">{team}</span>
+            <div class="hero-content">
+                <div class="hero-badge">WEEKLY INSIGHT</div>
+                <h1>{title}</h1>
+                <div class="hero-meta">
+                    <span class="hero-date">{date}</span>
+                    <span class="hero-divider"></span>
+                    <span class="hero-team">{team}</span>
+                </div>
             </div>
         </header>
         <main>

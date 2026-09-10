@@ -269,25 +269,52 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                 if len(hotspots) >= count:
                     return hotspots
 
-    # 策略 B3：从新版 overview-card 卡片中提取
+    # 策略 B3：从新版 overview-card 卡片中提取（用户指定：对应本周总览一二三点，加原文锚点）
     if len(hotspots) < count:
         overview_section = _find_overview_section(soup)
         if overview_section:
             overview_id = overview_section.get("id", "overview") or "overview"
-            cards = overview_section.find_all("div", class_=lambda x: x and "overview-card" in (x or "").split())
+            cards = overview_section.find_all(["article", "div"], class_=lambda x: x and "overview-card" in (x or "").split())
             for card in cards:
                 title_elem = card.find(["h3", "h4", "div"], class_=lambda x: x and "title" in (x or ""))
                 desc_elem = card.find("p")
                 if not title_elem:
                     title_elem = card.find(["h3", "h4"])
                 title = title_elem.get_text(strip=True) if title_elem else ""
+                # 去掉序号前缀 "01 "、"02 " 等
+                title = re.sub(r"^\d+[\.、\s]+\s*", "", title).strip()
                 title = re.sub(r"^[A-Za-z]+\s*", "", title).strip()
                 description = desc_elem.get_text(strip=True) if desc_elem else "点击查看详情"
+
+                # 根据标签/标题关键词推断原文章节锚点
+                tag_elem = card.find("span", class_=lambda x: x and "tag" in (x or ""))
+                tag_text = tag_elem.get_text(strip=True).lower() if tag_elem else ""
+                title_lower = title.lower()
+                if "政策" in tag_text or "法规" in tag_text or "policy" in tag_text or "政策" in title_lower or "法规" in title_lower or "欧盟" in title or "新规" in title:
+                    anchor = "policy"
+                elif "车企" in tag_text or "oem" in tag_text or "比亚迪" in title or "特斯拉" in title or "大众" in title or "丰田" in title or "通用" in title or "车企" in title_lower:
+                    anchor = "oems"
+                elif "市场" in tag_text or "market" in tag_text or "销量" in title_lower or "同比" in title_lower or "巴西" in title or "欧洲" in title or "北美" in title or "中国" in title:
+                    anchor = "markets"
+                elif "注塑" in tag_text or "模具" in tag_text or "压铸" in tag_text or "轻量化" in tag_text or "注塑" in title_lower:
+                    anchor = "injection-molding"
+                elif "技术" in tag_text or "tech" in tag_text or "电池" in title_lower or "固态" in title_lower or "智能化" in title_lower:
+                    anchor = "research"
+                else:
+                    anchor = overview_id
+
+                # 如果卡片内有显式原文链接，优先使用
+                source_url = ""
+                source_link = card.find("a", class_=lambda x: x and "hotspot-source" in (x or ""))
+                if source_link and source_link.get("href"):
+                    source_url = source_link["href"].strip()
+
                 if title and len(title) < 60:
                     hotspots.append({
                         "title": title,
                         "description": description[:150],
-                        "anchor": overview_id,
+                        "anchor": anchor,
+                        "source_url": source_url,
                     })
                 if len(hotspots) >= count:
                     return hotspots
