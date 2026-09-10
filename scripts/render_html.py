@@ -449,7 +449,8 @@ def render_html(agent_html: str, template: str) -> str:
     result = result.replace("{{date}}", today_cn())
     result = result.replace("{{team}}", team)
     # Always sync data period to last week and update any stale period string
-    result = re.sub(r"数据周期：[^<\n]+", f"数据周期：{get_last_week_range()}", result)
+    result = result.replace("{{data_period}}", f"数据周期：{get_last_week_range()}")
+    result = re.sub(r"数据周期：[^<\n{{}}]+", f"数据周期：{get_last_week_range()}", result)
     result = result.replace("{{overview}}", "")
     result = result.replace("{{markets}}", "")
     result = result.replace("{{policy}}", "")
