@@ -11,6 +11,7 @@ Workflow:
 """
 
 import re
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from bs4 import BeautifulSoup
 
@@ -41,6 +42,24 @@ def map_section_key(title: str) -> str:
             if kw.lower() in title:
                 return key
     return ""
+
+
+def get_last_week_range() -> str:
+    """Return last week's date range in Chinese, based on Beijing time."""
+    beijing = timezone(timedelta(hours=8))
+    today = datetime.now(beijing)
+    last_monday = today - timedelta(days=today.weekday() + 7)
+    last_sunday = last_monday + timedelta(days=6)
+    if last_monday.month == last_sunday.month:
+        return f"{last_monday.month}月{last_monday.day}日 - {last_sunday.day}日"
+    return f"{last_monday.month}月{last_monday.day}日 - {last_sunday.month}月{last_sunday.day}日"
+
+
+def today_cn() -> str:
+    """Return today's date in Chinese, based on Beijing time."""
+    beijing = timezone(timedelta(hours=8))
+    now = datetime.now(beijing)
+    return f"{now.year}年{now.month:02d}月{now.day:02d}日"
 
 
 def extract_title(agent_html: str) -> str:
@@ -427,8 +446,10 @@ def render_html(agent_html: str, template: str) -> str:
     # Replace placeholders in template
     result = template
     result = result.replace("{{title}}", title)
-    result = result.replace("{{date}}", date)
+    result = result.replace("{{date}}", today_cn())
     result = result.replace("{{team}}", team)
+    # Always sync data period to last week and update any stale period string
+    result = re.sub(r"数据周期：[^<\n]+", f"数据周期：{get_last_week_range()}", result)
     result = result.replace("{{overview}}", "")
     result = result.replace("{{markets}}", "")
     result = result.replace("{{policy}}", "")
