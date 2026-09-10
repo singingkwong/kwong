@@ -165,16 +165,84 @@ def _find_section_by_title(soup: BeautifulSoup, title_text: str) -> str:
     return ""
 
 
+def _infer_anchor(title: str, tag: str = "") -> str:
+    """根据热点标题/标签推断新模板中的章节锚点 id。
+
+    新模板锚点：overview / china / sea / sa / eu / na / other /
+    policy / oem / research / injection / nextweek。
+    """
+    t = f"{title} {tag}".lower()
+
+    def has(*words: str) -> bool:
+        return any(w.lower() in t for w in words)
+
+    if has("注塑", "模具", "压铸", "轻量化", "碳纤维", "复合材料", "工程塑料", "改性塑料", "注塑机"):
+        return "injection"
+    if has("政策", "法规", "关税", "补贴", "双反", "监管", "新规", "合规", "贸易"):
+        return "policy"
+    if has("车企", "整车", "主机厂", "品牌", "比亚迪", "特斯拉", "丰田", "大众",
+           "宝马", "奔驰", "吉利", "奇瑞", "长安", "长城", "宁德时代", "蔚来",
+           "小鹏", "理想", "stellantis", "现代", "起亚", "oem"):
+        return "oem"
+    if has("报告", "调研", "研报", "机构", "麦肯锡", "bcg", "贝恩", "德勤",
+           "普华永道", "alixpartners", "评级", "预测", "观点", "research"):
+        return "research"
+    if has("下周", "前瞻", "日程", "关注", "数据发布", "nextweek"):
+        return "nextweek"
+    # 区域市场：按关键词定位到具体区域锚点
+    if has("巴西", "南美", "argentina", "阿根廷"):
+        return "sa"
+    if has("泰国", "印尼", "越南", "马来", "东南亚", "东盟", "sea"):
+        return "sea"
+    if has("欧洲", "欧盟", "德国", "法国", "意大利", "西班牙", "acea", "eu"):
+        return "eu"
+    if has("北美", "美国", "加拿大", "墨西哥", "na", "u.s"):
+        return "na"
+    if has("印度", "俄罗斯", "澳洲", "澳大利亚", "日本", "韩国", "中东", "非洲"):
+        return "other"
+    if has("中国", "国内", "乘联会", "中汽协", "cpca", "caam", "china"):
+        return "china"
+    if has("销量", "同比", "环比", "渗透率", "市场", "%", "出口"):
+        return "overview"
+    return "overview"
+
+
 def extract_hotspots(html_content: str, count: int = 3) -> list:
     """
     从 HTML 中提取 3 个本周热点，用于企微图文消息小卡片。
-    优先使用 Agent 显式生成的 hotspot-card，否则回退到 stat-card 或章节标题。
+    新模板优先读取 .key-points#overview 下的 .kp-card（本周总览核心看点）；
+    回退到 .overview-card、旧版 hotspot-card / stat-card 或章节标题。
     返回的字典包含 title / description / anchor。
     """
     hotspots = []
     soup = BeautifulSoup(html_content, "html.parser")
 
-    # 策略 A：优先使用 Agent 显式生成的 hotspot-card
+    # 策略 0（新模板优先）：.key-points#overview > .kp-grid > .kp-card
+    key_points = soup.find("section", id="overview")
+    if key_points:
+        kp_cards = key_points.find_all("div", class_=lambda x: x and "kp-card" in (x or ""))
+        for card in kp_cards:
+            title_elem = card.find(["h3", "h4"])
+            desc_elem = card.find("p")
+            badge = card.find("span", class_=lambda x: x and "injection-badge" in (x or ""))
+            tag_text = badge.get_text(strip=True) if badge else ""
+
+            title = title_elem.get_text(strip=True) if title_elem else ""
+            title = re.sub(r"^\d+[\.、\s]+\s*", "", title).strip()
+            title = re.sub(r"^[A-Za-z]+\s*", "", title).strip()
+            description = desc_elem.get_text(strip=True) if desc_elem else "点击查看详情"
+
+            if title and len(title) < 60:
+                hotspots.append({
+                    "title": title,
+                    "description": description[:150],
+                    "anchor": _infer_anchor(title, tag_text),
+                    "source_url": "",
+                })
+            if len(hotspots) >= count:
+                return hotspots[:count]
+
+    # 策略 A：旧版 Agent 显式生成的 hotspot-card
     hotspot_cards = soup.find_all("div", class_=lambda x: x and "hotspot-card" in x)
     for card in hotspot_cards:
         title_elem = card.find(["div", "h3", "h4"], class_=lambda x: x and "hotspot-title" in x)
@@ -188,17 +256,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
 
         if title and description:
             # 从标题中推断锚点：政策 -> section-3，车企 -> section-4，注塑 -> section-6，默认 section-2
-            title_lower = title.lower()
-            if "政策" in tag or "政策" in title_lower or "法规" in title_lower:
-                anchor = "section-3"
-            elif "车企" in tag or "车企" in title_lower or "比亚迪" in title_lower or "特斯拉" in title_lower or "大众" in title_lower:
-                anchor = "section-4"
-            elif "注塑" in tag or "注塑" in title_lower or "压铸" in title_lower or "模具" in title_lower:
-                anchor = "section-6"
-            elif "数据" in tag or "销量" in title_lower or "渗透" in title_lower or "同比" in title_lower or "%" in title:
-                anchor = "section-2"
-            else:
-                anchor = "section-2"
+            anchor = _infer_anchor(title, tag)
 
             # 如果热点卡片内显式提供了原文链接，优先使用原文链接
             source_url = ""
@@ -236,7 +294,7 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                     hotspots.append({
                         "title": name,
                         "description": description[:150],
-                        "anchor": overview_id,
+                        "anchor": _infer_anchor(name),
                     })
                 if len(hotspots) >= count:
                     return hotspots
@@ -306,22 +364,10 @@ def extract_hotspots(html_content: str, count: int = 3) -> list:
                 title = re.sub(r"^[A-Za-z]+\s*", "", title).strip()
                 description = desc_elem.get_text(strip=True) if desc_elem else "点击查看详情"
 
-                # 根据标签/标题关键词推断原文章节锚点
+                # 根据标签/标题关键词推断原文章节锚点（对齐新模板 id）
                 tag_elem = card.find("span", class_=lambda x: x and "tag" in (x or ""))
-                tag_text = tag_elem.get_text(strip=True).lower() if tag_elem else ""
-                title_lower = title.lower()
-                if "政策" in tag_text or "法规" in tag_text or "policy" in tag_text or "政策" in title_lower or "法规" in title_lower or "欧盟" in title or "新规" in title:
-                    anchor = "policy"
-                elif "车企" in tag_text or "oem" in tag_text or "比亚迪" in title or "特斯拉" in title or "大众" in title or "丰田" in title or "通用" in title or "车企" in title_lower:
-                    anchor = "oems"
-                elif "市场" in tag_text or "market" in tag_text or "销量" in title_lower or "同比" in title_lower or "巴西" in title or "欧洲" in title or "北美" in title or "中国" in title:
-                    anchor = "markets"
-                elif "注塑" in tag_text or "模具" in tag_text or "压铸" in tag_text or "轻量化" in tag_text or "注塑" in title_lower:
-                    anchor = "injection-molding"
-                elif "技术" in tag_text or "tech" in tag_text or "电池" in title_lower or "固态" in title_lower or "智能化" in title_lower:
-                    anchor = "research"
-                else:
-                    anchor = overview_id
+                tag_text = tag_elem.get_text(strip=True) if tag_elem else ""
+                anchor = _infer_anchor(title, tag_text)
 
                 # 如果卡片内有显式原文链接，优先使用
                 source_url = ""

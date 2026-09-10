@@ -1,490 +1,576 @@
 #!/usr/bin/env python3
+# -*- coding: utf-8 -*-
 """
-Render weekly report HTML from Agent-generated HTML using the original visual template.
+渲染脚本：读取扣子 Agent 生成的 agent.html，套用优化版模板 templates/weekly.html。
 
-Workflow:
-1. Read templates/weekly.html (the original beautiful design).
-2. Read agent.html (Agent generated).
-3. Extract sections from agent.html by h2/section id.
-4. Convert each section's content into the template's card structure.
-5. Replace placeholders in the template and write index.html.
+模板中使用 {{placeholder}} 占位，本脚本负责：
+- {{title}} / {{date}} / {{team}} / {{data_period}} / {{sources}}
+- {{overview}} {{markets}} {{policy}} {{oem}} {{research}} {{injection}} {{nextweek}}
+并输出最终的 index.html。
+
+输出严格遵循新模板的卡片类名体系：
+- 本周总览：.key-points + .kp-card
+- 市场区域：.section + .subsection.region-* + .region-card / .news-card
+- 政策：.policy-card / 车企：.oem-card / 调研：.research-card
+- 注塑：.injection-section + .inj-card / 下周：.section + .next-week
 """
-
+import datetime
+import os
 import re
-from datetime import datetime, timedelta, timezone
-from pathlib import Path
-from bs4 import BeautifulSoup
+import sys
+from typing import Dict, List, Optional
+
+import requests
+from bs4 import BeautifulSoup, Tag
+
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "templates", "weekly.html")
+AGENT_HTML_PATH = os.path.join(PROJECT_ROOT, "agent.html")
+OUTPUT_PATH = os.path.join(PROJECT_ROOT, "index.html")
+
+COZE_API_BASE = "https://api.coze.cn"
+DEFAULT_TEAM = "YZM海外汽车行业拓展项目组"
+
+REGIONS: List[Dict[str, str]] = [
+    {"name": "中国", "key": "china", "en": "China", "cls": "region-cn"},
+    {"name": "东南亚", "key": "sea", "en": "Southeast Asia", "cls": "region-sea"},
+    {"name": "印尼", "key": "sea", "en": "Indonesia", "cls": "region-sea"},
+    {"name": "泰国", "key": "sea", "en": "Thailand", "cls": "region-sea"},
+    {"name": "马来西亚", "key": "sea", "en": "Malaysia", "cls": "region-sea"},
+    {"name": "越南", "key": "sea", "en": "Vietnam", "cls": "region-sea"},
+    {"name": "南美", "key": "sa", "en": "South America", "cls": "region-sa"},
+    {"name": "巴西", "key": "sa", "en": "Brazil", "cls": "region-sa"},
+    {"name": "欧洲", "key": "eu", "en": "Europe", "cls": "region-eu"},
+    {"name": "欧盟", "key": "eu", "en": "EU", "cls": "region-eu"},
+    {"name": "德国", "key": "eu", "en": "Germany", "cls": "region-eu"},
+    {"name": "法国", "key": "eu", "en": "France", "cls": "region-eu"},
+    {"name": "北美", "key": "na", "en": "North America", "cls": "region-na"},
+    {"name": "美国", "key": "na", "en": "USA", "cls": "region-na"},
+    {"name": "印度", "key": "other", "en": "India", "cls": "region-other"},
+    {"name": "俄罗斯", "key": "other", "en": "Russia", "cls": "region-other"},
+    {"name": "澳洲", "key": "other", "en": "Australia", "cls": "region-other"},
+    {"name": "澳大利亚", "key": "other", "en": "Australia", "cls": "region-other"},
+    {"name": "日本", "key": "other", "en": "Japan", "cls": "region-other"},
+    {"name": "韩国", "key": "other", "en": "Korea", "cls": "region-other"},
+]
+
+MARKETS_TITLE = "各地市场动态"
+POLICY_KEYWORDS = ["政策", "法规", "关税", "补贴", "标准", "监管", "双反", "贸易", "合规"]
+OEM_KEYWORDS = ["车企", "整车", "品牌", "主机厂", "比亚迪", "特斯拉", "吉利", "奇瑞",
+                "长安", "长城", "丰田", "大众", "宝马", "奔驰", "宁德时代", "蔚来",
+                "小鹏", "理想", "Stellantis", "现代", "起亚"]
+RESEARCH_KEYWORDS = ["报告", "调研", "研报", "观点", "预测", "分析", "机构", "咨询",
+                     "麦肯锡", "BCG", "贝恩", "德勤", "普华永道", "AlixPartners", "评级"]
+NEXT_KEYWORDS = ["下周", "下周关注", "本周关注", "关注", "日程", "前瞻", "数据发布"]
+INJECTION_KEYWORDS = ["注塑", "模具", "内饰件", "外饰件", "一体化压铸", "轻量化",
+                      "工程塑料", "碳纤维", "复合材料", "改性塑料", "注塑机"]
 
 
-ROOT = Path(__file__).resolve().parent.parent
-AGENT_HTML_PATH = ROOT / "agent.html"
-TEMPLATE_PATH = ROOT / "templates" / "weekly.html"
-OUTPUT_PATH = ROOT / "index.html"
-
-TITLE_SUFFIX_RE = re.compile(r"[\-–—]\s*\d{4}[年/\-]\d{1,2}[月/\-]\d{1,2}[日]?\s*$")
-TRAILING_JUNK_RE = re.compile(r"\s*(原文|政策|市场|车企|注塑机会|来源：.*?)\s*$")
-
-SECTION_KEYWORDS = {
-    "overview": ["本周总览", "本周概览", "本周看点", "核心看点"],
-    "markets": ["各地市场动态", "市场动态", "全球市场", "区域市场"],
-    "policy": ["政策动态", "政策法规", "政策"],
-    "oem": ["车企动态", "整车企业", "车企", "OEM"],
-    "research": ["调研报告", "机构观点", "研究报告", "机构研报"],
-    "injection": ["注塑机会", "注塑", "机会专题"],
-    "nextweek": ["下周关注", "下周看点", "下周"],
-}
+# ---------------------------------------------------------------------------
+# 文本工具
+# ---------------------------------------------------------------------------
+def clean_text(text: str) -> str:
+    """清理多余空白。"""
+    if not text:
+        return ""
+    text = re.sub(r"\s+", " ", text)
+    return text.strip()
 
 
-def map_section_key(title: str) -> str:
-    title = title.strip().lower()
-    for key, keywords in SECTION_KEYWORDS.items():
-        for kw in keywords:
-            if kw.lower() in title:
-                return key
-    return ""
-
-
-def get_last_week_range() -> str:
-    """Return last week's date range in Chinese, based on Beijing time."""
-    beijing = timezone(timedelta(hours=8))
-    today = datetime.now(beijing)
-    last_monday = today - timedelta(days=today.weekday() + 7)
-    last_sunday = last_monday + timedelta(days=6)
-    if last_monday.month == last_sunday.month:
-        return f"{last_monday.month}月{last_monday.day}日 - {last_sunday.day}日"
-    return f"{last_monday.month}月{last_monday.day}日 - {last_sunday.month}月{last_sunday.day}日"
+def escape_html(text: str) -> str:
+    return (text.replace("&", "&amp;").replace("<", "&lt;")
+                .replace(">", "&gt;").replace('"', "&quot;"))
 
 
 def today_cn() -> str:
-    """Return today's date in Chinese, based on Beijing time."""
-    beijing = timezone(timedelta(hours=8))
-    now = datetime.now(beijing)
-    return f"{now.year}年{now.month:02d}月{now.day:02d}日"
+    today = datetime.date.today()
+    return f"{today.year}年{today.month:02d}月{today.day:02d}日"
 
 
-def extract_title(agent_html: str) -> str:
-    soup = BeautifulSoup(agent_html, "html.parser")
-    title_tag = soup.find("title")
-    title = title_tag.get_text(strip=True) if title_tag else "全球汽车行业深度周报"
-    title = TITLE_SUFFIX_RE.sub("", title).strip()
-    title = re.sub(r"\s*-\s*$", "", title).strip()
-    if not title:
-        title = "全球汽车行业深度周报"
-    return title
+def get_last_week_range() -> str:
+    today = datetime.date.today()
+    this_monday = today - datetime.timedelta(days=today.weekday())
+    last_monday = this_monday - datetime.timedelta(days=7)
+    last_sunday = this_monday - datetime.timedelta(days=1)
+    return f"{last_monday.month}月{last_monday.day}日 - {last_sunday.month}月{last_sunday.day}日"
 
 
-def extract_date(agent_html: str) -> str:
-    soup = BeautifulSoup(agent_html, "html.parser")
-    # Try header
-    for cls in ["hero-date", "report-date", "date"]:
-        tag = soup.find(class_=cls)
-        if tag:
-            return tag.get_text(strip=True)
-    # Try title
-    title_tag = soup.find("title")
-    if title_tag:
-        m = re.search(r"(\d{4}[年/\-]\d{1,2}[月/\-]\d{1,2}[日]?)", title_tag.get_text())
-        if m:
-            return normalize_date(m.group(1))
-    # Default
-    from datetime import datetime
-    return datetime.now().strftime("%Y年%m月%d日")
+def highlight_numbers(text: str) -> str:
+    """对正文中的关键数据加粗高亮：百分比、带单位数字、增长/下降趋势。不高亮裸数字（如 8月）。"""
+    safe = escape_html(text)
+    number_with_unit = r"\d+(?:\.\d+)?\s?(?:%|％|万辆|万台|万套|亿元|万元|吨|GWh|GW|kg|千克)"
+    trend = r"(?:同比|环比)?(?:增长|大增|激增|暴涨|上涨|提升|攀升|下滑|下降|下跌|回落|微增|微降|放缓)[^，。；,;]*"
+    pattern = re.compile(f"(?:{number_with_unit})|(?:{trend})")
+    return pattern.sub(lambda m: f"<strong>{m.group(0)}</strong>", safe)
 
 
-def normalize_date(date_str: str) -> str:
-    m = re.search(r"(\d{4})[年/\-](\d{1,2})[月/\-](\d{1,2})[日]?", date_str)
-    if m:
-        return f"{m.group(1)}年{int(m.group(2)):02d}月{int(m.group(3)):02d}日"
-    return date_str
+# ---------------------------------------------------------------------------
+# Agent HTML 解析
+# ---------------------------------------------------------------------------
+TITLE_RE = re.compile(
+    r"<(h2|div)([^>]*)>(.*?)</\1>",
+    re.IGNORECASE | re.DOTALL,
+)
 
 
-def extract_team(agent_html: str) -> str:
-    soup = BeautifulSoup(agent_html, "html.parser")
-    for cls in ["hero-team", "report-team", "team"]:
-        tag = soup.find(class_=cls)
-        if tag:
-            return tag.get_text(strip=True).replace("编制团队：", "").strip()
-    header = soup.find("header") or soup.find(class_="header")
-    if header:
-        text = header.get_text(" ", strip=True)
-        m = re.search(r"编制团队[：:]\s*(.+)", text)
-        if m:
-            return m.group(1).strip()
-    return "YZM海外汽车行业拓展项目组"
+def split_sections_by_title(full_html: str) -> List[Dict[str, str]]:
+    """按 Agent HTML 里的章节标题切块。兼容 <h2> 与 <div class="...section-title...">。"""
+    matches: List[re.Match] = []
+    for m in TITLE_RE.finditer(full_html):
+        tag, attrs, inner = m.group(1).lower(), m.group(2), m.group(3)
+        if tag == "h2":
+            matches.append(m)
+        elif "section-title" in attrs:
+            matches.append(m)
 
-
-def extract_sections(agent_html: str) -> dict:
-    soup = BeautifulSoup(agent_html, "html.parser")
-    body = soup.body
-    if not body:
-        return {}
-
-    sections = {}
-    # Try explicit sections with h2
-    for section in body.find_all("section"):
-        h2 = section.find("h2")
-        if not h2:
-            continue
-        key = map_section_key(h2.get_text(strip=True))
-        if not key:
-            continue
-        # Remove h2 from inner html to avoid duplication
-        inner = "".join(str(child) for child in section.children if not (getattr(child, "name", None) == "h2"))
-        sections[key] = inner.strip()
-
-    # Fallback: any h2 that is not inside a section
-    for h2 in body.find_all("h2"):
-        key = map_section_key(h2.get_text(strip=True))
-        if not key or key in sections:
-            continue
-        inner = ""
-        for sib in h2.find_next_siblings():
-            if sib.name in ("h2",):
-                break
-            inner += str(sib)
-        sections[key] = inner.strip()
-
+    sections: List[Dict[str, str]] = []
+    for i, m in enumerate(matches):
+        title = clean_text(re.sub(r"<[^>]+>", "", m.group(3)))
+        start = m.end()
+        end = matches[i + 1].start() if i + 1 < len(matches) else len(full_html)
+        body = full_html[start:end]
+        if title:
+            sections.append({"title": title, "body": body})
     return sections
 
 
-def _is_structural(tag) -> bool:
-    cls = " ".join(tag.get("class") or [])
-    return any(k in cls for k in ["title", "header", "heading", "label", "tag"])
+def get_section_by_keyword(sections: List[Dict[str, str]], keywords: List[str]) -> Optional[Dict[str, str]]:
+    for sec in sections:
+        title = sec["title"]
+        if any(k in title for k in keywords):
+            return sec
+    return None
 
 
-def _is_wrapper(tag) -> bool:
-    cls = " ".join(tag.get("class") or [])
-    return any(w in cls for w in ["grid", "cards", "items", "container", "list"])
+def get_overview_section(sections: List[Dict[str, str]], full_html: str) -> Dict[str, str]:
+    for sec in sections:
+        if any(k in sec["title"] for k in ["本周总览", "核心看点", "本周看点", "一周概览", "总览"]):
+            return sec
+    return {"title": "本周总览", "body": full_html[:6000]}
 
 
-def _is_tag_or_label(tag) -> bool:
-    cls = " ".join(tag.get("class") or [])
-    if any(k in cls for k in ["tag", "label", "badge", "source", "meta"]):
-        return True
-    return False
+def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
+    """从一段 HTML 中提取标题+正文（优先 .card / .news-card，其次 li / p）。"""
+    soup = BeautifulSoup(body, "html.parser")
+    cards: List[Dict[str, object]] = []
 
+    # 优先识别带 card 类的块
+    candidates = soup.select(".card, .news-card, .region-card, .policy-card, .oem-card, .research-card, .inj-card, .kp-card")
+    for c in candidates:
+        title_el = c.find(["h3", "h4", "h5", "strong", "b"])
+        title = clean_text(title_el.get_text()) if title_el else ""
+        body_text = clean_text(c.get_text(" ", strip=True))
+        if title and body_text:
+            if body_text.startswith(title):
+                body_text = body_text[len(title):].strip(" -—:：")
+            cards.append({"title": title, "body": body_text})
 
-def find_top_cards(soup, card_pattern):
-    candidates = soup.find_all(class_=card_pattern)
-    # Filter out structural labels
-    cards = [c for c in candidates if not _is_structural(c)]
-    # Keep only top-level among remaining
-    top_cards = []
-    for c in cards:
-        if not any(c != p and c in p.descendants for p in cards):
-            top_cards.append(c)
-    # If only one top-level and it's a wrapper, expand it
-    if len(top_cards) == 1 and _is_wrapper(top_cards[0]):
-        inner = top_cards[0].find_all(class_=card_pattern, recursive=False)
-        inner = [c for c in inner if not _is_structural(c)]
-        if inner:
-            return inner
-        # Fallback: any direct div children
-        inner2 = top_cards[0].find_all(["div", "article"], recursive=False)
-        inner2 = [c for c in inner2 if not _is_structural(c)]
-        if inner2:
-            return inner2
-    return top_cards
+    if cards:
+        return cards
 
-
-def extract_card_text(card):
-    title = ""
-    content = ""
-
-    # Try title classes
-    title_tag = card.find(class_=re.compile(r"title|heading|header"))
-    if title_tag and not _is_tag_or_label(title_tag):
-        title = title_tag.get_text(" ", strip=True)
-        title_tag.extract()
-
-    # Try content classes
-    content_tag = card.find(class_=re.compile(r"content|body|desc|summary|detail"))
-    if content_tag:
-        content = content_tag.get_text(" ", strip=True)
-    else:
-        # Remove tag/label children first
-        for junk in card.find_all(class_=re.compile(r"tag|label|badge|source|meta")):
-            junk.extract()
-        content = card.get_text(" ", strip=True)
-
-    title = re.sub(r"^\d+[\.、]\s*", "", title)
-    content = TRAILING_JUNK_RE.sub("", content).strip()
-    # Remove duplicated title prefix in content
-    if title and content.startswith(title):
-        content = content[len(title):].strip()
-    return title, content
-
-
-def render_overview(inner_html: str) -> str:
-    soup = BeautifulSoup(inner_html, "html.parser")
-    cards = find_top_cards(soup, re.compile(r"hotspot|stat|overview-card"))
-    cards_html = []
-    for idx, card in enumerate(cards[:4], 1):
-        title, content = extract_card_text(card)
-        # If title is just a number/ordinal, derive from content
-        if not title or re.match(r"^\d+$", title) or len(title) < 8:
-            if content:
-                parts = re.split(r"[。；;]", content, 1)
-                if len(parts) > 1 and len(parts[0]) > 8:
-                    title = parts[0].strip()
-                    content = parts[1].strip()
-                else:
-                    title = content[:40]
-                    content = content[40:].strip()
-        if not title:
-            title = f"热点{idx}"
-        cards_html.append(
-            f'<article class="overview-card">'
-            f'<div class="card-number">{idx:02d}</div>'
-            f'<h3 class="overview-card-title">{title}</h3>'
-            f'<p class="overview-card-desc">{content}</p>'
-            f'</article>'
-        )
-    # Core highlights list
-    ul = soup.find("ul")
-    highlights_html = ""
-    if ul:
-        highlights_html = f'<div class="core-highlights"><h3>核心看点</h3>\n{str(ul)}\n</div>'
-    grid = '<div class="overview-grid">\n' + "\n".join(cards_html) + "\n</div>" if cards_html else ""
-    return grid + "\n" + highlights_html
-
-
-def render_markets(inner_html: str) -> str:
-    soup = BeautifulSoup(inner_html, "html.parser")
-    cards = find_top_cards(soup, re.compile(r"card|region|market"))
-    if not cards:
-        cards = soup.find_all("h3")
-    region_keywords = {
-        "中国": "region-cn", "北美": "region-na", "美国": "region-na", "加拿大": "region-na",
-        "欧洲": "region-eu", "欧盟": "region-eu", "德国": "region-eu",
-        "东南亚": "region-sea", "泰国": "region-sea", "印尼": "region-sea", "越南": "region-sea",
-        "南美": "region-sa", "巴西": "region-sa", "墨西哥": "region-sa", "阿根廷": "region-sa",
-        "印度": "region-in", "俄罗斯": "region-ru", "澳洲": "region-au", "澳大利亚": "region-au",
-        "日韩": "region-jp", "日本": "region-jp", "韩国": "region-jp",
-    }
-    region_ids = {
-        "region-cn": "china", "region-na": "na", "region-eu": "eu", "region-sea": "sea",
-        "region-sa": "sa", "region-in": "india", "region-ru": "russia", "region-au": "australia",
-        "region-jp": "japan-korea", "region-global": "global",
-    }
-    used = set()
-    cards_html = []
-    for card in cards:
-        if card.name == "h3":
-            title = card.get_text(strip=True)
-            content = ""
-            for sib in card.find_next_siblings():
-                if sib.name in ("h3", "h2"):
-                    break
-                content += " " + sib.get_text(" ", strip=True)
-        else:
-            title, content = extract_card_text(card)
-        if not title.strip():
+    # 其次：li 列表
+    li_cards: List[Dict[str, object]] = []
+    for li in soup.find_all("li"):
+        txt = clean_text(li.get_text(" ", strip=True))
+        if len(txt) < 12:
             continue
-        region_cls = "region-global"
-        for kw, cls in region_keywords.items():
-            if kw in title and cls not in used:
-                region_cls = cls
-                used.add(cls)
-                break
-        region_id = region_ids.get(region_cls, "")
-        id_attr = f' id="{region_id}"' if region_id else ""
-        cards_html.append(
-            f'<article class="region-card {region_cls}"{id_attr}>'
-            f'<div class="region-tag">{title}</div>'
-            f'<div class="region-content"><p>{content}</p></div>'
-            f'</article>'
-        )
-    if cards_html:
-        return '<div class="markets-grid">\n' + "\n".join(cards_html) + "\n</div>"
-    return inner_html
+        strong = li.find(["strong", "b"])
+        title = clean_text(strong.get_text()) if strong else ""
+        if title and txt.startswith(title):
+            body_txt = txt[len(title):].strip(" -—:：")
+        else:
+            title = txt[:28]
+            body_txt = txt
+        li_cards.append({"title": title, "body": body_txt})
+    if li_cards:
+        return li_cards
+
+    # 最后：p 段落
+    for p in soup.find_all("p"):
+        txt = clean_text(p.get_text(" ", strip=True))
+        if len(txt) < 20:
+            continue
+        strong = p.find(["strong", "b"])
+        title = clean_text(strong.get_text()) if strong else txt[:28]
+        body_txt = txt if not strong or not txt.startswith(title) else txt[len(title):].strip(" -—:：")
+        cards.append({"title": title, "body": body_txt})
+    return cards
 
 
-def _card_items_from_list(card, section_title: str):
-    """Expand a single card that contains a list into multiple items."""
-    items = []
-    ul = card.find(["ul", "ol"])
-    if ul:
-        for li in ul.find_all("li", recursive=False):
-            text = li.get_text(" ", strip=True)
-            # Try to split "Region: content"
-            m = re.match(r"^([^：:;]+)[：:;]\s*(.+)$", text, re.DOTALL)
-            if m:
-                items.append((m.group(1).strip(), m.group(2).strip()))
-            else:
-                items.append((section_title or "要点", text))
+def extract_li_items(body: str) -> List[str]:
+    soup = BeautifulSoup(body, "html.parser")
+    items: List[str] = []
+    for li in soup.find_all("li"):
+        txt = clean_text(li.get_text(" ", strip=True))
+        if len(txt) >= 8:
+            items.append(txt)
+    if items:
         return items
-    return []
+    for p in soup.find_all("p"):
+        txt = clean_text(p.get_text(" ", strip=True))
+        if len(txt) >= 12:
+            items.append(txt)
+    return items
 
 
-def render_generic_cards(inner_html: str, key: str, section_title: str = "") -> str:
-    soup = BeautifulSoup(inner_html, "html.parser")
-    cards = find_top_cards(soup, re.compile(r"card|item"))
+def extract_summary(overview_body: str) -> str:
+    soup = BeautifulSoup(overview_body, "html.parser")
+    for p in soup.find_all("p"):
+        txt = clean_text(p.get_text(" ", strip=True))
+        if len(txt) >= 30:
+            return txt[:220]
+    text = clean_text(soup.get_text(" ", strip=True))
+    return text[:220] if text else "本周全球汽车行业动态汇总。"
+
+
+# ---------------------------------------------------------------------------
+# 区块 HTML 生成（严格对齐新模板类名）
+# ---------------------------------------------------------------------------
+def build_key_points_html(overview: Dict[str, str]) -> str:
+    """本周总览：.key-points > .kp-grid > .kp-card（注塑相关用 .injection）。"""
+    cards = extract_cards_from_body(overview["body"])
     if not cards:
-        # If no card wrappers, treat h3 subsections as cards
-        cards = []
-        for h3 in soup.find_all("h3"):
-            content_html = ""
-            for sib in h3.find_next_siblings():
-                if sib.name in ("h3", "h2"):
-                    break
-                content_html += " " + sib.get_text(" ", strip=True)
-            wrapper = BeautifulSoup(f'<div><div class="card-title">{h3.get_text(strip=True)}</div>'
-                                    f'<div class="card-content">{content_html}</div></div>', "html.parser")
-            cards.append(wrapper.div)
+        cards = [{"title": "本周要点", "body": extract_summary(overview["body"])}]
 
-    items = []
-    for card in cards:
-        # If a card contains a list with multiple items, expand them
-        expanded = _card_items_from_list(card, section_title)
-        if len(expanded) > 1:
-            items.extend(expanded)
+    cards_html: List[str] = []
+    for idx, c in enumerate(cards, start=1):
+        title = str(c.get("title", "")) or f"要点{idx}"
+        body = str(c.get("body", "")) or ""
+        is_inj = any(k in title + body for k in INJECTION_KEYWORDS)
+        cls = "kp-card injection" if is_inj else "kp-card"
+        badge = '<span class="injection-badge">⚡ 注塑机会</span>' if is_inj else ""
+        cards_html.append(f'''    <div class="{cls}">
+      <span class="kp-num">{idx:02d}</span>
+      {badge}
+      <h3>{escape_html(title)}</h3>
+      <p>{highlight_numbers(body)}</p>
+    </div>''')
+
+    return f'''  <!-- Key Points -->
+  <section class="key-points" id="overview">
+    <div class="key-points-header">
+      <h2>本周总览</h2>
+      <span class="line"></span>
+    </div>
+    <div class="kp-grid">
+{chr(10).join(cards_html)}
+    </div>
+  </section>
+'''
+
+
+def _match_region(name: str) -> Dict[str, str]:
+    for r in REGIONS:
+        if r["name"] in name:
+            return r
+    return {"name": name, "key": "other", "en": name, "cls": "region-other"}
+
+
+def build_markets_html(markets: Optional[Dict[str, str]]) -> str:
+    """各地市场动态：.section#markets 内含多个 .subsection.region-* + .news-card。"""
+    subsections: List[str] = []
+
+    if markets:
+        grouped: List[Dict[str, str]] = []
+        full = markets["body"]
+        head_pattern = re.compile(r"<(h3)([^>]*)>(.*?)</\1>", re.IGNORECASE | re.DOTALL)
+        hm = list(head_pattern.finditer(full))
+        # 仅当 h3 是区域名（较短、不以句号结尾）时才作为分组标题
+        valid = [m for m in hm if len(clean_text(re.sub(r"<[^>]+>", "", m.group(3)))) <= 20]
+        if valid:
+            for i, m in enumerate(valid):
+                name = clean_text(re.sub(r"<[^>]+>", "", m.group(3)))
+                start = m.end()
+                end = valid[i + 1].start() if i + 1 < len(valid) else len(full)
+                grouped.append({"name": name, "body": full[start:end]})
         else:
-            title, content = extract_card_text(card)
-            if not title.strip() or title.strip() == content.strip():
-                title = section_title or "详情"
-            items.append((title, content))
+            grouped = [{"name": "其他市场", "body": full}]
 
-    if not items:
-        return inner_html
+        # region key -> 展示信息
+        region_order = [
+            ("china", "中国市场", "region-cn"),
+            ("sea", "东南亚市场", "region-sea"),
+            ("sa", "南美市场", "region-sa"),
+            ("eu", "欧洲市场", "region-eu"),
+            ("na", "北美市场", "region-na"),
+            ("other", "其他市场", "region-other"),
+        ]
+        grouped_map: Dict[str, Dict[str, str]] = {}
+        for g in grouped:
+            region = _match_region(g["name"])
+            grouped_map.setdefault(region["key"], g)
 
-    card_cls = f"{key}-card"
-    grid_cls = f"{key}-grid"
-    cards_html = []
-    for title, content in items:
-        cards_html.append(
-            f'<article class="{card_cls}">'
-            f'<div class="{card_cls}-title">{title}</div>'
-            f'<div class="{card_cls}-content">{content}</div>'
-            f'</article>'
-        )
-    return f'<div class="{grid_cls}">\n' + "\n".join(cards_html) + "\n</div>"
+        for key, label, cls in region_order:
+            g = grouped_map.get(key)
+            cards_html: List[str] = []
+            if g:
+                cards = extract_cards_from_body(g["body"])
+                for c in cards[:5]:
+                    t = escape_html(str(c.get("title", "")))
+                    b = highlight_numbers(str(c.get("body", "")))
+                    cards_html.append(
+                        f'      <div class="news-card"><h4>{t}</h4>'
+                        f'<div class="news-body">{b}</div></div>'
+                    )
+                if not cards_html:
+                    for it in extract_li_items(g["body"])[:5]:
+                        cards_html.append(
+                            f'      <div class="news-card"><div class="news-body">{highlight_numbers(it)}</div></div>'
+                        )
+            if not cards_html:
+                cards_html.append(
+                    '      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>'
+                )
+            subsections.append(f'''    <div class="subsection {cls}" id="{key}">
+      <h3 class="subsection-title"><span class="region-dot"></span>{label}</h3>
+{chr(10).join(cards_html)}
+    </div>''')
 
-
-def render_nextweek(inner_html: str) -> str:
-    soup = BeautifulSoup(inner_html, "html.parser")
-    ul = soup.find("ul")
-    if ul:
-        return f'<div class="next-week">\n{str(ul)}\n</div>'
-    text = soup.get_text("\n", strip=True)
-    if not text:
-        text = "• 持续关注主要市场月度销量数据\n• 跟踪欧盟对华电动车关税后续进展\n• 关注固态电池与一体化压铸技术落地动态"
-    return f'<div class="next-week"><ul>\n<li>{"</li>\n<li>".join(line.lstrip("•- ") for line in text.splitlines() if line.strip())}</li>\n</ul></div>'
-
-
-def render_section_html(key: str, inner_html: str, section_title: str = "") -> str:
-    if key == "nextweek":
-        return render_nextweek(inner_html)
-    if not inner_html.strip():
-        return ""
-    if key == "overview":
-        return render_overview(inner_html)
-    if key == "markets":
-        return render_markets(inner_html)
-    return render_generic_cards(inner_html, key, section_title)
-
-
-def render_html(agent_html: str, template: str) -> str:
-    title = extract_title(agent_html)
-    date = extract_date(agent_html)
-    team = extract_team(agent_html)
-    sections = extract_sections(agent_html)
-
-    rendered = {}
-    title_map = {
-        "overview": "本周总览",
-        "markets": "各地市场动态",
-        "policy": "政策动态",
-        "oem": "车企动态",
-        "research": "调研报告/机构观点",
-        "injection": "注塑机会专题",
-        "nextweek": "下周关注",
-    }
-    for key in ["overview", "markets", "policy", "oem", "research", "injection", "nextweek"]:
-        section_title = title_map.get(key, "")
-        rendered[key] = render_section_html(key, sections.get(key, ""), section_title)
-
-    # Build sources section
-    sources = sections.get("sources", "")
-    if not sources:
-        sources = (
-            "MarkLines、乘联会(CPCA)、中汽协(CAAM)、ACEA、GAIKINDO、TAI/FTI、"
-            "ANFAVEA/Fenabrave、SIAM、AEB、盖世汽车、36氪、界面新闻、AlixPartners、麦肯锡、Maybank、爱建证券"
-        )
-    sources_html = render_generic_cards(sources, "sources", "数据来源") if "<" in sources else f'<p>{sources}</p>'
-    if "<" not in sources_html:
-        sources_html = f'<p>{sources_html}</p>'
-
-    # Compose full HTML with section wrappers
-    section_order = [
-        ("overview", "本周总览", "Overview"),
-        ("markets", "各地市场动态", "Markets"),
-        ("policy", "政策动态", "Policy"),
-        ("oem", "车企动态", "OEMs"),
-        ("research", "调研报告/机构观点", "Research"),
-        ("injection", "注塑机会专题", "Injection"),
-        ("nextweek", "下周关注", "Next Week"),
-    ]
-    sections_html = ""
-    for key, cn, en in section_order:
-        content = rendered.get(key, "")
-        if not content.strip():
-            continue
-        sections_html += (
-            f'<section class="section" id="{key}">\n'
-            f'<h2 class="section-title"><span>{en}</span>{cn}</h2>\n'
-            f'{content}\n'
-            f'</section>\n'
-        )
-    sections_html += (
-        f'<section class="section" id="sources">\n'
-        f'<h2 class="section-title"><span>Sources</span>数据来源</h2>\n'
-        f'<div class="sources-grid">\n{sources_html}\n</div>\n'
-        f'</section>\n'
+    body_html = "\n".join(subsections) if subsections else (
+        '    <div class="subsection region-other" id="other">'
+        '<div class="news-card"><div class="news-body">本周暂无更多区域市场明细数据。</div></div></div>'
     )
 
-    # Replace placeholders in template
-    result = template
-    result = result.replace("{{title}}", title)
-    result = result.replace("{{date}}", today_cn())
-    result = result.replace("{{team}}", team)
-    # Always sync data period to last week and update any stale period string
-    result = result.replace("{{data_period}}", f"数据周期：{get_last_week_range()}")
-    result = re.sub(r"数据周期：[^<\n{{}}]+", f"数据周期：{get_last_week_range()}", result)
-    result = result.replace("{{overview}}", "")
-    result = result.replace("{{markets}}", "")
-    result = result.replace("{{policy}}", "")
-    result = result.replace("{{oem}}", "")
-    result = result.replace("{{research}}", "")
-    result = result.replace("{{injection}}", "")
-    result = result.replace("{{nextweek}}", "")
-    result = result.replace("{{sources}}", "")
+    return f'''  <!-- Markets -->
+  <section class="section" id="markets">
+    <div class="section-header">
+      <h2>各地市场动态</h2>
+      <span class="sec-num">REGIONAL</span>
+      <span class="sec-line"></span>
+    </div>
+{body_html}
+  </section>
+'''
 
-    # Insert sections into the main area: right after <main ...>
-    main_start = result.find("<main")
-    if main_start != -1:
-        main_end = result.find(">", main_start)
-        insert_pos = main_end + 1
-        result = result[:insert_pos] + "\n" + sections_html + result[insert_pos:]
-    else:
-        # Fallback: before footer
-        footer_pos = result.find("<footer>")
-        if footer_pos != -1:
-            result = result[:footer_pos] + sections_html + "\n" + result[footer_pos:]
+
+def build_simple_card_section(sec: Optional[Dict[str, str]], *, section_id: str,
+                              title: str, num: str, card_class: str,
+                              keywords: List[str], empty_text: str) -> str:
+    """政策/车企/调研通用：.section > 多个对应卡片。"""
+    cards_html: List[str] = []
+    if sec:
+        cards = extract_cards_from_body(sec["body"])
+        for c in cards[:8]:
+            t = escape_html(str(c.get("title", "")))
+            b = highlight_numbers(str(c.get("body", "")))
+            if card_class == "oem-card":
+                cards_html.append(
+                    f'    <div class="oem-card"><h3><span class="oem-tag">动态</span>{t}</h3>'
+                    f'<p>{b}</p></div>'
+                )
+            elif card_class == "policy-card":
+                cards_html.append(f'    <div class="policy-card"><h3>{t}</h3><p>{b}</p></div>')
+            else:
+                cards_html.append(f'    <div class="research-card"><h3>{t}</h3><p>{b}</p></div>')
+    if not cards_html:
+        if card_class == "oem-card":
+            cards_html.append(f'    <div class="oem-card"><p>{escape_html(empty_text)}</p></div>')
+        elif card_class == "policy-card":
+            cards_html.append(f'    <div class="policy-card"><p>{escape_html(empty_text)}</p></div>')
         else:
-            result += "\n" + sections_html
+            cards_html.append(f'    <div class="research-card"><p>{escape_html(empty_text)}</p></div>')
 
-    # Clean up possible duplicated titles in hero
-    result = re.sub(r'<h1[^>]*>.*?</h1>', f'<h1>{title}</h1>', result)
+    return f'''  <!-- {title} -->
+  <section class="section" id="{section_id}">
+    <div class="section-header">
+      <h2>{title}</h2>
+      <span class="sec-num">{num}</span>
+      <span class="sec-line"></span>
+    </div>
+{chr(10).join(cards_html)}
+  </section>
+'''
+
+
+def build_injection_html(sec: Optional[Dict[str, str]]) -> str:
+    cards_html: List[str] = []
+    if sec:
+        cards = extract_cards_from_body(sec["body"])
+        for c in cards[:6]:
+            t = escape_html(str(c.get("title", "")))
+            b = highlight_numbers(str(c.get("body", "")))
+            cards_html.append(f'      <div class="inj-card"><h3>⚡ {t}</h3><p>{b}</p></div>')
+    if not cards_html:
+        cards_html.append(
+            '      <div class="inj-card"><h3>⚡ 持续关注</h3>'
+            '<p>本周暂无明确注塑机订单数据，持续跟踪一体化压铸、内饰轻量化、工程塑料替代等结构性机会。</p></div>'
+        )
+    return f'''  <!-- Injection -->
+  <section class="injection-section" id="injection">
+    <div class="section-header">
+      <h2>注塑机会专题</h2>
+      <span class="sec-num" style="color:var(--accent-orange);background:rgba(255,138,61,.14);border:1px solid rgba(255,138,61,.4)">INJECTION</span>
+      <span class="sec-line"></span>
+    </div>
+{chr(10).join(cards_html)}
+  </section>
+'''
+
+
+def build_next_week_html(sec: Optional[Dict[str, str]]) -> str:
+    items = extract_li_items(sec["body"]) if sec else []
+    if not items:
+        items = [
+            "中国月度新能源汽车销量及渗透率数据发布",
+            "欧盟关税政策与对华贸易谈判进展",
+            "主要车企三季度交付与出口数据",
+            "一体化压铸及内饰轻量化订单动态",
+        ]
+    li_html = "\n".join(f"      <li><strong>{escape_html(it)}</strong></li>" for it in items[:6])
+    return f'''  <!-- Next week -->
+  <section class="section" id="nextweek">
+    <div class="section-header">
+      <h2>下周关注</h2>
+      <span class="sec-num">NEXT</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="next-week">
+      <ul>
+{li_html}
+      </ul>
+    </div>
+  </section>
+'''
+
+
+# ---------------------------------------------------------------------------
+# Agent 获取
+# ---------------------------------------------------------------------------
+def fetch_agent_html() -> str:
+    """调用扣子 Agent 生成周报 HTML；失败时回退到已有 agent.html。"""
+    token = os.environ.get("COZE_WORKLOAD_API_TOKEN", "").strip()
+    bot_id = os.environ.get("COZE_BOT_ID", "").strip()
+
+    if token and bot_id:
+        try:
+            headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
+            create = requests.post(
+                f"{COZE_API_BASE}/v3/chat",
+                headers=headers,
+                json={
+                    "bot_id": bot_id,
+                    "user_id": "weekly-report-bot",
+                    "stream": False,
+                    "auto_save_history": True,
+                    "additional_messages": [{
+                        "role": "user",
+                        "content": "请生成本周全球汽车行业周报的完整 HTML，包含本周总览、各地市场动态、政策动态、车企动态、调研报告、注塑机会专题、下周关注。",
+                        "content_type": "text",
+                    }],
+                },
+                timeout=60,
+            )
+            create.raise_for_status()
+            data = create.json().get("data", {})
+            chat_id = data.get("id")
+            conv_id = data.get("conversation_id")
+            if chat_id and conv_id:
+                import time
+                for _ in range(60):
+                    time.sleep(5)
+                    r = requests.get(
+                        f"{COZE_API_BASE}/v3/chat/retrieve",
+                        headers=headers,
+                        params={"chat_id": chat_id, "conversation_id": conv_id},
+                        timeout=30,
+                    )
+                    info = r.json().get("data", {})
+                    status = info.get("status")
+                    if status in ("completed", "failed", "requires_action"):
+                        break
+                if status == "completed":
+                    mr = requests.get(
+                        f"{COZE_API_BASE}/v3/chat/message/list",
+                        headers=headers,
+                        params={"chat_id": chat_id, "conversation_id": conv_id},
+                        timeout=30,
+                    )
+                    for msg in mr.json().get("data", []):
+                        if msg.get("type") == "answer" and msg.get("content"):
+                            content = msg["content"]
+                            m = re.search(r"<!DOCTYPE html>.*?</html>", content, re.DOTALL | re.IGNORECASE)
+                            return m.group(0) if m else content
+        except Exception as exc:  # noqa: BLE001
+            print(f"[warn] Agent API 调用失败，回退本地 agent.html：{exc}", file=sys.stderr)
+
+    if os.path.exists(AGENT_HTML_PATH):
+        with open(AGENT_HTML_PATH, "r", encoding="utf-8") as f:
+            return f.read()
+    raise RuntimeError("无法获取 Agent HTML：API 调用失败且本地无 agent.html")
+
+
+# ---------------------------------------------------------------------------
+# 主渲染
+# ---------------------------------------------------------------------------
+def render(agent_html: str, *, team: str = DEFAULT_TEAM) -> str:
+    with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
+        template = f.read()
+
+    full_html = agent_html
+    if "<body" in full_html.lower():
+        body_match = re.search(r"<body[^>]*>(.*?)</body>", full_html, re.DOTALL | re.IGNORECASE)
+        if body_match:
+            full_html = body_match.group(1)
+
+    sections = split_sections_by_title(full_html)
+    overview = get_overview_section(sections, full_html)
+    markets = get_section_by_keyword(sections, ["各地市场", "市场动态", "区域市场", "市场"])
+    policy = get_section_by_keyword(sections, POLICY_KEYWORDS)
+    oem = get_section_by_keyword(sections, OEM_KEYWORDS)
+    research = get_section_by_keyword(sections, RESEARCH_KEYWORDS)
+    injection = get_section_by_keyword(sections, INJECTION_KEYWORDS)
+    nextweek = get_section_by_keyword(sections, NEXT_KEYWORDS)
+
+    summary = extract_summary(overview["body"])
+
+    overview_html = build_key_points_html(overview)
+    markets_html = build_markets_html(markets)
+    policy_html = build_simple_card_section(
+        policy, section_id="policy", title="政策动态", num="POLICY",
+        card_class="policy-card", keywords=POLICY_KEYWORDS,
+        empty_text="本周暂无重大新增政策，持续关注关税、双反及新能源补贴细则。")
+    oem_html = build_simple_card_section(
+        oem, section_id="oem", title="车企动态", num="OEM",
+        card_class="oem-card", keywords=OEM_KEYWORDS,
+        empty_text="本周暂无重点车企更新。")
+    research_html = build_simple_card_section(
+        research, section_id="research", title="调研报告 / 机构观点", num="RESEARCH",
+        card_class="research-card", keywords=RESEARCH_KEYWORDS,
+        empty_text="本周暂无新增重磅机构研报。")
+    injection_html = build_injection_html(injection)
+    nextweek_html = build_next_week_html(nextweek)
+
+    date_str = today_cn()
+    period_str = f"数据周期：{get_last_week_range()}"
+    sources_str = "MarkLines、乘联会(CPCA)、中汽协(CAAM)、ACEA、GAIKINDO、TAI/FTI、ANFAVEA/Fenabrave、SIAM、AEB、盖世汽车、36氪、界面新闻、AlixPartners、麦肯锡、Maybank、爱建证券"
+
+    result = template
+    result = result.replace("{{title}}", "全球汽车行业深度周报")
+    result = result.replace("{{date}}", date_str)
+    result = result.replace("{{team}}", team)
+    result = result.replace("{{data_period}}", period_str)
+    result = result.replace("{{sources}}", sources_str)
+    result = result.replace("{{overview}}", overview_html.rstrip())
+    result = result.replace("{{markets}}", markets_html.rstrip())
+    result = result.replace("{{policy}}", policy_html.rstrip())
+    result = result.replace("{{oem}}", oem_html.rstrip())
+    result = result.replace("{{research}}", research_html.rstrip())
+    result = result.replace("{{injection}}", injection_html.rstrip())
+    result = result.replace("{{nextweek}}", nextweek_html.rstrip())
+
+    # 兜底：清理残留硬编码周期
+    result = re.sub(r"数据周期：[^<\n{]+", period_str, result)
+    # 未替换的占位符清空
+    result = re.sub(r"\{\{[a-z_]+\}\}", "", result)
     return result
 
 
-def main():
-    agent_html = AGENT_HTML_PATH.read_text(encoding="utf-8")
-    template = TEMPLATE_PATH.read_text(encoding="utf-8")
-    output = render_html(agent_html, template)
-    OUTPUT_PATH.write_text(output, encoding="utf-8")
-    print(f"HTML rendered: {OUTPUT_PATH}")
+def main() -> None:
+    agent_html = fetch_agent_html()
+    final_html = render(agent_html)
+    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+        f.write(final_html)
+    print(f"[render] 已生成 {OUTPUT_PATH}（{len(final_html)} 字符）")
 
 
 if __name__ == "__main__":

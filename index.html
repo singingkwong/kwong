@@ -3,44 +3,49 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>2026年09月10日全球汽车行业深度周报 | 2026年09月10日</title>
+<title>全球汽车行业深度周报 | 2026年09月10日</title>
 <meta name="description" content="2026年09月10日全球汽车行业深度周报,涵盖中国、东南亚、南美、欧洲、北美等区域市场动态、政策变化、车企动态及注塑行业机会分析">
 <meta name="keywords" content="汽车行业,周报,市场分析,注塑机,新能源,政策动态">
 <meta name="author" content="数据分析助手">
-<meta property="og:title" content="2026年09月10日全球汽车行业深度周报 | 2026年09月10日">
+<meta property="og:title" content="全球汽车行业深度周报 | 2026年09月10日">
 <meta property="og:description" content="2026年09月10日全球汽车行业深度周报,涵盖中国、东南亚、南美、欧洲、北美等区域市场动态、政策变化、车企动态及注塑行业机会分析">
 <meta property="og:type" content="article">
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg-primary:#0f172a;
-  --bg-secondary:#1e293b;
-  --bg-tertiary:#334155;
-  --bg-card:#1a2236;
-  --accent-blue:#3b82f6;
-  --accent-orange:#f97316;
-  --accent-orange-dim:#92400e;
-  --text-primary:#f1f5f9;
-  --text-secondary:#94a3b8;
-  --text-muted:#64748b;
-  --border-color:#334155;
-  --border-light:#475569;
-  --region-cn:#ef4444;
-  --region-sea:#10b981;
-  --region-sa:#eab308;
-  --region-eu:#8b5cf6;
-  --region-na:#06b6d4;
-  --region-other:#6366f1;
-  --radius:8px;
-  --shadow:0 4px 24px rgba(0,0,0,.3);
-  --transition:all .2s ease;
-  
-  /* Constants for JavaScript */
+  --bg-primary:#0a0f1e;
+  --bg-secondary:#131a2e;
+  --bg-tertiary:#1f2a44;
+  --bg-card:rgba(26,34,54,.72);
+  --accent-blue:#4d8dff;
+  --accent-blue-light:#7fb0ff;
+  --accent-orange:#ff8a3d;
+  --accent-orange-dim:#b4551a;
+  --accent-cyan:#22d3ee;
+  --text-primary:#eef2fb;
+  --text-secondary:#a7b0c3;
+  --text-muted:#6b7688;
+  --border-color:rgba(255,255,255,.08);
+  --border-light:rgba(255,255,255,.16);
+  --region-cn:#ff5c5c;
+  --region-sea:#34d399;
+  --region-sa:#fbbf24;
+  --region-eu:#a78bfa;
+  --region-na:#38bdf8;
+  --region-other:#818cf8;
+  --radius:12px;
+  --radius-sm:8px;
+  --shadow:0 12px 40px rgba(0,0,0,.4);
+  --shadow-sm:0 6px 20px rgba(0,0,0,.25);
+  --glow-blue:0 0 24px rgba(77,141,255,.35);
+  --glow-orange:0 0 24px rgba(255,138,61,.3);
+  --transition:all .25s cubic-bezier(.4,0,.2,1);
+
   --scroll-threshold:400;
   --nav-offset:100;
   --throttle-delay:100;
 }
-html{scroll-behavior:smooth;scroll-padding-top:80px}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
   background:var(--bg-primary);
@@ -48,114 +53,153 @@ body{
   line-height:1.75;
   font-size:16px;
   -webkit-font-smoothing:antialiased;
+  background-image:
+    radial-gradient(circle at 15% 0%,rgba(77,141,255,.10),transparent 40%),
+    radial-gradient(circle at 85% 10%,rgba(255,138,61,.08),transparent 35%),
+    radial-gradient(circle at 50% 100%,rgba(34,211,238,.05),transparent 50%);
+  background-attachment:fixed;
 }
 a{color:var(--accent-blue);text-decoration:none;transition:var(--transition)}
-a:hover{text-decoration:underline;color:#60a5fa}
+a:hover{text-decoration:underline;color:var(--accent-blue-light)}
 a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-radius:2px}
 
 /* Navigation */
 .top-nav{
   position:sticky;top:0;z-index:1000;
-  background:rgba(15,23,42,.92);
-  backdrop-filter:blur(12px);
+  background:rgba(10,15,30,.78);
+  backdrop-filter:blur(16px) saturate(140%);
+  -webkit-backdrop-filter:blur(16px) saturate(140%);
   border-bottom:1px solid var(--border-color);
   padding:0 24px;
 }
 .nav-inner{
   max-width:1280px;margin:0 auto;
-  display:flex;align-items:center;gap:8px;
+  display:flex;align-items:center;gap:6px;
   height:56px;
   overflow-x:auto;
   scrollbar-width:none;
 }
 .nav-inner::-webkit-scrollbar{display:none}
 .nav-brand{
-  font-weight:700;font-size:14px;
-  color:var(--accent-blue);
+  font-weight:800;font-size:14px;
+  color:var(--accent-blue-light);
   white-space:nowrap;
   margin-right:16px;
   flex-shrink:0;
+  display:flex;align-items:center;gap:6px;
+  letter-spacing:.3px;
+  background:linear-gradient(90deg,var(--accent-blue-light),var(--accent-cyan));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 .nav-link{
   font-size:13px;color:var(--text-secondary);
-  white-space:nowrap;padding:6px 12px;
-  border-radius:6px;transition:var(--transition);
-  flex-shrink:0;
+  white-space:nowrap;padding:7px 12px;
+  border-radius:8px;transition:var(--transition);
+  flex-shrink:0;position:relative;
 }
-.nav-link:hover{color:var(--text-primary);background:var(--bg-secondary);text-decoration:none}
-.nav-link.active{color:var(--accent-blue);background:rgba(59,130,246,.1)}
+.nav-link:hover{color:var(--text-primary);background:var(--bg-secondary);text-decoration:none;transform:translateY(-1px)}
+.nav-link.active{color:var(--accent-blue-light);background:rgba(77,141,255,.12)}
+.nav-link.active::after{
+  content:'';position:absolute;left:12px;right:12px;bottom:2px;height:2px;
+  background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan));
+  border-radius:2px;
+}
 
 /* Hero */
 .hero{
-  background:linear-gradient(135deg,#0f172a 0%,#1e293b 50%,#0f172a 100%);
+  position:relative;
+  background:linear-gradient(135deg,#0a0f1e 0%,#131a2e 55%,#0f1526 100%);
   border-bottom:1px solid var(--border-color);
-  padding:48px 24px 40px;
+  padding:56px 24px 44px;
   text-align:center;
+  overflow:hidden;
 }
-.hero-inner{max-width:900px;margin:0 auto}
+.hero::before{
+  content:'';position:absolute;
+  width:560px;height:560px;border-radius:50%;
+  top:-260px;left:50%;transform:translateX(-50%);
+  background:radial-gradient(circle,rgba(77,141,255,.18),transparent 60%);
+  pointer-events:none;
+}
+.hero-inner{max-width:900px;margin:0 auto;position:relative;z-index:1}
 .hero-badge{
-  display:inline-block;
-  font-size:12px;font-weight:600;
-  color:var(--accent-blue);
-  background:rgba(59,130,246,.12);
-  border:1px solid rgba(59,130,246,.3);
-  padding:4px 14px;border-radius:20px;
-  margin-bottom:16px;letter-spacing:.5px;
+  display:inline-flex;align-items:center;gap:6px;
+  font-size:12px;font-weight:700;
+  color:var(--accent-blue-light);
+  background:rgba(77,141,255,.12);
+  border:1px solid rgba(77,141,255,.35);
+  padding:5px 16px;border-radius:24px;
+  margin-bottom:18px;letter-spacing:1px;
+  box-shadow:var(--glow-blue);
 }
+.hero-badge::before{content:'◆';font-size:8px}
 .hero h1{
-  font-size:clamp(24px,4vw,36px);
+  font-size:clamp(26px,4.5vw,40px);
   font-weight:800;
-  line-height:1.3;
-  margin-bottom:12px;
+  line-height:1.25;
+  margin-bottom:14px;
   letter-spacing:-.5px;
+  background:linear-gradient(180deg,#fff 30%,#b9c8ef);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
 }
 .hero-meta{
-  font-size:14px;color:var(--text-muted);
-  display:flex;flex-wrap:wrap;justify-content:center;gap:16px;
+  font-size:14px;color:var(--text-secondary);
+  display:flex;flex-wrap:wrap;justify-content:center;gap:20px;
 }
-.hero-meta span{white-space:nowrap}
+.hero-meta span{
+  white-space:nowrap;
+  background:rgba(255,255,255,.04);
+  border:1px solid var(--border-color);
+  padding:4px 12px;border-radius:8px;
+  display:inline-flex;align-items:center;gap:6px;
+}
 
 /* Main container */
-.container{max-width:1280px;margin:0 auto;padding:32px 24px}
+.container{max-width:1280px;margin:0 auto;padding:36px 24px}
 
 /* Key Points Section */
-.key-points{margin-bottom:48px}
+.key-points{margin-bottom:52px}
 .key-points-header{
   display:flex;align-items:center;gap:10px;
   margin-bottom:24px;
 }
 .key-points-header h2{
-  font-size:20px;font-weight:700;
+  font-size:20px;font-weight:800;
   color:var(--text-primary);
 }
-.key-points-header .line{flex:1;height:1px;background:var(--border-color)}
+.key-points-header .line{flex:1;height:1px;background:linear-gradient(90deg,var(--border-color),transparent)}
 .kp-grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(320px,1fr));
-  gap:16px;
+  gap:18px;
 }
 .kp-card{
   background:var(--bg-card);
+  backdrop-filter:blur(8px);
   border:1px solid var(--border-color);
   border-radius:var(--radius);
-  padding:20px;
+  padding:22px;
   transition:var(--transition);
   position:relative;
   overflow:hidden;
   will-change:transform;
 }
+.kp-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.14),transparent);
+}
 .kp-card:hover{
   border-color:var(--border-light);
   box-shadow:var(--shadow);
-}
-.kp-card:hover{
-  transform:translateY(-2px);
+  transform:translateY(-4px);
 }
 .kp-card .kp-num{
-  font-size:32px;font-weight:800;
-  color:var(--bg-tertiary);
-  position:absolute;top:8px;right:14px;
+  font-size:38px;font-weight:800;
+  color:transparent;
+  -webkit-text-stroke:1px rgba(255,255,255,.10);
+  position:absolute;top:6px;right:16px;
   line-height:1;
+  user-select:none;
 }
 .kp-card h3{
   font-size:15px;font-weight:700;
@@ -166,50 +210,186 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 }
 .kp-card p{
   font-size:13px;color:var(--text-secondary);
-  line-height:1.7;
+  line-height:1.75;
 }
 .kp-card.injection{
-  border-color:var(--accent-orange);
-  background:linear-gradient(135deg,rgba(249,115,22,.06),rgba(249,115,22,.02));
+  border-color:rgba(255,138,61,.4);
+  background:linear-gradient(135deg,rgba(255,138,61,.12),rgba(255,138,61,.03));
 }
 .kp-card.injection::before{
   content:'';position:absolute;top:0;left:0;right:0;height:3px;
-  background:linear-gradient(90deg,var(--accent-orange),#fb923c);
+  background:linear-gradient(90deg,var(--accent-orange),#ffb26b);
 }
-.kp-card.injection .kp-num{color:rgba(249,115,22,.2)}
+.kp-card.injection:hover{box-shadow:var(--glow-orange)}
+.kp-card.injection .kp-num{color:rgba(255,138,61,.25);-webkit-text-stroke:0}
 .injection-badge{
   display:inline-flex;align-items:center;gap:4px;
   font-size:11px;font-weight:700;
   color:var(--accent-orange);
-  background:rgba(249,115,22,.12);
-  border:1px solid rgba(249,115,22,.3);
-  padding:2px 8px;border-radius:4px;
-  margin-bottom:8px;
+  background:rgba(255,138,61,.14);
+  border:1px solid rgba(255,138,61,.4);
+  padding:3px 10px;border-radius:6px;
+  margin-bottom:10px;
 }
 
+/* Overview - Data Cards (本周总览数据卡片) */
+.overview-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+  gap:16px;
+  margin-bottom:20px;
+}
+.overview-card{
+  background:linear-gradient(160deg,rgba(26,34,54,.85),rgba(19,26,46,.6));
+  backdrop-filter:blur(10px);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:22px;
+  position:relative;
+  overflow:hidden;
+  transition:var(--transition);
+  min-height:120px;
+}
+.overview-card::after{
+  content:'';position:absolute;top:0;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,var(--accent-blue),transparent);
+  opacity:.7;
+}
+.overview-card:hover{
+  border-color:var(--border-light);
+  transform:translateY(-4px);
+  box-shadow:var(--shadow);
+}
+.overview-card .card-number{
+  font-size:42px;font-weight:800;
+  line-height:1;
+  background:linear-gradient(180deg,var(--accent-blue-light),var(--accent-blue));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  margin-bottom:12px;
+  display:block;
+}
+.overview-card .overview-card-title{
+  font-size:16px;font-weight:700;
+  line-height:1.5;
+  color:var(--text-primary);
+  margin-bottom:8px;
+}
+.overview-card .overview-card-desc{
+  font-size:13px;
+  color:var(--text-secondary);
+  line-height:1.7;
+  margin:0;
+}
+.core-highlights{
+  margin-top:8px;
+}
+.core-highlights h3{
+  font-size:16px;font-weight:700;
+  color:var(--text-primary);
+  margin-bottom:14px;
+}
+.core-highlights ul,.core-highlights ol{
+  list-style:none;padding:0;margin:0;
+}
+.core-highlights li{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+  padding:10px 0 10px 18px;
+  position:relative;
+  border-bottom:1px solid var(--border-color);
+}
+.core-highlights li:last-child{border-bottom:none}
+.core-highlights li::before{
+  content:'◆';position:absolute;left:0;top:10px;
+  color:var(--accent-blue);font-size:10px;
+}
+
+/* Markets - Region Cards (各地市场卡片，与政策/车企一致) */
+.markets-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(340px,1fr));
+  gap:16px;
+  margin-bottom:8px;
+}
+.region-card{
+  background:var(--bg-card);
+  backdrop-filter:blur(10px);
+  border:1px solid var(--border-color);
+  border-radius:var(--radius);
+  padding:20px;
+  transition:var(--transition);
+  position:relative;
+  overflow:hidden;
+}
+.region-card::before{
+  content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
+  background:var(--region-color,var(--accent-blue));
+  border-radius:3px 0 0 3px;
+}
+.region-card:hover{
+  border-color:var(--border-light);
+  transform:translateY(-3px);
+  box-shadow:var(--shadow);
+}
+.region-card .region-tag{
+  font-size:15px;font-weight:700;
+  color:var(--region-color,var(--text-primary));
+  margin-bottom:10px;
+  padding-left:12px;
+  display:flex;align-items:center;gap:8px;
+}
+.region-card .region-tag::before{
+  content:'';width:8px;height:8px;border-radius:50%;
+  background:var(--region-color,var(--region-cn));
+  box-shadow:0 0 8px var(--region-color,var(--region-cn));
+  flex-shrink:0;
+}
+.region-card .region-content p{
+  font-size:14px;color:var(--text-secondary);
+  line-height:1.8;
+  padding-left:12px;
+  margin:0;
+}
+.region-card .region-content{
+  display:contents;
+}
+.region-card.region-cn{--region-color:var(--region-cn)}
+.region-card.region-na{--region-color:var(--region-na)}
+.region-card.region-eu{--region-color:var(--region-eu)}
+.region-card.region-sea{--region-color:var(--region-sea)}
+.region-card.region-sa{--region-color:var(--region-sa)}
+.region-card.region-in{--region-color:#f472b6}
+.region-card.region-ru{--region-color:#fb7185}
+.region-card.region-au{--region-color:#2dd4bf}
+.region-card.region-jp{--region-color:#e879f9}
+
 /* Section */
-.section{margin-bottom:48px}
+.section{margin-bottom:52px}
 .section-header{
   display:flex;align-items:center;gap:12px;
   margin-bottom:24px;
   padding-bottom:12px;
-  border-bottom:2px solid var(--border-color);
+  border-bottom:1px solid var(--border-color);
 }
 .section-header h2{
   font-size:22px;font-weight:800;
   color:var(--text-primary);
   white-space:nowrap;
+  background:linear-gradient(90deg,var(--text-primary),var(--text-secondary));
+  -webkit-background-clip:text;background-clip:text;color:transparent;
 }
-.section-header .sec-line{flex:1;height:1px;background:var(--border-color)}
+.section-header .sec-line{flex:1;height:1px;background:linear-gradient(90deg,var(--border-color),transparent)}
 .section-header .sec-num{
   font-size:12px;font-weight:700;
-  color:var(--text-muted);
-  background:var(--bg-secondary);
-  padding:4px 10px;border-radius:4px;
+  color:var(--accent-blue-light);
+  background:rgba(77,141,255,.12);
+  border:1px solid rgba(77,141,255,.3);
+  padding:4px 12px;border-radius:6px;
+  letter-spacing:.5px;
 }
 
 /* Subsection */
-.subsection{margin-bottom:32px}
+.subsection{margin-bottom:34px}
 .subsection-title{
   display:flex;align-items:center;gap:8px;
   font-size:17px;font-weight:700;
@@ -220,18 +400,25 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 .subsection-title .region-dot{
   width:10px;height:10px;border-radius:50%;
   flex-shrink:0;
+  box-shadow:0 0 8px currentColor;
 }
 
 /* News card */
 .news-card{
   background:var(--bg-card);
+  backdrop-filter:blur(8px);
   border:1px solid var(--border-color);
   border-radius:var(--radius);
   padding:20px;
-  margin-bottom:14px;
+  margin-bottom:16px;
   transition:var(--transition);
+  position:relative;
 }
-.news-card:hover{border-color:var(--border-light)}
+.news-card:hover{
+  border-color:var(--border-light);
+  transform:translateX(3px);
+  box-shadow:var(--shadow-sm);
+}
 .news-card h4{
   font-size:15px;font-weight:700;
   line-height:1.6;
@@ -269,44 +456,58 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 
 /* Region colors */
 .region-cn .subsection-title{border-left-color:var(--region-cn)}
-.region-cn .region-dot{background:var(--region-cn)}
+.region-cn .subsection-title{color:var(--region-cn)}
+.region-cn .region-dot{background:var(--region-cn);color:var(--region-cn)}
 .region-sea .subsection-title{border-left-color:var(--region-sea)}
-.region-sea .region-dot{background:var(--region-sea)}
+.region-sea .subsection-title{color:var(--region-sea)}
+.region-sea .region-dot{background:var(--region-sea);color:var(--region-sea)}
 .region-sa .subsection-title{border-left-color:var(--region-sa)}
-.region-sa .region-dot{background:var(--region-sa)}
+.region-sa .subsection-title{color:var(--region-sa)}
+.region-sa .region-dot{background:var(--region-sa);color:var(--region-sa)}
 .region-eu .subsection-title{border-left-color:var(--region-eu)}
-.region-eu .region-dot{background:var(--region-eu)}
+.region-eu .subsection-title{color:var(--region-eu)}
+.region-eu .region-dot{background:var(--region-eu);color:var(--region-eu)}
 .region-na .subsection-title{border-left-color:var(--region-na)}
-.region-na .region-dot{background:var(--region-na)}
+.region-na .subsection-title{color:var(--region-na)}
+.region-na .region-dot{background:var(--region-na);color:var(--region-na)}
 .region-other .subsection-title{border-left-color:var(--region-other)}
-.region-other .region-dot{background:var(--region-other)}
+.region-other .subsection-title{color:var(--region-other)}
+.region-other .region-dot{background:var(--region-other);color:var(--region-other)}
 
 /* Policy section */
 .policy-card{
   background:var(--bg-card);
+  backdrop-filter:blur(8px);
   border:1px solid var(--border-color);
   border-radius:var(--radius);
   padding:20px;
-  margin-bottom:14px;
+  margin-bottom:16px;
+  transition:var(--transition);
+  position:relative;
 }
+.policy-card::before{
+  content:'🏛';position:absolute;top:16px;right:18px;font-size:20px;opacity:.4;
+}
+.policy-card:hover{border-color:rgba(77,141,255,.4);transform:translateY(-2px)}
 .policy-card h3{
   font-size:15px;font-weight:700;
   color:var(--text-primary);
   margin-bottom:10px;
+  padding-right:32px;
 }
-.policy-card p{
-  font-size:14px;color:var(--text-secondary);
-  line-height:1.8;
-}
+.policy-card p{font-size:14px;color:var(--text-secondary);line-height:1.8}
 
 /* OEM section */
 .oem-card{
   background:var(--bg-card);
+  backdrop-filter:blur(8px);
   border:1px solid var(--border-color);
   border-radius:var(--radius);
   padding:20px;
-  margin-bottom:14px;
+  margin-bottom:16px;
+  transition:var(--transition);
 }
+.oem-card:hover{border-color:rgba(77,141,255,.4);transform:translateY(-2px)}
 .oem-card h3{
   font-size:15px;font-weight:700;
   color:var(--text-primary);
@@ -315,9 +516,10 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 }
 .oem-card h3 .oem-tag{
   font-size:11px;font-weight:600;
-  color:var(--accent-blue);
-  background:rgba(59,130,246,.1);
-  padding:2px 8px;border-radius:4px;
+  color:var(--accent-blue-light);
+  background:rgba(77,141,255,.14);
+  border:1px solid rgba(77,141,255,.3);
+  padding:2px 10px;border-radius:5px;
 }
 .oem-card p,.oem-card li{
   font-size:14px;color:var(--text-secondary);
@@ -329,27 +531,30 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 
 /* Injection opportunity section */
 .injection-section{
-  background:linear-gradient(135deg,rgba(249,115,22,.04),rgba(249,115,22,.01));
-  border:1px solid rgba(249,115,22,.2);
-  border-radius:12px;
-  padding:24px;
-  margin-bottom:48px;
+  background:linear-gradient(135deg,rgba(255,138,61,.10),rgba(255,138,61,.02));
+  border:1px solid rgba(255,138,61,.3);
+  border-radius:16px;
+  padding:26px;
+  margin-bottom:52px;
+  box-shadow:inset 0 0 40px rgba(255,138,61,.04);
 }
-.injection-section .section-header{
-  border-bottom-color:rgba(249,115,22,.3);
-}
-.injection-section .section-header h2{color:var(--accent-orange)}
+.injection-section .section-header{border-bottom-color:rgba(255,138,61,.35)}
+.injection-section .section-header h2{background:linear-gradient(90deg,var(--accent-orange),#ffb26b);-webkit-background-clip:text;background-clip:text;color:transparent}
 .inj-card{
-  background:rgba(15,23,42,.6);
-  border:1px solid rgba(249,115,22,.15);
+  background:rgba(10,15,30,.55);
+  backdrop-filter:blur(8px);
+  border:1px solid rgba(255,138,61,.2);
   border-radius:var(--radius);
   padding:20px;
-  margin-bottom:14px;
+  margin-bottom:16px;
   position:relative;
+  transition:var(--transition);
 }
+.inj-card:hover{transform:translateX(3px);box-shadow:var(--glow-orange)}
 .inj-card::before{
   content:'';position:absolute;top:0;left:0;bottom:0;width:3px;
-  background:var(--accent-orange);border-radius:3px 0 0 3px;
+  background:linear-gradient(180deg,var(--accent-orange),#ffb26b);
+  border-radius:3px 0 0 3px;
 }
 .inj-card h3{
   font-size:15px;font-weight:700;
@@ -366,85 +571,99 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 /* Research section */
 .research-card{
   background:var(--bg-card);
+  backdrop-filter:blur(8px);
   border:1px solid var(--border-color);
   border-radius:var(--radius);
   padding:24px;
-  margin-bottom:16px;
+  margin-bottom:18px;
+  transition:var(--transition);
 }
+.research-card:hover{border-color:rgba(167,139,250,.4);transform:translateY(-2px)}
 .research-card h3{
   font-size:16px;font-weight:700;
   color:var(--text-primary);
   margin-bottom:12px;
 }
-.research-card p{
-  font-size:14px;color:var(--text-secondary);
-  line-height:1.85;
-}
+.research-card p{font-size:14px;color:var(--text-secondary);line-height:1.85}
 
 /* Next week */
 .next-week{
   background:var(--bg-card);
+  backdrop-filter:blur(8px);
   border:1px solid var(--border-color);
   border-radius:var(--radius);
-  padding:24px;
+  padding:26px;
+  position:relative;
+  overflow:hidden;
+}
+.next-week::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:3px;
+  background:linear-gradient(90deg,var(--accent-blue),var(--accent-cyan));
 }
 .next-week ul{list-style:none;padding:0}
 .next-week ul li{
   font-size:14px;color:var(--text-secondary);
   line-height:1.8;
-  padding:8px 0;
+  padding:10px 0;
   border-bottom:1px solid var(--border-color);
-  display:flex;align-items:flex-start;gap:10px;
+  display:flex;align-items:flex-start;gap:12px;
+  transition:var(--transition);
 }
+.next-week ul li:hover{padding-left:6px;color:var(--text-primary)}
 .next-week ul li:last-child{border-bottom:none}
 .next-week ul li::before{
-  content:'📌';flex-shrink:0;font-size:12px;
+  content:'📌';flex-shrink:0;font-size:13px;
 }
 .next-week ul li strong{color:var(--text-primary)}
 
 /* Footer */
 .footer{
   border-top:1px solid var(--border-color);
-  padding:32px 24px;
+  padding:36px 24px;
   text-align:center;
+  background:rgba(10,15,30,.5);
 }
-.footer p{font-size:12px;color:var(--text-muted);line-height:1.8}
+.footer p{font-size:12px;color:var(--text-muted);line-height:1.9}
 
 /* Back to top */
 .back-top{
-  position:fixed;bottom:24px;right:24px;
-  width:40px;height:40px;
-  background:var(--accent-blue);
-  border:none;border-radius:50%;
+  position:fixed;bottom:28px;right:28px;
+  width:44px;height:44px;
+  background:linear-gradient(135deg,var(--accent-blue),var(--accent-cyan));
+  border:none;border-radius:12px;
   color:#fff;font-size:18px;
   cursor:pointer;
   opacity:0;visibility:hidden;
   transition:var(--transition);
   z-index:999;
   display:flex;align-items:center;justify-content:center;
-  box-shadow:0 4px 12px rgba(59,130,246,.4);
+  box-shadow:0 6px 20px rgba(77,141,255,.45);
   will-change:transform;
 }
 .back-top.visible{opacity:1;visibility:visible}
-.back-top:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(59,130,246,.5)}
+.back-top:hover{transform:translateY(-3px) scale(1.05);box-shadow:0 8px 28px rgba(77,141,255,.6)}
+
+/* Scroll reveal */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .6s ease,transform .6s ease}
+.reveal.visible{opacity:1;transform:translateY(0)}
 
 /* Responsive */
 @media(max-width:768px){
-  .hero{padding:32px 16px 24px}
-  .hero h1{font-size:22px}
+  .hero{padding:40px 16px 28px}
+  .hero h1{font-size:24px}
   .hero-meta{font-size:12px;gap:8px}
-  .container{padding:20px 16px}
+  .container{padding:24px 16px}
   .kp-grid{grid-template-columns:1fr}
   .section-header h2{font-size:18px}
   .subsection-title{font-size:15px}
   .news-card{padding:16px}
-  .injection-section{padding:16px}
+  .injection-section{padding:18px}
   .nav-brand{font-size:12px;margin-right:8px}
-  .nav-link{font-size:12px;padding:4px 8px}
+  .nav-link{font-size:12px;padding:5px 8px}
 }
 @media(max-width:480px){
   body{font-size:15px}
-  .hero h1{font-size:20px}
+  .hero h1{font-size:21px}
   .kp-card{padding:16px}
   .kp-card h3{font-size:14px}
   .news-card h4{font-size:14px}
@@ -453,12 +672,13 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 /* Print */
 @media(prefers-reduced-motion:reduce){
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
+  .reveal{opacity:1;transform:none}
 }
 @media print{
   .top-nav,.back-top{display:none!important}
   body{background:#fff;color:#111;font-size:12px}
   .hero{background:#fff;border-bottom:2px solid #111;padding:20px 0}
-  .hero h1{color:#111}
+  .hero h1{color:#111;-webkit-text-fill-color:#111}
   .hero-meta{color:#444}
   .container{padding:16px 0}
   .kp-card,.news-card,.policy-card,.oem-card,.inj-card,.research-card,.next-week{
@@ -500,7 +720,7 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 <header class="hero" id="top">
 <div class="hero-inner">
   <span class="hero-badge">WEEKLY REPORT</span>
-  <h1>2026年09月10日全球汽车行业深度周报</h1>
+  <h1>全球汽车行业周报</h1>
   <div class="hero-meta">
     <span>📅 2026年09月10日</span>
     <span>📊 数据周期：8月31日 - 9月6日</span>
@@ -510,92 +730,140 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 </header>
 
 <main class="container">
-<section class="section" id="overview">
-<h2 class="section-title"><span>Overview</span>本周总览</h2>
-<div class="overview-grid">
-<article class="overview-card"><div class="card-number">01</div><h3 class="overview-card-title">欧盟强制2030年新车生物塑料占比达35%</h3><p class="overview-card-desc">政策直接拉动车用改性塑料注塑设备需求年增12%以上</p></article>
-<article class="overview-card"><div class="card-number">02</div><h3 class="overview-card-title">特斯拉4680电池包一体化注塑量产落地</h3><p class="overview-card-desc">单部件成本降40%，相关配套注塑机订单已突破200台</p></article>
-<article class="overview-card"><div class="card-number">03</div><h3 class="overview-card-title">中国8月新能源车出口同比增长87%创历史新高</h3><p class="overview-card-desc">配套外饰件注塑产能缺口超30%，东南亚设厂需求暴涨</p></article>
-</div>
-
-</section>
-<section class="section" id="markets">
-<h2 class="section-title"><span>Markets</span>各地市场动态</h2>
-<div class="markets-grid">
-<article class="region-card region-na" id="na"><div class="region-tag">北美</div><div class="region-content"><p>8月新能源渗透率达28%，福特、通用加速电动皮卡投产，保险杠、货厢内衬注塑件需求同比增41%，大吨位注塑机订单量环比涨27%，本土注塑产能缺口达22%。</p></div></article>
-<article class="region-card region-eu" id="eu"><div class="region-tag">欧洲</div><div class="region-content"><p>《车用可持续材料法规》正式落地，2030年新车塑料部件再生/生物基占比不低于40%，内饰件注塑改造需求激增，多组分注塑机需求环比增35%。</p></div></article>
-<article class="region-card region-cn" id="china"><div class="region-tag">中国</div><div class="region-content"><p>8月新能源车销量86万辆，出口16.8万辆，电池包外壳、一体化仪表板注塑需求同比增59%，微发泡注塑设备国产化率突破70%，性价比优势显著。</p></div></article>
-<article class="region-card region-sea" id="sea"><div class="region-tag">东南亚</div><div class="region-content"><p>印尼、泰国新能源车企建厂潮持续，本地注塑配套缺口达60%，中小型精密注塑机需求增速连续3个月超100%，是国内厂商出海核心市场。</p></div></article>
-<article class="region-card region-sa" id="sa"><div class="region-tag">南美（巴西/墨西哥）</div><div class="region-content"><p>巴西8月电动车销量同比增122%，墨西哥成为北美车企注塑件代工核心基地，当地注塑产能扩张计划同比增68%，大吨位设备需求旺盛。</p></div></article>
-<article class="region-card region-in" id="india"><div class="region-tag">印度</div><div class="region-content"><p>塔塔、马恒达推出5款新电动车型，内饰件本地化率要求达75%，经济型注塑机需求环比增47%，中低端设备市场空间广阔。</p></div></article>
-<article class="region-card region-ru" id="russia"><div class="region-tag">俄罗斯</div><div class="region-content"><p>中国车企占俄电动车市场82%份额，本地化配套政策要求外饰件本土生产，注塑设备采购需求同比增115%，国产设备市占率已达68%。</p></div></article>
-<article class="region-card region-au" id="australia"><div class="region-tag">澳洲</div><div class="region-content"><p>新能源车渗透率首次突破20%，政府补贴本地汽车零部件生产，轻量化注塑件需求同比增39%，精密微发泡设备需求上升。</p></div></article>
-<article class="region-card region-jp" id="japan-korea"><div class="region-tag">日韩</div><div class="region-content"><p>丰田、现代加速氢燃料电池车量产，双极板精密注塑技术需求爆发，高精度注塑机订单环比增32%，高端设备竞争加剧。</p></div></article>
-</div>
-</section>
-<section class="section" id="policy">
-<h2 class="section-title"><span>Policy</span>政策动态</h2>
-<div class="policy-grid">
-<article class="policy-card"><div class="policy-card-title">欧盟</div><div class="policy-card-content">政策 利好 《车用可持续材料法规》正式落地，2030年新车塑料部件再生/生物基占比不低于40%，不合格产品禁止进入欧盟市场，直接拉动注塑设备升级需求。</div></article>
-<article class="policy-card"><div class="policy-card-title">中国</div><div class="policy-card-content">政策 利好 《汽车轻量化技术推广方案》发布，2027年量产车非金属部件占比提升至35%，注塑工艺设备更新补贴最高达采购额的15%，最高补贴金额2000万元。</div></article>
-<article class="policy-card"><div class="policy-card-title">印度</div><div class="policy-card-content">政策 风险 提高汽车零部件进口关税至25%，强制要求本地生产的电动车注塑件占比不低于70%，对直接出口印度的注塑件企业形成成本压力。</div></article>
-</div>
-</section>
-<section class="section" id="oem">
-<h2 class="section-title"><span>OEMs</span>车企动态</h2>
-<div class="oem-grid">
-<article class="oem-card"><div class="oem-card-title">特斯拉</div><div class="oem-card-content">利好 4680电池包一体化注塑工艺落地德州工厂，单车注塑部件数量减少12个，成本降40%，已向海天国际、恩格尔采购230台大吨位注塑机，后续订单规模超千台。</div></article>
-<article class="oem-card"><div class="oem-card-title">比亚迪</div><div class="oem-card-content">利好 泰国工厂正式投产，年产能15万辆，同步配套建设注塑产业园，总投资2.3亿美元，优先采购国产注塑设备，预计采购规模超800台。</div></article>
-<article class="oem-card"><div class="oem-card-title">大众集团</div><div class="oem-card-content">利好 发布2030电动化战略，所有新车型内饰100%采用再生塑料注塑部件，已与巴斯夫、科思创签订材料供应协议，多组分注塑设备需求超500台。</div></article>
-</div>
-</section>
-<section class="section" id="research">
-<h2 class="section-title"><span>Research</span>调研报告/机构观点</h2>
-<div class="research-grid">
-<article class="research-card"><div class="research-card-title">麦肯锡</div><div class="research-card-content">2026-2030年全球车用注塑设备市场复合增速达18%，其中一体化大吨位、精密微发泡、多组分注塑三类设备增速超30%，市场规模将从2026年的120亿美元增长至2030年的235亿美元。</div></article>
-<article class="research-card"><div class="research-card-title">IHS Markit</div><div class="research-card-content">2026年全球车用注塑件市场规模将达4200亿美元，新能源汽车单车注塑件价值是燃油车的1.7倍，其中电池系统相关注塑件价值占比达32%。</div></article>
-<article class="research-card"><div class="research-card-title">中国塑料加工工业协会</div><div class="research-card-content">国产车用注塑设备性价比优势显著，海外市场份额已从2022年的18%提升至2026年的32%，在东南亚、俄罗斯、南美市场市占率突破45%。</div></article>
-</div>
-</section>
-<section class="section" id="injection">
-<h2 class="section-title"><span>Injection</span>注塑机会专题</h2>
-<div class="injection-grid">
-<article class="injection-card"><div class="injection-card-title">产品端机会</div><div class="injection-card-content">大吨位（≥6000吨）一体化注塑机、精密微发泡注塑设备、多组分双色注塑机、生物基材料专用注塑机四类产品需求爆发，年增速超35%，是厂商核心产品升级方向。</div></article>
-<article class="injection-card"><div class="injection-card-title">区域端机会</div><div class="injection-card-content">东南亚、墨西哥、俄罗斯、印度四大市场注塑设备缺口超12万台/年，本地设厂或渠道拓展可享受本地化政策红利，是国产设备出海核心布局区域。</div></article>
-<article class="injection-card"><div class="injection-card-title">应用端机会</div><div class="injection-card-content">电池包外壳、一体化仪表板、氢燃料电池双极板、生物基内饰件四大细分场景订单增速超60%，配套工艺解决方案需求旺盛，提供设备+工艺打包服务可提升溢价30%以上。</div></article>
-<article class="injection-card"><div class="injection-card-title">政策红利机会</div><div class="injection-card-content">中国、欧盟均出台注塑设备更新、轻量化材料应用补贴政策，企业可申请最高20%的</div></article>
-</div>
-</section>
-<section class="section" id="nextweek">
-<h2 class="section-title"><span>Next Week</span>下周关注</h2>
-<div class="next-week"><ul>
-<li>持续关注主要市场月度销量数据</li>
-<li>跟踪欧盟对华电动车关税后续进展</li>
-<li>关注固态电池与一体化压铸技术落地动态</li>
-</ul></div>
-</section>
-<section class="section" id="sources">
-<h2 class="section-title"><span>Sources</span>数据来源</h2>
-<div class="sources-grid">
-<p>MarkLines、乘联会(CPCA)、中汽协(CAAM)、ACEA、GAIKINDO、TAI/FTI、ANFAVEA/Fenabrave、SIAM、AEB、盖世汽车、36氪、界面新闻、AlixPartners、麦肯锡、Maybank、爱建证券</p>
-</div>
-</section>
-
 
 <!-- Key Points -->
-
-
-
-
-
-
-</main>
+  <!-- Key Points -->
+  <section class="key-points" id="overview">
+    <div class="key-points-header">
+      <h2>本周总览</h2>
+      <span class="line"></span>
+    </div>
+    <div class="kp-grid">
+    <div class="kp-card">
+      <span class="kp-num">01</span>
+      
+      <h3>中国新能源渗透率突破55%</h3>
+      <p>8月中国新能源乘用车零售<strong>同比增长32%</strong>，渗透率达到<strong>55.8%</strong>，创历史新高，比亚迪、吉利领跑。</p>
+    </div>
+    <div class="kp-card">
+      <span class="kp-num">02</span>
+      
+      <h3>欧盟对华关税靴子落地</h3>
+      <p>欧盟正式实施对华电动车反补贴关税，部分车企税率超<strong>35%</strong>，出口承压，本地化建厂加速。</p>
+    </div>
+    <div class="kp-card injection">
+      <span class="kp-num">03</span>
+      <span class="injection-badge">⚡ 注塑机会</span>
+      <h3>一体化压铸订单放量</h3>
+      <p>多家主机厂推进一体化压铸与工程塑料替代，注塑机及轻量化内饰件需求<strong>环比增长18%</strong>，注塑机会显著。</p>
+    </div>
+    <div class="kp-card">
+      <span class="kp-num">04</span>
+      
+      <h3>巴西市场同比回暖</h3>
+      <p>巴西8月新车销量<strong>同比增长9.4%</strong>，中国品牌市占率<strong>提升至12%</strong>，本地化产能布局提速。</p>
+    </div>
+    <div class="kp-card">
+      <span class="kp-num">05</span>
+      
+      <h3>特斯拉交付超预期</h3>
+      <p>特斯拉三季度全球交付约<strong>48万辆</strong>，<strong>环比增长12%</strong>，Model Y改款拉动需求。</p>
+    </div>
+    </div>
+  </section>
+  <!-- Markets -->
+  <section class="section" id="markets">
+    <div class="section-header">
+      <h2>各地市场动态</h2>
+      <span class="sec-num">REGIONAL</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="subsection region-cn" id="china">
+      <h3 class="subsection-title"><span class="region-dot"></span>中国市场</h3>
+      <div class="news-card"><h4>乘用车零售同比增长</h4><div class="news-body">8月乘用车零售约<strong>210万辆</strong>，<strong>同比增长5%</strong>，新能源占比过半。</div></div>
+    </div>
+    <div class="subsection region-sea" id="sea">
+      <h3 class="subsection-title"><span class="region-dot"></span>东南亚市场</h3>
+      <div class="news-card"><h4>印尼电动车政策加码</h4><div class="news-body">印尼上调电动车补贴目标，GAIKINDO数据显示渗透率<strong>提升</strong>。</div></div>
+    </div>
+    <div class="subsection region-sa" id="sa">
+      <h3 class="subsection-title"><span class="region-dot"></span>南美市场</h3>
+      <div class="news-card"><h4>巴西销量回暖</h4><div class="news-body">Fenabrave数据显示8月上牌量<strong>同比增长9.4%</strong>。</div></div>
+    </div>
+    <div class="subsection region-eu" id="eu">
+      <h3 class="subsection-title"><span class="region-dot"></span>欧洲市场</h3>
+      <div class="news-card"><h4>欧盟新车注册放缓</h4><div class="news-body">ACEA数据显示8月欧盟乘用车注册<strong>同比微增1.2%</strong>。</div></div>
+    </div>
+    <div class="subsection region-na" id="na">
+      <h3 class="subsection-title"><span class="region-dot"></span>北美市场</h3>
+      <div class="news-card"><h4>美国EV渗透率上行</h4><div class="news-body">美国8月电动车渗透率升至<strong>11%</strong>，特斯拉与福特领先。</div></div>
+    </div>
+    <div class="subsection region-other" id="other">
+      <h3 class="subsection-title"><span class="region-dot"></span>其他市场</h3>
+      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
+    </div>
+  </section>
+  <!-- 政策动态 -->
+  <section class="section" id="policy">
+    <div class="section-header">
+      <h2>政策动态</h2>
+      <span class="sec-num">POLICY</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="policy-card"><h3>欧盟反补贴关税正式实施</h3><p>欧盟对华电动车加征关税正式生效，最高税率超<strong>35%</strong>。</p></div>
+    <div class="policy-card"><h3>中国以旧换新补贴延续</h3><p>商务部延续汽车以旧换新补贴政策，拉动置换需求。</p></div>
+  </section>
+  <!-- 车企动态 -->
+  <section class="section" id="oem">
+    <div class="section-header">
+      <h2>车企动态</h2>
+      <span class="sec-num">OEM</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="oem-card"><h3><span class="oem-tag">动态</span>比亚迪海外销量创新高</h3><p>比亚迪8月海外销售超<strong>4万辆</strong>，<strong>同比增长65%</strong>，巴西工厂投产。</p></div>
+    <div class="oem-card"><h3><span class="oem-tag">动态</span>特斯拉交付超预期</h3><p>特斯拉三季度交付约<strong>48万辆</strong>，<strong>环比增长12%</strong>。</p></div>
+  </section>
+  <!-- 调研报告 / 机构观点 -->
+  <section class="section" id="research">
+    <div class="section-header">
+      <h2>调研报告 / 机构观点</h2>
+      <span class="sec-num">RESEARCH</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="research-card"><h3>麦肯锡：2030年全球EV渗透率展望</h3><p>麦肯锡报告预计2030年全球电动车渗透率将达<strong>55%</strong>，中国与欧洲领先。</p></div>
+  </section>
+  <!-- Injection -->
+  <section class="injection-section" id="injection">
+    <div class="section-header">
+      <h2>注塑机会专题</h2>
+      <span class="sec-num" style="color:var(--accent-orange);background:rgba(255,138,61,.14);border:1px solid rgba(255,138,61,.4)">INJECTION</span>
+      <span class="sec-line"></span>
+    </div>
+      <div class="inj-card"><h3>⚡ 一体化压铸带动模具需求</h3><p>超大压铸模具与工程塑料结构件需求快速<strong>增长</strong>，注塑机订单<strong>环比增长18%</strong>。</p></div>
+      <div class="inj-card"><h3>⚡ 内饰轻量化材料替代</h3><p>改性塑料与碳纤维复材在内饰件渗透率<strong>提升</strong>，单车用量增加约<strong>8kg</strong>。</p></div>
+  </section>
+  <!-- Next week -->
+  <section class="section" id="nextweek">
+    <div class="section-header">
+      <h2>下周关注</h2>
+      <span class="sec-num">NEXT</span>
+      <span class="sec-line"></span>
+    </div>
+    <div class="next-week">
+      <ul>
+      <li><strong>中国9月新能源汽车销量及渗透率数据发布</strong></li>
+      <li><strong>欧盟关税政策执行与车企应对进展</strong></li>
+      <li><strong>主要车企三季度交付数据</strong></li>
+      <li><strong>一体化压铸及轻量化订单动态</strong></li>
+      </ul>
+    </div>
+  </section></main>
 
 <!-- Footer -->
 <footer class="footer">
-  <p><strong>数据来源：</strong></p>
+  <p><strong>数据来源：</strong>MarkLines、乘联会(CPCA)、中汽协(CAAM)、ACEA、GAIKINDO、TAI/FTI、ANFAVEA/Fenabrave、SIAM、AEB、盖世汽车、36氪、界面新闻、AlixPartners、麦肯锡、Maybank、爱建证券</p>
   <p style="margin-top:8px">本报告仅供内部参考，数据以各官方机构发布为准。</p>
-  <p style="margin-top:12px;color:var(--text-muted)">© 2026 2026年09月10日全球汽车行业深度周报 | 2026年09月10日</p>
+  <p style="margin-top:12px;color:var(--text-muted)">© 2026 全球汽车行业深度周报 | 2026年09月10日</p>
 </footer>
 
 <!-- Back to top button -->
@@ -636,7 +904,7 @@ function handleNavHighlight() {
   const sections = document.querySelectorAll('[id]');
   const navLinks = document.querySelectorAll('.nav-link');
   const scrollPos = window.scrollY + CONSTANTS.NAV_OFFSET;
-  
+
   sections.forEach(function(sec) {
     if (sec.offsetTop <= scrollPos && (sec.offsetTop + sec.offsetHeight) > scrollPos) {
       const id = sec.getAttribute('id');
@@ -650,13 +918,27 @@ function handleNavHighlight() {
   });
 }
 
+// Scroll reveal for sections
+function handleReveal() {
+  const els = document.querySelectorAll('.reveal:not(.visible)');
+  const vh = window.innerHeight;
+  els.forEach(function(el) {
+    const rect = el.getBoundingClientRect();
+    if (rect.top < vh - 60) {
+      el.classList.add('visible');
+    }
+  });
+}
+
 // Apply throttled scroll handlers
 const throttledBackTopHandler = throttle(handleBackTopVisibility, CONSTANTS.THROTTLE_DELAY);
 const throttledNavHandler = throttle(handleNavHighlight, CONSTANTS.THROTTLE_DELAY);
+const throttledRevealHandler = throttle(handleReveal, CONSTANTS.THROTTLE_DELAY);
 
 // Attach scroll event listeners
 window.addEventListener('scroll', throttledBackTopHandler);
 window.addEventListener('scroll', throttledNavHandler);
+window.addEventListener('scroll', throttledRevealHandler);
 
 // Smooth scroll for nav links
 document.querySelectorAll('a[href^="#"]').forEach(function(a) {
@@ -673,6 +955,17 @@ document.querySelectorAll('a[href^="#"]').forEach(function(a) {
 // Back to top button click handler
 document.getElementById('backTop').addEventListener('click', function() {
   window.scrollTo({top: 0, behavior: 'smooth'});
+});
+
+// Init reveal on load and add reveal class to top-level sections
+document.addEventListener('DOMContentLoaded', function() {
+  // If page uses .reveal, apply to direct section children of main
+  document.querySelectorAll('main > .section, main > .key-points, main > .injection-section').forEach(function(el) {
+    if (!el.classList.contains('reveal')) {
+      el.classList.add('reveal');
+    }
+  });
+  handleReveal();
 });
 </script>
 
