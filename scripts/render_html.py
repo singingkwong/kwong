@@ -220,6 +220,113 @@ def _link_html(link: str) -> str:
             f'<span class="src-link-ico">🔗</span>原文</a>')
 
 
+# ---- 三要点结构化（关键数据/影响分析/趋势判断）----
+_POINT_LABELS = ("关键数据", "影响分析", "趋势判断")
+
+def _split_points(body: str) -> Optional[Dict[str, str]]:
+    """从正文解析出 关键数据/影响分析/趋势判断 三段；全部找到才返回，否则 None。"""
+    hits: List[tuple] = []
+    for lab in _POINT_LABELS:
+        idx = body.find(lab)
+        if idx == -1:
+            return None
+        sep = idx + len(lab)
+        if body[sep:sep + 1] == "/" and body[sep + 1:sep + 3] == "事件":
+            sep += 3
+        while sep < len(body) and body[sep] in " ：:（）()/、\n":
+            sep += 1
+        hits.append((lab, idx, sep))
+    hits.sort(key=lambda x: x[1])
+    result: Dict[str, str] = {}
+    for k, (lab, _, start) in enumerate(hits):
+        end = hits[k + 1][1] if k + 1 < len(hits) else len(body)
+        seg = body[start:end].strip(" ：:（）()/、\n")
+        seg = re.sub(r"\s*原文\s*$", "", seg).strip()
+        result[lab] = seg
+    return result
+
+def _render_points_html(body: str) -> Optional[str]:
+    pts = _split_points(body)
+    if not pts:
+        return None
+    label_map = {
+        "关键数据": ("point-key", "📊", "关键数据 / 事件"),
+        "影响分析": ("point-impact", "🔍", "影响分析"),
+        "趋势判断": ("point-trend", "📈", "趋势判断"),
+    }
+    rows = []
+    for lab in _POINT_LABELS:
+        val = pts.get(lab, "")
+        if not val:
+            continue
+        cls, icon, head = label_map[lab]
+        rows.append(
+            f'<div class="point {cls}">'
+            f'<span class="point-head">{icon} {escape_html(head)}</span>'
+            f'<span class="point-text">{highlight_numbers(val)}</span>'
+            f'</div>'
+        )
+    if not rows:
+        return None
+    return '<div class="points-block">' + "".join(rows) + '</div>'
+
+def _card_rich_body(body: str) -> str:
+    """优先三要点结构；无三点标记回落高亮普通正文。"""
+    rich = _render_points_html(body)
+    if rich:
+        return rich
+    return highlight_numbers(re.sub(r"\s*原文$", "", body).strip())
+
+
+# ---- 数据来源识别 ----
+_SOURCE_BY_HOST = {
+    "marklines.com": "MarkLines",
+    "caam.org.cn": "中汽协(CAAM)",
+    "cpcadata.com": "乘联会(CPCA)",
+    "acea.auto": "欧洲汽车制造商协会(ACEA)",
+    "gaikindo.or.id": "印尼汽车工业协会(GAIKINDO)",
+    "anfavea.com.br": "巴西汽车工业协会(ANFAVEA)",
+    "siam.in": "印度汽车制造商协会(SIAM)",
+    "acma.in": "印度ACMA",
+    "motownindia.com": "Motown India",
+    "autonews.com": "Automotive News",
+    "insideevs.com": "InsideEVs",
+    "electrive.com": "Electrive",
+    "reuters.com": "路透社",
+    "bloomberg.com": "彭博社",
+    "gov.cn": "中国政府网",
+    "mofcom.gov.cn": "商务部",
+    "mil.gov.cn": "工信部",
+    "36kr.com": "36氪",
+    "geekcar.com": "盖世汽车",
+    "huanqiu.com": "环球网",
+}
+_SOURCE_DEFAULT = "来源待核"
+
+def _source_label(href: str) -> str:
+    if not href:
+        return _SOURCE_DEFAULT
+    try:
+        from urllib.parse import urlparse
+        host = urlparse(href).netloc.lower().lstrip("www.")
+    except Exception:
+        host = ""
+    for dom, name in _SOURCE_BY_HOST.items():
+        if dom in host:
+            return name
+    if host:
+        return host.split(".")[0].capitalize() or _SOURCE_DEFAULT
+    return _SOURCE_DEFAULT
+
+def _body_source(body: str) -> str:
+    m = re.search(r"来源[:：]\s*([^\s，,。；;|]+)", body or "")
+    return m.group(1).strip() if m else ""
+
+def _source_html(link: str, body: str = "") -> str:
+    src = _body_source(body) or _source_label(link)
+    return f'<div class="news-source">📌 数据来源：{escape_html(src)}</div>'
+
+
 def _el_text(el) -> str:
     return clean_text(el.get_text(" ", strip=True)) if el is not None else ""
 
@@ -571,18 +678,22 @@ def build_markets_html(markets: Optional[Dict[str, str]]) -> str:
                 if not title:
                     # 区域汇总卡：无卡片标题，直接展示正文（去掉末尾"原文"）
                     body_text = re.sub(r"\s*原文$", "", body_text)
-                    b = highlight_numbers(body_text)
+                    b = _card_rich_body(body_text)
                     lk = _link_html(str(c.get("link", "")))
+                    src = _source_html(str(c.get("link", "")), body_text)
                     cards_html.append(
-                        f'      <div class="news-card"><div class="news-body">{b}</div>{lk}</div>'
+                        f'      <div class="news-card"><div class="news-body rich">{b}</div>'
+                        f'<div class="news-foot">{src}{lk}</div></div>'
                     )
                 else:
                     t = escape_html(title)
-                    b = highlight_numbers(re.sub(r"\s*原文$", "", body_text))
+                    b = _card_rich_body(body_text)
                     lk = _link_html(str(c.get("link", "")))
+                    src = _source_html(str(c.get("link", "")), body_text)
                     cards_html.append(
                         f'      <div class="news-card"><h4>{t}</h4>'
-                        f'<div class="news-body">{b}</div>{lk}</div>'
+                        f'<div class="news-body">{b}</div>'
+                        f'<div class="news-foot">{src}{lk}</div></div>'
                     )
             if not cards_html:
                 cards_html.append(
@@ -641,17 +752,20 @@ def build_simple_card_section(sec: Optional[Dict[str, str]], *, section_id: str,
             tt = str(c.get("title", "")).strip()
             if not tt and body_text.startswith(_derive_title(c)):
                 body_text = body_text[len(_derive_title(c)):].strip(" ，。；;：:")
-            b = highlight_numbers(body_text)
+            b = _card_rich_body(body_text)
             lk = _link_html(str(c.get("link", "")))
+            src = _source_html(str(c.get("link", "")), body_text)
             if card_class == "oem-card":
                 cards_html.append(
                     f'    <div class="oem-card"><h3><span class="oem-tag">动态</span>{t}</h3>'
-                    f'<p>{b}</p>{lk}</div>'
+                    f'<div class="news-body rich">{b}</div><div class="news-foot">{src}{lk}</div></div>'
                 )
             elif card_class == "policy-card":
-                cards_html.append(f'    <div class="policy-card"><h3>{t}</h3><p>{b}</p>{lk}</div>')
+                cards_html.append(f'    <div class="policy-card"><h3>{t}</h3><div class="news-body rich">{b}</div>'
+                                  f'<div class="news-foot">{src}{lk}</div></div>')
             else:
-                cards_html.append(f'    <div class="research-card"><h3>{t}</h3><p>{b}</p>{lk}</div>')
+                cards_html.append(f'    <div class="research-card"><h3>{t}</h3><div class="news-body rich">{b}</div>'
+                                  f'<div class="news-foot">{src}{lk}</div></div>')
     if not cards_html:
         if card_class == "oem-card":
             cards_html.append(f'    <div class="oem-card"><p>{escape_html(empty_text)}</p></div>')
@@ -678,9 +792,12 @@ def build_injection_html(sec: Optional[Dict[str, str]]) -> str:
         cards = extract_cards_from_body(sec["body"])
         for c in cards[:6]:
             t = escape_html(str(c.get("title", "")))
-            b = highlight_numbers(str(c.get("body", "")))
+            b = _card_rich_body(str(c.get("body", "")))
             lk = _link_html(str(c.get("link", "")))
-            cards_html.append(f'      <div class="inj-card"><h3>⚡ {t}</h3><p>{b}</p>{lk}</div>')
+            body_text = str(c.get("body", ""))
+            src = _source_html(str(c.get("link", "")), body_text)
+            cards_html.append(f'      <div class="inj-card"><h3>⚡ {t}</h3><div class="news-body rich">{b}</div>'
+                              f'<div class="news-foot">{src}{lk}</div></div>')
     if not cards_html:
         cards_html.append(
             '      <div class="inj-card"><h3>⚡ 持续关注</h3>'
