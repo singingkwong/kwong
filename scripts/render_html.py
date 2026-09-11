@@ -151,14 +151,62 @@ def get_overview_section(sections: List[Dict[str, str]], full_html: str) -> Dict
     return {"title": "本周总览", "body": full_html[:6000]}
 
 
+_LINK_CHECK_CACHE: Dict[str, bool] = {}
+_LINK_TIMEOUT = 8
+_LINK_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
+        "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
+    ),
+}
+
+
+def _is_fake_link_format(href: str) -> bool:
+    """快速剔除明显伪造/无效的链接格式，避免占用网络校验。"""
+    low = href.lower()
+    if low.startswith(("javascript:", "#", "mailto:", "data:", "你的", "原文", "待核")):
+        return True
+    if any(dom in low for dom in ("example.com", "test.com", "yourlink", "placeholder", ".local")):
+        return True
+    if "//" not in href or "." not in href.split("/", 3)[2]:
+        return True
+    return False
+
+
+def _link_is_reachable(href: str) -> bool:
+    """探测链接是否真实可用（HEAD 优先，失败回退 GET），带缓存避免重复请求。"""
+    key = href.strip()
+    if key in _LINK_CHECK_CACHE:
+        return _LINK_CHECK_CACHE[key]
+    ok = False
+    for method in ("HEAD", "GET"):
+        try:
+            resp = requests.request(method, key, headers=_LINK_HEADERS,
+                                    timeout=_LINK_TIMEOUT, allow_redirects=True,
+                                    stream=True)
+            if resp.status_code < 400:
+                ok = True
+                break
+        except Exception:
+            continue
+    _LINK_CHECK_CACHE[key] = ok
+    return ok
+
+
 def _first_link(el) -> str:
-    """返回元素内第一个 http(s) 外部链接 href；没有则返回空串。"""
+    """返回元素内第一个可信 http(s) 外部链接 href。
+    对链接做可达性校验：死链、伪链返回空串（有缓存，避免重复请求）。
+    """
     if el is None:
         return ""
     a = el.find("a", href=True)
     if a:
         href = a["href"].strip()
-        if href.startswith(("http://", "https://", "www.")):
+        if href.startswith(("http://", "https://")):
+            if _is_fake_link_format(href):
+                return ""
+            if not _link_is_reachable(href):
+                return ""
             return href
     return ""
 
