@@ -21,7 +21,7 @@ import sys
 from typing import Dict, List, Optional
 
 import requests
-from bs4 import BeautifulSoup, Tag
+from bs4 import BeautifulSoup
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "templates", "weekly.html")
@@ -56,7 +56,6 @@ REGIONS: List[Dict[str, str]] = [
     {"name": "亚洲", "key": "other", "en": "Asia", "cls": "region-other"},
 ]
 
-MARKETS_TITLE = "各地市场动态"
 POLICY_KEYWORDS = ["政策", "法规", "关税", "补贴", "标准", "监管", "双反", "贸易", "合规"]
 OEM_KEYWORDS = ["车企", "整车", "品牌", "主机厂", "比亚迪", "特斯拉", "吉利", "奇瑞",
                 "长安", "长城", "丰田", "大众", "宝马", "奔驰", "宁德时代", "蔚来",
@@ -242,6 +241,8 @@ def _split_points(body: str) -> Optional[Dict[str, str]]:
         end = hits[k + 1][1] if k + 1 < len(hits) else len(body)
         seg = body[start:end].strip(" ：:（）()/、\n")
         seg = re.sub(r"\s*原文\s*$", "", seg).strip()
+        # 剥掉段末尾 Agent 自标的"来源：xxx"，避免与底部"数据来源"行重复
+        seg = re.sub(r"\s*来源[:：]\s*\S+$", "", seg).strip()
         result[lab] = seg
     return result
 
@@ -560,13 +561,15 @@ def build_key_points_html(overview: Dict[str, str], hotspots: List[Dict[str, obj
         is_inj = any(k in title + body for k in INJECTION_KEYWORDS)
         cls = "kp-card injection" if is_inj else "kp-card"
         badge = '<span class="injection-badge">⚡ 注塑机会</span>' if is_inj else ""
-        link_html = _link_html(str(c.get("link", "")))
+        lk = _link_html(str(c.get("link", "")))
+        src = _source_html(str(c.get("link", "")), body)
+        foot = f'<div class="news-foot">{src}{lk}</div>' if (src or lk) else ""
         cards_html.append(f'''    <div class="{cls}">
       <span class="kp-num">{idx:02d}</span>
       {badge}
       <h3>{escape_html(title)}</h3>
       <p>{highlight_numbers(body)}</p>
-      {link_html}
+      {foot}
     </div>''')
 
     # 引言段（overview 区块内的 <p>，hotspot 卡已在 section 之外单独处理）
