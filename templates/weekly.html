@@ -446,6 +446,36 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
   margin-bottom:10px;
 }
 .news-card .news-body strong{color:var(--text-primary)}
+/* ---- 三要点结构化（关键数据/影响分析/趋势判断） ---- */
+.news-body .points-block{
+  display:flex;flex-direction:column;gap:8px;
+}
+.point{
+  display:flex;align-items:flex-start;gap:8px;
+  padding:7px 10px;
+  border-radius:8px;
+  background:rgba(255,255,255,.035);
+  border-left:3px solid rgba(255,255,255,.18);
+  font-size:13px;line-height:1.65;
+  color:var(--text-secondary);
+}
+.point .point-head{
+  flex:0 0 auto;
+  font-weight:700;
+  font-size:12px;
+  letter-spacing:.3px;
+  padding:1px 7px;
+  border-radius:5px;
+  white-space:nowrap;
+  color:var(--text-primary);
+}
+.point .point-text{flex:1 1 auto}
+.point-key{background:rgba(0,210,255,.05);border-left-color:var(--accent-blue)}
+.point-key .point-head{background:rgba(0,210,255,.14);color:#7fe7ff}
+.point-impact{background:rgba(255,184,0,.05);border-left-color:#ffb800}
+.point-impact .point-head{background:rgba(255,184,0,.13);color:#ffd166}
+.point-trend{background:rgba(80,220,140,.05);border-left-color:#50dc8c}
+.point-trend .point-head{background:rgba(80,220,140,.13);color:#7ff0b0}
 .news-source{
   font-size:12px;color:var(--text-muted);
   display:flex;align-items:center;gap:6px;
@@ -455,6 +485,14 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
   width:4px;height:4px;border-radius:50%;
   background:var(--text-muted);
 }
+/* 卡片底部：数据来源 + 原文按钮 横排 */
+.news-foot{
+  display:flex;align-items:center;justify-content:space-between;
+  gap:8px;margin-top:8px;padding-top:8px;
+  border-top:1px dashed rgba(255,255,255,.08);
+}
+.news-foot .news-source{font-size:12px;color:var(--text-muted)}
+.news-foot .src-link{margin:0}
 .news-card ul{
   list-style:none;padding:0;margin:8px 0;
 }
