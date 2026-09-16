@@ -1075,7 +1075,9 @@ def render(agent_html: str, *, team: str = DEFAULT_TEAM) -> str:
 
     date_str = today_cn()
     period_str = f"数据周期：{get_last_week_range()}"
-    sources_str = "MarkLines、乘联会(CPCA)、中汽协(CAAM)、ACEA、GAIKINDO、TAI/FTI、ANFAVEA/Fenabrave、SIAM、AEB、盖世汽车、36氪、界面新闻、AlixPartners、麦肯锡、Maybank、爱建证券"
+    sources_str = "——来源待累计——"  # 占位，render 末尾会按实际内容动态汇总覆盖
+    # 记录需要动态填充的来源标记
+    _sources_placeholder = "{{__REAL_SOURCES__}}"
 
     result = template
     result = result.replace("{{title}}", "全球汽车行业深度周报")
@@ -1093,7 +1095,26 @@ def render(agent_html: str, *, team: str = DEFAULT_TEAM) -> str:
 
     # 兜底：清理残留硬编码周期
     result = re.sub(r"数据周期：[^<\n{]+", period_str, result)
-    # 未替换的占位符清空
+
+    # ---- 动态汇总"数据来源"列表（对齐实际报告内容）----
+    used = re.findall(r"数据来源[：:]\s*([^\s,，。；;|<>]+)", result)
+    # 过滤占位/待核词，去重，保留出现顺序
+    seen, real = set(), []
+    drop = {"来源待核", "待核", "来源", "暂无", "——来源待累计——"}
+    for s in used:
+        s = s.strip()
+        if not s or s in drop or s in seen:
+            continue
+        seen.add(s)
+        real.append(s)
+    if real:
+        src_list = "、".join(real)
+        # 替换底部来源占位（模板：<strong>数据来源：</strong>——来源待累计——）
+        result = result.replace("数据来源：</strong>——来源待累计——", f"数据来源：</strong>{src_list}")
+        result = result.replace("{{__REAL_SOURCES__}}", src_list)
+        result = result.replace("{{sources}}", src_list)
+    # 未替换的占位符清空（含残留的 ——来源待累计——）
+    result = result.replace("——来源待累计——", "")
     result = re.sub(r"\{\{[a-z_]+\}\}", "", result)
     return result
 
