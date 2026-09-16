@@ -40,13 +40,15 @@ REGIONS: List[Dict[str, str]] = [
     {"name": "越南", "key": "sea", "en": "Vietnam", "cls": "region-sea"},
     {"name": "南美", "key": "sa", "en": "South America", "cls": "region-sa"},
     {"name": "巴西", "key": "sa", "en": "Brazil", "cls": "region-sa"},
+    {"name": "墨西哥", "key": "na", "en": "Mexico", "cls": "region-na"},
+    {"name": "阿根廷", "key": "sa", "en": "Argentina", "cls": "region-sa"},
     {"name": "欧洲", "key": "eu", "en": "Europe", "cls": "region-eu"},
     {"name": "欧盟", "key": "eu", "en": "EU", "cls": "region-eu"},
     {"name": "德国", "key": "eu", "en": "Germany", "cls": "region-eu"},
     {"name": "法国", "key": "eu", "en": "France", "cls": "region-eu"},
     {"name": "北美", "key": "na", "en": "North America", "cls": "region-na"},
     {"name": "美国", "key": "na", "en": "USA", "cls": "region-na"},
-    {"name": "印度", "key": "other", "en": "India", "cls": "region-other"},
+    {"name": "印度", "key": "india", "en": "India", "cls": "region-india"},
     {"name": "俄罗斯", "key": "other", "en": "Russia", "cls": "region-other"},
     {"name": "澳洲", "key": "other", "en": "Australia", "cls": "region-other"},
     {"name": "澳大利亚", "key": "other", "en": "Australia", "cls": "region-other"},
@@ -54,6 +56,7 @@ REGIONS: List[Dict[str, str]] = [
     {"name": "韩国", "key": "other", "en": "Korea", "cls": "region-other"},
     {"name": "日韩", "key": "other", "en": "Japan & Korea", "cls": "region-other"},
     {"name": "亚洲", "key": "other", "en": "Asia", "cls": "region-other"},
+    {"name": "其他", "key": "other", "en": "Other", "cls": "region-other"},
 ]
 
 POLICY_KEYWORDS = ["政策", "法规", "关税", "补贴", "标准", "监管", "双反", "贸易", "合规"]
@@ -224,6 +227,8 @@ _POINT_LABELS = ("关键数据", "影响分析", "趋势判断")
 
 def _split_points(body: str) -> Optional[Dict[str, str]]:
     """从正文解析出 关键数据/影响分析/趋势判断 三段；全部找到才返回，否则 None。"""
+    # 剥掉正文开头残留的标签词（利好/风险/动态/政策…），避免混入"关键数据"段
+    body = re.sub(r"^\s*(动态|利好|风险|关注|机会|政策|调研|观点|数据)[\s:：|、，,]*", "", body or "")
     hits: List[tuple] = []
     for lab in _POINT_LABELS:
         idx = body.find(lab)
@@ -454,6 +459,37 @@ def _split_card_by_links(card_el) -> List[Dict[str, object]]:
     return final
 
 
+def _split_card_by_li_events(card_el) -> List[Dict[str, object]]:
+    """当卡片含 ul.styled-list > li（每个 li 是一个市场事件）时，按 li（事件）拆分。
+
+    每个 <li> 是一条完整事件：内含 关键事件/影响分析/趋势判断 三个 <p> 及
+    p.secondary 的 来源/原文。拆出后每条独立成为一个 news-card（保留完整三要点），
+    而不是像 _split_card_by_links 那样把三要点按 <p> 拆散成多条。
+    """
+    lis = card_el.select("ul.styled-list > li")
+    if not lis:
+        return []
+
+    # 继承卡片自身标题（通常是区域名），便于后续按区域归类
+    ct = card_el.select_one(".card-title, .hotspot-title")
+    own_title = clean_text(ct.get_text(" ", strip=True)) if ct else ""
+    own_title = re.sub(r"\s*原文\s*$", "", own_title).strip() if own_title else ""
+
+    items: List[Dict[str, object]] = []
+    seen = set()
+    for li in lis:
+        txt = clean_text(li.get_text(" ", strip=True)).strip()
+        if not txt or len(txt) < 8 or txt in seen:
+            continue
+        seen.add(txt)
+        item: Dict[str, object] = {"title": own_title, "body": txt}
+        link = _first_link(li)
+        if link:
+            item["link"] = link
+        items.append(item)
+    return items
+
+
 def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
     """从一段 HTML 中提取标题+正文+原文链接。
 
@@ -475,6 +511,12 @@ def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
         body_text = _card_body(c)
         if title and body_text.startswith(title):
             body_text = body_text[len(title):].strip(" -—:：|")
+
+        # 优先：按 <li>（市场事件）整体拆分，每条完整保留三要点
+        li_items = _split_card_by_li_events(c)
+        if li_items:
+            cards.extend(li_items)
+            continue
 
         # 一张卡片里若含多个原文链接（Agent 偶发把多条动态合并进一张卡），
         # 按链接把正文拆成多条，链接就近归属其前面的文本。
@@ -633,15 +675,18 @@ def _match_region(name: str) -> Dict[str, str]:
     return {"name": name, "key": "other", "en": name, "cls": "region-other"}
 
 
-# 区域分组顺序与展示信息
+# 区域分组顺序与展示信息 —— 固定 5 大区域：中国/北美/欧洲/印度/东南亚
 REGION_ORDER: List[Dict[str, str]] = [
     {"key": "china", "label": "中国市场", "cls": "region-cn"},
-    {"key": "sea", "label": "东南亚市场", "cls": "region-sea"},
-    {"key": "sa", "label": "南美市场", "cls": "region-sa"},
-    {"key": "eu", "label": "欧洲市场", "cls": "region-eu"},
     {"key": "na", "label": "北美市场", "cls": "region-na"},
-    {"key": "other", "label": "其他市场", "cls": "region-other"},
+    {"key": "eu", "label": "欧洲市场", "cls": "region-eu"},
+    {"key": "sa", "label": "南美市场", "cls": "region-sa"},
+    {"key": "sea", "label": "东南亚市场", "cls": "region-sea"},
+    {"key": "india", "label": "印度市场", "cls": "region-india"},
+    {"key": "other", "label": "其他区域", "cls": "region-other"},
 ]
+# 每区域展示条数上限
+REGION_MAX_ITEMS = 5
 
 
 def classify_region(text: str) -> str:
@@ -706,7 +751,7 @@ def build_markets_html(markets: Optional[Dict[str, str]]) -> str:
         for r in REGION_ORDER:
             key, label, cls = r["key"], r["label"], r["cls"]
             cards_html: List[str] = []
-            for c in region_cards[key][:6]:
+            for c in region_cards[key][:REGION_MAX_ITEMS]:
                 title = _strip_region_prefix(str(c.get("title", "")))
                 body_text = str(c.get("body", "")).strip()
                 if not title:

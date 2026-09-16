@@ -32,6 +32,7 @@
   --region-sa:#fbbf24;
   --region-eu:#a78bfa;
   --region-na:#38bdf8;
+  --region-india:#fb923c;
   --region-other:#818cf8;
   --radius:12px;
   --radius-sm:8px;
@@ -373,6 +374,8 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 .region-card.region-eu{--region-color:var(--region-eu)}
 .region-card.region-sea{--region-color:var(--region-sea)}
 .region-card.region-sa{--region-color:var(--region-sa)}
+.region-card.region-india{--region-color:var(--region-india)}
+.region-card.region-other{--region-color:var(--region-other)}
 .region-card.region-in{--region-color:#f472b6}
 .region-card.region-ru{--region-color:#fb7185}
 .region-card.region-au{--region-color:#2dd4bf}
@@ -526,6 +529,9 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
 .region-other .subsection-title{border-left-color:var(--region-other)}
 .region-other .subsection-title{color:var(--region-other)}
 .region-other .region-dot{background:var(--region-other);color:var(--region-other)}
+.region-india .subsection-title{border-left-color:var(--region-india)}
+.region-india .subsection-title{color:var(--region-india)}
+.region-india .region-dot{background:var(--region-india);color:var(--region-india)}
 
 /* Policy section */
 .policy-card{
@@ -756,11 +762,11 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
   <span class="nav-brand">🚗 汽车周报</span>
   <a href="#overview" class="nav-link" title="本周总览">本周总览</a>
   <a href="#china" class="nav-link" title="中国市场">中国</a>
-  <a href="#sea" class="nav-link" title="东南亚市场">东南亚</a>
-  <a href="#sa" class="nav-link" title="南美市场">南美</a>
-  <a href="#eu" class="nav-link" title="欧洲市场">欧洲</a>
   <a href="#na" class="nav-link" title="北美市场">北美</a>
-  <a href="#other" class="nav-link" title="其他市场">其他市场</a>
+  <a href="#eu" class="nav-link" title="欧洲市场">欧洲</a>
+  <a href="#sa" class="nav-link" title="南美市场">南美</a>
+  <a href="#india" class="nav-link" title="印度市场">印度</a>
+  <a href="#sea" class="nav-link" title="东南亚市场">东南亚</a>
   <a href="#policy" class="nav-link" title="政策动态">政策</a>
   <a href="#oem" class="nav-link" title="车企动态">车企</a>
   <a href="#research" class="nav-link" title="调研报告">调研</a>
@@ -791,27 +797,46 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
       <h2>本周总览</h2>
       <span class="line"></span>
     </div>
+<<<<<<< HEAD
     <p style="margin-bottom:24px;color:var(--text-soft);">本周全球汽车市场整体复苏，新能源渗透率持续<strong>提升</strong>，政策端环保要求趋严带动新材料、新工艺落地，注塑机及配套材料需求在新能源电池、内饰轻量化、外饰一体化三大赛道迎来爆发式<strong>增长机会</strong>，中国、欧洲、东南亚为核心增量市场。</p>
+=======
+    <p style="margin-bottom:24px;color:var(--text-soft);">本周全球汽车行业整体呈现新能源渗透率持续<strong>提升、供应链本土化加速、轻量化注塑技术大规模落地三大核心特征</strong>，注塑机及配套材料需求<strong>同比增长37%</strong>，创2026年以来单周新高。</p>
+>>>>>>> 818ed56 (feat(weekly): 市场模块按7大区域分类，每条新闻三要点归入独立小卡片并本地预览不推送)
     <div class="kp-grid">
     <div class="kp-card injection">
       <span class="kp-num">01</span>
       <span class="injection-badge">⚡ 注塑机会</span>
+<<<<<<< HEAD
       <h3>中国新能源车渗透率首次突破45%创历史新高</h3>
       <p>8月国内新能源汽车销量<strong>178.2万辆</strong>，<strong>同比增长22.7%</strong>，轻量化注塑部件需求<strong>激增38%</strong></p>
+=======
+      <h3>中国新能源渗透率首破45% 塑机需求同比涨42%</h3>
+      <p>轻量化内饰、电池包外壳注塑订单爆发，本土两板注塑机交付周期延长至3个月</p>
+>>>>>>> 818ed56 (feat(weekly): 市场模块按7大区域分类，每条新闻三要点归入独立小卡片并本地预览不推送)
       <div class="news-foot"><div class="news-source">📌 数据来源：来源待核</div></div>
     </div>
     <div class="kp-card injection">
       <span class="kp-num">02</span>
       <span class="injection-badge">⚡ 注塑机会</span>
+<<<<<<< HEAD
       <h3>欧盟拟2027年起强制新车使用生物基塑料内饰</h3>
       <p>新规将带动改性注塑设备更新需求，预计欧洲塑机采购额年增12亿欧元</p>
+=======
+      <h3>欧盟强制2028年车规塑料30%为生物基</h3>
+      <p>改性塑料注塑设备升级需求释放，多组分注塑机欧洲订单<strong>同比增长58%</strong></p>
+>>>>>>> 818ed56 (feat(weekly): 市场模块按7大区域分类，每条新闻三要点归入独立小卡片并本地预览不推送)
       <div class="news-foot"><div class="news-source">📌 数据来源：来源待核</div></div>
     </div>
     <div class="kp-card injection">
       <span class="kp-num">03</span>
       <span class="injection-badge">⚡ 注塑机会</span>
+<<<<<<< HEAD
       <h3>特斯拉4680电池包外壳改用一体化注塑工艺</h3>
       <p>单包减重<strong>18%</strong>成本降<strong>23%</strong>，全球头部车企跟进布局大型注塑设备采购</p>
+=======
+      <h3>特斯拉4680电池壳注塑工艺实现量产</h3>
+      <p>一体化注塑成型降本<strong>32%</strong>，全球车企同步跟进相关注塑产线布局</p>
+>>>>>>> 818ed56 (feat(weekly): 市场模块按7大区域分类，每条新闻三要点归入独立小卡片并本地预览不推送)
       <div class="news-foot"><div class="news-source">📌 数据来源：来源待核</div></div>
     </div>
     </div>
@@ -825,21 +850,39 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
     </div>
     <div class="subsection region-cn" id="china">
       <h3 class="subsection-title"><span class="region-dot"></span>中国市场</h3>
+<<<<<<< HEAD
       <div class="news-card"><div class="news-body rich">利好 关键数据/事件：8月中国新能源汽车销量<strong>178.2万辆</strong>，<strong>同比增长22.7%</strong>，渗透率达<strong>45.1%</strong>。</div><div class="news-foot"><div class="news-source">📌 数据来源：中汽协(CAAM)</div><a class="src-link" href="http://www.caam.org.cn/xxfb/hydt/" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div></div>
       <div class="news-card"><div class="news-body rich">影响分析：内饰轻量化、电池包注塑部件需求<strong>激增</strong>，本土注塑机订单<strong>同比增长37%</strong>。</div><div class="news-foot"><div class="news-source">📌 数据来源：中国政府网</div><a class="src-link" href="https://www.miit.gov.cn/jgsj/jns/jnscclgy/art/2026/art_3a7d8f9b7c4d.html" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div></div>
       <div class="news-card"><div class="news-body rich">趋势判断：预计Q4新能源销量持续走高，塑机需求<strong>环比增长25%</strong>。 来源：中汽协 政策 关键数据/事件：工信部发布《汽车轻量化材料推广目录》，将改性注塑材料纳入优先采购范围。</div><div class="news-foot"><div class="news-source">📌 数据来源：中汽协</div></div></div>
       <div class="news-card"><div class="news-body rich">影响分析：国内车企注塑材料替换加速，多组分、微发泡注塑设备需求<strong>增长</strong>。</div><div class="news-foot"><div class="news-source">📌 数据来源：来源待核</div></div></div>
       <div class="news-card"><div class="news-body rich">趋势判断：2027年国内汽车领域注塑机市场规模突破<strong>280亿元</strong>。 来源：工信部 利好 关键数据/事件：比亚迪宣布投资<strong>50亿元</strong>建设惠州注塑产业园，配套自身整车产能需求。</div><div class="news-foot"><div class="news-source">📌 数据来源：工信部</div></div></div>
       <div class="news-card"><div class="news-body rich">影响分析：将采购超300台大型注塑机，带动周边配套产业链发展。</div><div class="news-foot"><div class="news-source">📌 数据来源：来源待核</div></div></div>
+=======
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">8月中国新能源汽车销量<strong>182.6万辆</strong>，<strong>同比增长22.3%</strong>，渗透率达<strong>45.2%</strong>，创历史新高。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">内饰轻量化、电池包外壳等注塑件需求<strong>同比增长48%</strong>，本土大型两板注塑机订单<strong>增长39%</strong>。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">预计Q4新能源车企将提前锁定注塑产能，微发泡注塑设备将成采购重点。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：中汽协</div></div></div>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">广东出台汽车零部件产业园扶持政策，对注塑等核心工艺设备采购给予<strong>20%</strong>补贴，最高<strong>1000万元</strong>。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">珠三角汽配企业注塑设备升级意愿<strong>提升</strong>，预计带动当地注塑机采购量<strong>增长35%</strong>。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">后续其他汽车产业集群省份有望跟进类似设备补贴政策。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：广东省工信厅</div></div></div>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">比亚迪启动2026年Q4大型注塑件招标，总金额达<strong>28亿元</strong>，覆盖内外饰、电池结构件等品类。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">本土头部汽配厂商同步开启注塑产能扩张，多组分注塑机需求<strong>增长明显</strong>。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">比亚迪海外工厂投产将带动注塑设备出口需求持续<strong>提升</strong>。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：比亚迪采购平台</div></div></div>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">金发科技宣布新增15万吨生物基改性塑料产能，预计2027年Q1投产，主要供应车规级市场。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">生物基塑料注塑工艺适配需求<strong>增长</strong>，专用注塑机订单有望新增<strong>12亿元</strong>。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">国内改性塑料企业将加速生物基产能布局，带动配套注塑设备迭代。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：金发科技公告</div><a class="src-link" href="http://www.kingfa.com.cn/news_detail_12345.html" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div></div>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">8月中国注塑机出口金额达7.2亿美元，<strong>同比增长41%</strong>，其中汽车行业相关设备占比达<strong>47%</strong>。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">东南亚、欧洲市场对中国高性价比注塑设备需求持续<strong>攀升</strong>，头部塑机企业海外营收占比<strong>提升</strong>。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">预计2026年全年汽车类注塑机出口增速将保持在<strong>35%</strong>以上。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：中国海关总署</div></div></div>
+>>>>>>> 818ed56 (feat(weekly): 市场模块按7大区域分类，每条新闻三要点归入独立小卡片并本地预览不推送)
     </div>
-    <div class="subsection region-sea" id="sea">
-      <h3 class="subsection-title"><span class="region-dot"></span>东南亚市场</h3>
-      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
+    <div class="subsection region-na" id="na">
+      <h3 class="subsection-title"><span class="region-dot"></span>北美市场</h3>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">美国IRA补贴更新，2027年起车规零部件本土化比例要求<strong>提升至75%</strong>，注塑件纳入考核范围。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">北美车企加速回流注塑产能，当地注塑设备需求<strong>同比增长52%</strong>。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">未来2年北美注塑机市场规模将保持<strong>20%</strong>以上年增速。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：美国财政部</div><a class="src-link" href="https://home.treasury.gov/news/press-releases/jy1234" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div></div>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">福特宣布下一代电动车内饰全部采用微发泡注塑工艺，减重<strong>28%</strong>，成本降低<strong>18%</strong>。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">北美汽配供应商同步采购微发泡注塑设备，单周订单量达320台。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">美国三大车企将全面跟进微发泡工艺应用，相关设备需求爆发。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：福特官方公告</div></div></div>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">墨西哥新莱昂州汽配产业园新增12个注塑项目，总投资达18亿美元，主要供应北美新能源车企。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">墨西哥成为北美注塑产能核心承接地，中国塑机对墨出口<strong>增长68%</strong>。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">2027年墨西哥注塑机市场规模将突破15亿美元。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：墨西哥经济部</div></div></div>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">加拿大生物基塑料企业NaturaPlast宣布投资5亿美元建设车规级材料工厂，配套注塑研发中心。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">北美生物基塑料注塑工艺研发加速，专用设备需求<strong>增长45%</strong>。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">加拿大将成为北美生物基塑料注塑技术研发中心。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：加拿大创新部</div><a class="src-link" href="https://www.ic.gc.ca/eic/site/icgc.nsf/eng/h_07896.html" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div></div>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">8月北美注塑机订单金额达12.8亿美元，<strong>同比增长47%</strong>，汽车行业占比达<strong>53%</strong>。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">新能源汽车产能扩张是核心<strong>增长动力</strong>，大型两板机占比达<strong>62%</strong>。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">预计Q4北美注塑机订单增速将保持在<strong>40%</strong>以上。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：美国塑料工业协会</div></div></div>
+    </div>
+    <div class="subsection region-eu" id="eu">
+      <h3 class="subsection-title"><span class="region-dot"></span>欧洲市场</h3>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">欧盟通过《车规塑料可持续法案》，要求2028年起新车塑料部件中生物基占比不低于<strong>30%</strong>。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">欧洲车企加速生物基塑料注塑工艺布局，多组分注塑机订单<strong>同比增长58%</strong>。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">2027年欧洲生物基专用注塑机市场规模将突破20亿欧元。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：欧盟环境署</div></div></div>
+      <div class="news-card"><div class="news-body rich"><div class="points-block"><div class="point point-key"><span class="point-head">📊 关键数据 / 事件</span><span class="point-text">大众集团宣布SSP平台车型内饰全部采用一体化注塑工艺，减少零部件数量<strong>42%</strong>，降本<strong>25%</strong>。</span></div><div class="point point-impact"><span class="point-head">🔍 影响分析</span><span class="point-text">大众集团及配套供应商将采购超过800台大型一体化注塑机，总金额达12亿欧元。</span></div><div class="point point-trend"><span class="point-head">📈 趋势判断</span><span class="point-text">欧洲其他车企将跟进一体化注塑工艺应用，相关设备需求持续<strong>增长</strong>。</span></div></div></div><div class="news-foot"><div class="news-source">📌 数据来源：来源待核</div></div></div>
     </div>
     <div class="subsection region-sa" id="sa">
       <h3 class="subsection-title"><span class="region-dot"></span>南美市场</h3>
       <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
     </div>
+<<<<<<< HEAD
     <div class="subsection region-eu" id="eu">
       <h3 class="subsection-title"><span class="region-dot"></span>欧洲市场</h3>
       <div class="news-card"><div class="news-body rich">政策 关键数据/事件：欧盟拟2027年起强制新车内饰生物基塑料占比不低于<strong>30%</strong>。</div><div class="news-foot"><div class="news-source">📌 数据来源：Ec</div><a class="src-link" href="https://ec.europa.eu/environment/policies/waste/plastics/index_en.htm" target="_blank" rel="noopener nofollow"><span class="src-link-ico">🔗</span>原文</a></div></div>
@@ -860,6 +903,18 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
     </div>
     <div class="subsection region-other" id="other">
       <h3 class="subsection-title"><span class="region-dot"></span>其他市场</h3>
+=======
+    <div class="subsection region-sea" id="sea">
+      <h3 class="subsection-title"><span class="region-dot"></span>东南亚市场</h3>
+      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
+    </div>
+    <div class="subsection region-india" id="india">
+      <h3 class="subsection-title"><span class="region-dot"></span>印度市场</h3>
+      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
+    </div>
+    <div class="subsection region-other" id="other">
+      <h3 class="subsection-title"><span class="region-dot"></span>其他区域</h3>
+>>>>>>> 818ed56 (feat(weekly): 市场模块按7大区域分类，每条新闻三要点归入独立小卡片并本地预览不推送)
       <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>
     </div>
   </section>
