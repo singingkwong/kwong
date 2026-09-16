@@ -40,32 +40,14 @@ jobs:
           echo "=== index.html 原文链接数 ==="
           grep -c 'class="src-link"' index.html || true
 
+      # run_pipeline.py 内部已处理企微推送（缺 key 时自动跳过），无需单独 fallback，避免重复推送。
       - name: Commit and push changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html agent.html
+          git add index.html
           git commit -m "auto: $(date +%Y-%m-%d) 汽车行业周报" || echo "No changes to commit"
           git pull origin main --rebase --autostash || true
           git push
-
-      - name: Wait for GitHub Pages deployment
-        run: |
-          echo "Waiting for GitHub Pages to deploy..."
-          sleep 180
-
-      # 若上一步流水线因缺企微 key 跳过推送，则此处补推
-      - name: Send WeCom notification (fallback)
-        if: ${{ always() }}
-        env:
-          WECOM_WEBHOOK_KEY: ${{ secrets.WECOM_WEBHOOK_KEY }}
-          GITHUB_USER: ${{ github.repository_owner }}
-          GITHUB_REPO: ${{ github.event.repository.name }}
-        run: |
-          if [ -z "$WECOM_WEBHOOK_KEY" ]; then
-            echo "未配置 WECOM_WEBHOOK_KEY，跳过企微推送。"
-          else
-            python scripts/send_wecom.py
-          fi
