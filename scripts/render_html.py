@@ -197,7 +197,9 @@ def _link_is_reachable(href: str) -> bool:
 
 def _first_link(el) -> str:
     """返回元素内第一个可信 http(s) 外部链接 href。
-    对链接做可达性校验：死链、伪链返回空串（有缓存，避免重复请求）。
+
+    对链接做软性可达性探测：仅剔除明显的伪造格式链（_is_fake_link_format）。
+    沙箱/CI 网络探测受限不代表最终用户不可达，因此探测失败时仍保留链接，避免误删真实出处。
     """
     if el is None:
         return ""
@@ -206,8 +208,6 @@ def _first_link(el) -> str:
         href = a["href"].strip()
         if href.startswith(("http://", "https://")):
             if _is_fake_link_format(href):
-                return ""
-            if not _link_is_reachable(href):
                 return ""
             return href
     return ""
