@@ -310,15 +310,6 @@ def build_region_html(region_blocks: list[dict]) -> str:
     parts: list[str] = []
     for block in region_blocks:
         events = split_events(block["body"])
-        # 「其他」区若 md 未提供独立小节，补一条综合说明，避免该区域空置
-        if block["key"] == "other" and not events:
-            events = [
-                "本周日韩、俄罗斯、南美等其他区域观察\n"
-                "量化要点：其余区域本周无新增重大主机厂产能或注塑采购事件，新兴市场仍在本地化布局初期。\n"
-                "产业链影响：新兴市场本地化提速潜力大，注塑配套与设备出海存在中长期机会。\n"
-                "趋势判断：其他区域机会以中长期本地化为主线，可关注日韩、俄罗斯、南美后续扩产动态。\n"
-                "来源:SIAM https://www.siam.in/statistics.aspx"
-            ]
         if not events:
             continue
         lis = []
@@ -336,6 +327,7 @@ def build_region_html(region_blocks: list[dict]) -> str:
             link = extract_link(ev)
             lis.append(make_li(title, pts, source, link))
         if not lis:
+            # 该区域本轮无真实事件：不生成事件卡，由 render 层按空态处理
             continue
         inner = "\n".join(lis)
         parts.append(

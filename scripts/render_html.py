@@ -745,7 +745,7 @@ REGION_ORDER: List[Dict[str, str]] = [
     {"key": "eu", "label": "欧洲市场", "cls": "region-eu"},
     {"key": "sea", "label": "东南亚市场", "cls": "region-sea"},
     {"key": "india", "label": "印度市场", "cls": "region-india"},
-    {"key": "other", "label": "其他区域", "cls": "region-other"},
+    {"key": "other", "label": "其他市场", "cls": "region-other"},
 ]
 # 每区域展示条数上限
 REGION_MAX_ITEMS = 5
@@ -838,7 +838,7 @@ def build_markets_html(markets: Optional[Dict[str, str]]) -> str:
                     )
             if not cards_html:
                 cards_html.append(
-                    '      <div class="news-card"><div class="news-body">本周该区域暂无重大新增动态，持续跟踪。</div></div>'
+                    '      <div class="news-card"><div class="news-body">其余区域本周无新增重大主机厂产能或注塑采购事件。</div></div>'
                 )
             subsections.append(f'''    <div class="subsection {cls}" id="{key}">
       <h3 class="subsection-title"><span class="region-dot"></span>{label}</h3>
