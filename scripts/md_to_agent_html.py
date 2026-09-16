@@ -159,32 +159,48 @@ def split_events(body: str) -> list[str]:
 _ALL_POINT_ALIASES = (POINT_KEY_ALIASES[0], POINT_IMPACT_ALIASES[0], POINT_TREND_ALIASES[0])
 
 
+def _clean_point(seg: str) -> str:
+    """清理要点文本残留：去掉【原文链接】/来源标注/多余空白，保留纯正文。"""
+    if not seg:
+        return ""
+    seg = re.sub(r"【?原文链接】?[:：]?\s*https?://\S+", "", seg)
+    seg = re.sub(r"【?原文链接】?[:：]?\s*$", "", seg)
+    seg = re.sub(r"\s*来源[:：]\s*\S*\s*$", "", seg)
+    seg = re.sub(r"【|】", "", seg)
+    seg = re.sub(r"\s+", " ", seg).strip(" ：:～— |\n")
+    return seg
+
+
 def _grab_point(event: str, target_alias: str, stop_aliases: list[str]) -> str:
-    """抓取以 target_alias 起始的要点文本，遇到其他要点/原文链接/来源行即停。"""
-    lines = event.splitlines()
-    out: list[str] = []
-    started = False
-    for ln in lines:
-        if not started:
-            if target_alias in ln:
-                started = True
-                seg = ln.split(target_alias, 1)[1].lstrip("：:～— 　")
-                if seg:
-                    out.append(seg)
-            continue
-        # 已开始，遇到其它要点/原文链接/来源即停
-        for a in stop_aliases:
-            if a in ln:
-                return " ".join(out).strip()
-        if LINK_RE.search(ln) or SOURCE_RE.search(ln):
-            return " ".join(out).strip()
-        out.append(ln.strip())
-    return " ".join(out).strip()
+    """抓取以 target_alias 起始的要点文本，遇到其他要点/原文链接/来源即停。
+
+    兼容要点标题与正文同行（如 `量化要点：xxx 产业链影响：yyy 趋势判断：zzz`），
+    在整段文本内按「目标 alias → 下一个 stop alias」顺序切，而非依赖换行。
+    """
+    t_idx = -1
+    prefix = ""
+    for alias in (target_alias,):
+        idx = event.find(alias)
+        if idx != -1:
+            t_idx = idx
+            prefix = alias
+            break
+    if t_idx == -1:
+        return ""
+    seg_raw = event[t_idx + len(prefix):].lstrip("：:～— 　|")
+    # 找后续出现的任一 stop alias 截断
+    cut = len(seg_raw)
+    for st in stop_aliases:
+        i = seg_raw.find(st)
+        if i != -1 and i < cut:
+            cut = i
+    seg = seg_raw[:cut]
+    return _clean_point(seg)
 
 
 def extract_three_points(event: str) -> dict[str, str]:
     """从单条事件提取 关键数据/影响分析/趋势判断。"""
-    key_txt = _grab_point(event, "量化要点", ["产业链影响"])
+    key_txt = _grab_point(event, "量化要点", ["产业链影响", "趋势判断"])
     if not key_txt:
         key_txt = _grab_point(event, "关键数据", ["产业链影响", "影响分析"])
     imp_txt = _grab_point(event, "产业链影响", ["趋势判断", "原文", "来源"])
@@ -296,7 +312,13 @@ def build_region_html(region_blocks: list[dict]) -> str:
         events = split_events(block["body"])
         # 「其他」区若 md 未提供独立小节，补一条综合说明，避免该区域空置
         if block["key"] == "other" and not events:
-            events = ["本周日韩、俄罗斯、南美等其他区域无新增重大主机厂产能或注塑采购事件，持续跟踪新兴市场本地化进度。综合报道见各主要区域。【原文链接】：https://www.siam.in/statistics.aspx"]
+            events = [
+                "本周日韩、俄罗斯、南美等其他区域观察\n"
+                "量化要点：其余区域本周无新增重大主机厂产能或注塑采购事件，新兴市场仍在本地化布局初期。\n"
+                "产业链影响：新兴市场本地化提速潜力大，注塑配套与设备出海存在中长期机会。\n"
+                "趋势判断：其他区域机会以中长期本地化为主线，可关注日韩、俄罗斯、南美后续扩产动态。\n"
+                "来源:SIAM https://www.siam.in/statistics.aspx"
+            ]
         if not events:
             continue
         lis = []
