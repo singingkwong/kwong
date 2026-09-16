@@ -24,8 +24,8 @@ HEADERS = {
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def fetch_weekly_html() -> str:
-    """调用扣子 Bot 直接生成周报 HTML。"""
+def fetch_weekly_html(attempt: int = 1) -> str:
+    """调用扣子 Bot 直接生成周报 HTML。attempt 为第几次尝试（用于提示重试）。"""
     today = datetime.now().strftime("%Y年%m月%d日")
     prompt = (
         f"请生成一份{today}的全球汽车行业深度周报，并直接输出完整的 HTML 文件内容。"
@@ -167,11 +167,38 @@ def save_html(content: str) -> Path:
     return html_path
 
 
+MAX_ATTEMPTS = int(os.environ.get("AGENT_MAX_ATTEMPTS", "3"))
+
 def main():
     print("开始调用 Agent 生成周报 HTML...")
-    content = fetch_weekly_html()
-    content = clean_html(content)
-    html_path = save_html(content)
+    from agent_checks import print_report, validate
+    import agent_checks
+
+    content = ""
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        if attempt > 1:
+            print(f"\n▶ 第 {attempt} 次尝试生成（上一版未通过检查）...")
+        raw = fetch_weekly_html(attempt=attempt)
+        content = clean_html(raw)
+        html_path = save_html(content)
+
+        # —— Agent 输出检查清单 ——
+        try:
+            checks = validate(content)
+            report = print_report(checks)
+            print("\n" + report)
+        except Exception as exc:  # noqa: BLE001
+            print(f"[warn] 校验执行出错（不影响保存）：{exc}")
+            break
+
+        summary = agent_checks.summarize(checks)
+        if summary["ok"]:
+            print("\n✅ Agent 输出通过全部检查，予以采纳。")
+            break
+        if attempt < MAX_ATTEMPTS:
+            print(f"\n❌ 检查未通过（{len(summary['failed'])} 项）：将重试...")
+        else:
+            print(f"\n❌ 已达最大重试次数（{MAX_ATTEMPTS}），保留当前输出。")
 
     title_match = re.search(r"<title>(.*?)</title>", content, re.DOTALL)
     title = title_match.group(1).strip() if title_match else "全球汽车行业周报"
