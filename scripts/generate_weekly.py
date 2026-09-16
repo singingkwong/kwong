@@ -24,6 +24,91 @@ HEADERS = {
 
 ROOT = Path(__file__).resolve().parent.parent
 
+# 记录最近一次对话的 conversation_id，供多轮续写复用（突破单轮 5 次工具调用上限 6150）
+_LAST_CONVERSATION_ID = None
+
+
+def _create_chat(user_prompt: str, conversation_id=None) -> dict:
+    """创建(或续写)一次 Bot 对话。auto_save_history=True 保留上下文，支持同会话续写。"""
+    global _LAST_CONVERSATION_ID
+    body = {
+        "bot_id": BOT_ID,
+        "user_id": "weekly_automation",
+        "stream": False,
+        "additional_messages": [
+            {"role": "user", "content": user_prompt, "content_type": "text"}
+        ],
+        "auto_save_history": True,
+    }
+    if conversation_id:
+        body["conversation_id"] = conversation_id
+    resp = requests.post(
+        f"{COZE_API_BASE}/v3/chat",
+        headers=HEADERS,
+        json=body,
+        timeout=90,
+    )
+    resp.raise_for_status()
+    doc = resp.json()
+    if doc.get("code") != 0:
+        raise RuntimeError(f"创建对话失败: {doc}")
+    data = doc["data"]
+    _LAST_CONVERSATION_ID = data["conversation_id"]
+    return data
+
+
+def _wait_and_fetch(data: dict) -> str:
+    """轮询对话直至结束，并返回助手 answer 内容。"""
+    conversation_id = data["conversation_id"]
+    chat_id = data["id"]
+    status = "in_progress"
+    for _ in range(160):
+        time.sleep(2)
+        rr = requests.get(
+            f"{COZE_API_BASE}/v3/chat/retrieve",
+            headers=HEADERS,
+            params={"conversation_id": conversation_id, "chat_id": chat_id},
+            timeout=30,
+        )
+        rr.raise_for_status()
+        rj = rr.json()
+        status = rj["data"]["status"]
+        if status in ("completed", "failed", "canceled"):
+            break
+    print(f"chat 状态: {status}")
+    if status != "completed":
+        msgs = requests.get(
+            f"{COZE_API_BASE}/v3/chat/message/list",
+            headers=HEADERS,
+            params={"conversation_id": conversation_id, "chat_id": chat_id},
+            timeout=30,
+        ).json()
+        partial = ""
+        for m in msgs.get("data", []):
+            if m.get("role") == "assistant" and m.get("type") == "answer":
+                partial = m.get("content", "")
+        print(f"[warn] 对话状态 {status}（可能达到单轮 5 次工具调用上限 6150），返回已生成部分 {len(partial)} 字供续写")
+        return partial  # 不抛错，交由调用方以“内容是否齐全”驱动续写
+    msg_resp = requests.get(
+        f"{COZE_API_BASE}/v3/chat/message/list",
+        headers=HEADERS,
+        params={"conversation_id": conversation_id, "chat_id": chat_id},
+        timeout=30,
+    )
+    msg_resp.raise_for_status()
+    for msg in msg_resp.json().get("data", []):
+        if msg.get("role") == "assistant" and msg.get("type") == "answer":
+            return msg.get("content", "")
+    raise RuntimeError("未找到有效的回答内容")
+
+
+def fetch_weekly_continued(instruction: str) -> str:
+    """在同一会话基础上续写周报剩余板块（用于突破 6150 上限）。"""
+    if not _LAST_CONVERSATION_ID:
+        raise RuntimeError("无可用会话上下文，请先调用首轮")
+    data = _create_chat(instruction, conversation_id=_LAST_CONVERSATION_ID)
+    return _wait_and_fetch(data)
+
 
 def fetch_weekly_html(attempt: int = 1, extra_instruction: str = "") -> str:
     """调用扣子 Bot 直接生成周报 HTML。
@@ -92,69 +177,9 @@ def fetch_weekly_html(attempt: int = 1, extra_instruction: str = "") -> str:
         "每个区域至少检索到对应数量的真实新闻后再输出，严禁以'暂无重大动态'敷衍整区。\n"
     ) + (extra_instruction or "")
 
-    resp = requests.post(
-        f"{COZE_API_BASE}/v3/chat",
-        headers=HEADERS,
-        json={
-            "bot_id": BOT_ID,
-            "user_id": "weekly_automation",
-            "stream": False,
-            "additional_messages": [
-                {
-                    "role": "user",
-                    "content": prompt,
-                    "content_type": "text",
-                }
-            ],
-            "auto_save_history": True,
-        },
-        timeout=60,
-    )
-    resp.raise_for_status()
-    chat_result = resp.json()
-    print("chat created:", json.dumps(chat_result, ensure_ascii=False, indent=2))
-
-    if chat_result.get("code") != 0:
-        raise RuntimeError(f"创建对话失败: {chat_result}")
-
-    conversation_id = chat_result["data"]["conversation_id"]
-    chat_id = chat_result["data"]["id"]
-
-    for _ in range(120):
-        time.sleep(2)
-        retrieve_resp = requests.get(
-            f"{COZE_API_BASE}/v3/chat/retrieve",
-            headers=HEADERS,
-            params={"conversation_id": conversation_id, "chat_id": chat_id},
-            timeout=30,
-        )
-        retrieve_resp.raise_for_status()
-        retrieve_result = retrieve_resp.json()
-        status = retrieve_result["data"]["status"]
-        last_error = retrieve_result["data"].get("last_error", {})
-        print(f"chat status: {status}, last_error: {last_error}")
-        if status in ("completed", "failed", "canceled"):
-            break
-    else:
-        raise RuntimeError("等待对话完成超时")
-
-    if status != "completed":
-        raise RuntimeError(f"对话未成功完成: {status}, last_error: {last_error}")
-
-    msg_resp = requests.get(
-        f"{COZE_API_BASE}/v3/chat/message/list",
-        headers=HEADERS,
-        params={"conversation_id": conversation_id, "chat_id": chat_id},
-        timeout=30,
-    )
-    msg_resp.raise_for_status()
-    msg_result = msg_resp.json()
-
-    for msg in msg_result.get("data", []):
-        if msg.get("role") == "assistant" and msg.get("type") == "answer":
-            return msg.get("content", "")
-
-    raise RuntimeError("未找到有效的回答内容")
+    print("chat created...")
+    data = _create_chat(prompt)
+    return _wait_and_fetch(data)
 
 
 def clean_html(content: str) -> str:
