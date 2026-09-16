@@ -416,11 +416,42 @@ def _split_card_by_links(card_el) -> List[Dict[str, object]]:
         if len(t) < 8 or t in seen:
             continue
         seen.add(t)
-        item: Dict[str, object] = {"title": "", "body": t}
+        # 继承卡片自身标题（通常是区域名），便于后续按区域归类
+        own_title = ""
+        ct = card_el.select_one(".card-title, .hotspot-title")
+        if ct:
+            own_title = clean_text(re.sub(r"<[^>]+>", " ", str(ct))).strip()
+            own_title = re.sub(r"\s*原文\s*$", "", own_title).strip()
+        item: Dict[str, object] = {"title": own_title, "body": t}
         if i < len(links):
             item["link"] = links[i]
         results.append(item)
-    return results
+
+    # 后处理：合并回落到下一条开头的"来源：xxx"前缀，丢弃无链接的尾部纯来源碎片
+    merged: List[Dict[str, object]] = []
+    for item in results:
+        body = item["body"]
+        # 若本条以"来源：X"结尾、且下一条才真正进入新动态，则把前缀并入下一条
+        if item.get("link") is None and body.startswith("来源"):
+            # 这条本身是尾部碎片（只有来源、无链接），并入前一条的展示不需要
+            if merged:
+                # 把"来源：X"并入上一条 body 末尾
+                merged[-1]["body"] = (merged[-1]["body"] + " " + body).strip()
+            continue
+        merged.append(item)
+    # 再次清理：任何 body 内残留的"来源：X 关键数据|"粘连，把来源归并上一条尾部
+    final: List[Dict[str, object]] = []
+    for item in merged:
+        body = item["body"]
+        # 若 body 开头是"来源：xxx"（来自换行落位），移到上一条尾部
+        m = re.match(r"^(来源[:：][^\n]{1,30})\s*(.*)$", body)
+        if m and final:
+            final[-1]["body"] = (final[-1]["body"] + " " + m.group(1)).strip()
+            body = m.group(2).strip()
+            item["body"] = body
+        if body or item.get("link"):
+            final.append(item)
+    return final
 
 
 def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
