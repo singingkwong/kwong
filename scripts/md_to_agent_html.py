@@ -263,13 +263,13 @@ def make_li(title: str, pts: dict[str, str], source: str, link: str) -> str:
             f'        关键数据/事件：{escape_html(key)}\n'
             f'        影响分析：{escape_html(imp)}\n'
             f'        趋势判断：{escape_html(tr)}\n'
-            f'        来源:{escape_html(source)} <a href="{href}" '
+            f'        <a href="{href}" '
             f'class="source-link" target="_blank">原文</a></li>')
 
 
 def simple_li(text: str, source: str, link: str) -> str:
     href = escape_html(link) if link else "#"
-    return (f'<li>{escape_html(text)} 来源:{escape_html(source)} '
+    return (f'<li>{escape_html(text)} '
             f'<a href="{href}" class="source-link" target="_blank">原文</a></li>')
 
 
@@ -347,6 +347,47 @@ def build_region_html(region_blocks: list[dict]) -> str:
     return "\n".join(parts)
 
 
+def build_injection(body: str) -> str:
+    """注塑机会专题：按 `**标题**：` 拆成多张 inj-card 卡，正文合并子要点、去掉 markdown 符号。"""
+    if not body:
+        return ""
+    lines = body.splitlines()
+    blocks: list[dict[str, object]] = []
+    cur: dict[str, object] | None = None
+    for raw in lines:
+        line = raw.strip()
+        if not line:
+            continue
+        # 每个条目：N. **标题**： 或 **标题**：
+        m0 = re.match(r"^\d+[\s.、．]\s*\*\*([^*]+)\*\*\s*[:：]?\s*$", line)
+        m1 = re.match(r"^\*\*([^*]+)\*\*\s*[:：]?\s*$", line)
+        m = m0 or m1
+        if m:
+            blocks.append({"title": clean(m.group(1)), "subs": []})
+            cur = blocks[-1]
+            continue
+        # 子要点：- xxx 或 纯文本
+        if cur is None:
+            blocks.append({"title": "", "subs": []})
+            cur = blocks[-1]
+        sub = re.sub(r"^[-•*]\s+", "", line)
+        sub = LINK_RE.sub("", sub)
+        if sub:
+            cur["subs"].append(clean(sub))  # type: ignore[attr-defined]
+
+    cards = []
+    for b in blocks:
+        title = b["title"]
+        subs = b["subs"]
+        body_txt = "；".join(subs) if subs else "本周暂无明确注塑机订单数据，持续跟踪注塑结构件、工程塑料替代等机会。"
+        t = escape_html(title) if title else "持续关注"
+        cards.append(
+            f'<div class="inj-card"><h3>{t}</h3>'
+            f'<div class="news-body rich">{escape_html(body_txt)}</div></div>'
+        )
+    return "\n".join(cards)
+
+
 def build_simple_section(body: str) -> str:
     """政策/车企/调研 等：每条 li 一条动态。"""
     events = split_events(body)
@@ -397,7 +438,7 @@ def main() -> None:
         "policy": sec("政策动态", build_simple_section(sections.get("policy", ""))),
         "oem": sec("车企动态", build_simple_section(sections.get("oem", ""))),
         "research": sec("调研报告·机构观点", build_simple_section(sections.get("research", ""))),
-        "injection": sec("注塑机会专题", build_simple_section(sections.get("injection", ""))),
+        "injection": sec("注塑机会专题", build_injection(sections.get("injection", ""))),
         "nextweek": sec("下周关注", build_simple_section(sections.get("nextweek", ""))),
     }
     for key in ("policy", "oem", "research", "injection", "nextweek"):

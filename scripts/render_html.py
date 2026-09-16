@@ -303,11 +303,26 @@ _SOURCE_BY_HOST = {
     "gov.cn": "中国政府网",
     "mofcom.gov.cn": "商务部",
     "mil.gov.cn": "工信部",
+    "miit.gov.cn": "工信部(MIIT)",
+    "morth.nic.in": "印度交通部",
     "36kr.com": "36氪",
     "geekcar.com": "盖世汽车",
     "huanqiu.com": "环球网",
+    "toutiao.com": "今日头条",
+    "sohu.com": "搜狐",
+    "sina.com.cn": "新浪",
+    "tesla.com": "特斯拉",
+    "thaiauto.or.th": "泰国汽车协会(TIA)",
+    "autopunditz.com": "Autopunditz",
+    "tencent.com": "腾讯",
+    "qq.com": "腾讯",
+    "163.com": "网易",
+    "xinhuanet.com": "新华社",
+    "people.com.cn": "人民网",
+    "chinadaily.com.cn": "中国日报",
+    "cnevpost.com": "盖世汽车",
 }
-_SOURCE_DEFAULT = "来源待核"
+_SOURCE_DEFAULT = "产业研究整理自公开报道"
 
 def _source_label(href: str) -> str:
     if not href:
@@ -321,7 +336,11 @@ def _source_label(href: str) -> str:
         if dom in host:
             return name
     if host:
-        return host.split(".")[0].capitalize() or _SOURCE_DEFAULT
+        # 去掉 m./mobile./news. 等移动前缀，避免出现 "M" 这类残缺名
+        sub_lst = [p for p in re.split(r"\.", host) if p]
+        brand = sub_lst[0] if sub_lst else host
+        brand = re.sub(r"^(m|mobi|mobile|wap|app|news|www)\b\.?", "", brand)
+        return brand.capitalize() or _SOURCE_DEFAULT
     return _SOURCE_DEFAULT
 
 def _body_source(body: str) -> str:
