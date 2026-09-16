@@ -62,7 +62,7 @@ def _wait_and_fetch(data: dict) -> str:
     conversation_id = data["conversation_id"]
     chat_id = data["id"]
     status = "in_progress"
-    for _ in range(160):
+    for _ in range(540):
         time.sleep(2)
         rr = requests.get(
             f"{COZE_API_BASE}/v3/chat/retrieve",

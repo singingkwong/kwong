@@ -64,11 +64,15 @@ def main():
     for r in range(1, 9):
         full = parts_full(parts)
         missing = still_missing(full)
-        if not missing or not full.strip():
+        if not missing and full.strip():
             break
-        print(f"---- 续写轮 {r}: {missing} ----", flush=True)
+        print(f"---- 续写轮 {r}: {missing or '(首轮为空,重新生成)'} ----", flush=True)
         try:
-            nxt = g.fetch_weekly_continued(CONT_TMPL.format(hints=missing))
+            if not full.strip():
+                # 首轮真空：该会话已 failed，改开一个全新对话直出完整周报
+                nxt = g.fetch_weekly_html(extra_instruction="请一次直接输出完整的 Markdown 周报全文：7个板块（本周总览/分区域市场动态/政策与法规/主要车企动态/注塑机会专题/下周关注），分区域含6个区域（中国/北美/欧洲/东南亚/印度/其他，每区至少3条），每条含 量化要点/产业链影响/趋势判断/【原文链接】+来源。直接输出 Markdown 正文。")
+            else:
+                nxt = g.fetch_weekly_continued(CONT_TMPL.format(hints=missing))
         except Exception as e2:
             print("续写异常:", e2, flush=True)
             time.sleep(4)
