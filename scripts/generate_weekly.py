@@ -217,15 +217,19 @@ def main():
             print("\n✅ Agent 输出通过全部检查，予以采纳。")
             break
 
-        # 计算缺失区域 → 构造补缺指令，供下一次重呼
+        # 计算缺失区域 + 空态板块 → 构造补缺指令，供下一次重呼
         missing = _missing_regions_from_checks(checks)
+        empty = agent_checks.empty_sections(checks)
         if missing:
             extra = (f"\n【上一版检查未通过，缺失以下区域的新闻，本次请务必专题搜索并补齐、每区至少 4 条真实新闻：{', '.join(missing)}】")
+        elif empty:
+            extra = (f"\n【上一版检查未通过，以下板块为空态占位，本次请务必用真实新闻补齐内容（禁止写'暂无/无新增'这类空话）：{', '.join(empty)}】")
         else:
             extra = "\n【上一版检查未通过（板块不全/三要点或链接不足），本次请严格按自检要求补齐所有板块与三要点原文链接】"
 
         if attempt < MAX_ATTEMPTS:
-            print(f"\n❌ 检查未通过（{len(summary['failed'])} 项），补缺：{missing if missing else '通用'}，将重试...")
+            targets = (missing or empty or ["通用"])
+            print(f"\n❌ 检查未通过（{len(summary['failed'])} 项），补缺：{targets}，将重试...")
         else:
             print(f"\n❌ 已达最大重试次数（{MAX_ATTEMPTS}），保留当前输出。")
 

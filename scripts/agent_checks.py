@@ -179,6 +179,24 @@ def validate(html: str) -> List[CheckItem]:
         checks.append(CheckItem(f"板块「{name}」", found if required else (True or found),
                                 "存在" if found else "缺失！"))
 
+    # 1.5) 正式板块空态检测（板块标题存在但内容为空态 → 判 FAIL，纳入补缺）
+    EMPTY_PHRASES = ("暂无", "无新增", "未更新", "待补充", "暂缺", "没有更新", "无重点")
+    for name, kws, required in EXPECTED_SECTIONS:
+        if name == "各地市场动态":  # 市场区域单独检测
+            continue
+        sec = next((s for s in sections if any(k in s["title"] for k in kws)), None)
+        if not sec:
+            continue  # 已由板块存在性检查覆盖
+        body_txt = clean_text(re.sub(r"<[^>]+>", " ", sec.get("body", "")))
+        empty_hit = [p for p in EMPTY_PHRASES if p in body_txt]
+        has_content = len(re.sub(r"、|。|，", "", body_txt)) > 30  # 去掉标点后仍有实质文字
+        if empty_hit and not has_content:
+            checks.append(CheckItem(f"板块「{name}」有实质内容", False,
+                                    f"空态占位（{'/'.join(empty_hit)}）→ 需补缺"))
+        else:
+            checks.append(CheckItem(f"板块「{name}」有实质内容", True,
+                                    "无空态占位" if empty_hit else "正常"))
+
     # 2) 市场区域覆盖
     market = _find_market_section(sections)
     all_names = " ".join(present)
@@ -225,6 +243,19 @@ def validate(html: str) -> List[CheckItem]:
     checks.append(CheckItem("原文链接无伪造格式", not fake, f"{len(fake)} 条疑似伪造" if fake else f"{len(anchors)} 条链接格式正常"))
 
     return checks
+
+
+def empty_sections(checks: List[CheckItem]) -> List[str]:
+    """从校验失败项中提取"空态占位"的正式板块名（用于补缺指令）。"""
+    empty: List[str] = []
+    for c in checks:
+        if not c.passed and "有实质内容" in c.name and "空态占位" in c.detail:
+            name = c.name
+            for lab in ("本周总览", "各地市场", "政策动态", "车企动态", "调研报告", "注塑机会", "下周关注"):
+                if lab in name:
+                    empty.append(name.split("「")[1].split("」")[0])
+                    break
+    return empty
 
 
 def summarize(checks: List[CheckItem]) -> Dict[str, object]:
