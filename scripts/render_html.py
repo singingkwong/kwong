@@ -490,6 +490,44 @@ def _split_card_by_li_events(card_el) -> List[Dict[str, object]]:
     return items
 
 
+def _split_card_by_paras(card_el) -> List[Dict[str, object]]:
+    """当卡片 card-content 内含 >=2 个 <p>、且每个 <p> 都含完整三要点时，按 <p> 拆分。
+
+    Agent 的市场卡有两种结构：
+      1) ul.styled-list > li（每个 li 一个事件）——由 _split_card_by_li_events 处理；
+      2) card-content > 多个 <p>，每个 <p> 是一个独立事件（内含 关键数据/影响分析/趋势判断，
+         用 <br> 分隔 + 来源 + source-link）——本函数处理。
+    每个 <p> 保留完整三要点，独立成一张 news-card，避免被 _split_card_by_links 按链接拆散。
+    """
+    content_el = card_el.select_one(".card-content, .news-body")
+    root = content_el if content_el else card_el
+    paras = root.find_all("p")
+    if len(paras) < 2:
+        return []
+
+    # 继承卡片标题（通常是区域名）
+    ct = card_el.select_one(".card-title, h3, h4")
+    own_title = clean_text(ct.get_text(" ", strip=True)) if ct else ""
+    own_title = re.sub(r"\s*原文\s*$", "", own_title).strip() if own_title else ""
+
+    items: List[Dict[str, object]] = []
+    seen = set()
+    for p in paras:
+        txt = clean_text(p.get_text(" ", strip=True)).strip()
+        if not txt or len(txt) < 12 or txt in seen:
+            continue
+        # 仅当该 <p> 含完整三要点才视为一条独立事件
+        if not _split_points(txt):
+            continue
+        seen.add(txt)
+        item: Dict[str, object] = {"title": own_title, "body": txt}
+        link = _first_link(p)
+        if link:
+            item["link"] = link
+        items.append(item)
+    return items if len(items) >= 1 else []
+
+
 def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
     """从一段 HTML 中提取标题+正文+原文链接。
 
@@ -516,6 +554,12 @@ def extract_cards_from_body(body: str) -> List[Dict[str, object]]:
         li_items = _split_card_by_li_events(c)
         if li_items:
             cards.extend(li_items)
+            continue
+
+        # 其次：card-content 内多个 <p>，每个 <p> 是独立事件且含完整三要点
+        para_items = _split_card_by_paras(c)
+        if para_items:
+            cards.extend(para_items)
             continue
 
         # 一张卡片里若含多个原文链接（Agent 偶发把多条动态合并进一张卡），
