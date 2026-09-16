@@ -9,6 +9,7 @@ import re
 import time
 from datetime import datetime
 from pathlib import Path
+from typing import List
 
 import requests
 
@@ -24,8 +25,12 @@ HEADERS = {
 ROOT = Path(__file__).resolve().parent.parent
 
 
-def fetch_weekly_html(attempt: int = 1) -> str:
-    """调用扣子 Bot 直接生成周报 HTML。attempt 为第几次尝试（用于提示重试）。"""
+def fetch_weekly_html(attempt: int = 1, extra_instruction: str = "") -> str:
+    """调用扣子 Bot 直接生成周报 HTML。
+
+    attempt: 第几次尝试（用于提示重试）；extra_instruction: 追加到 prompt 的补缺指令
+    （如"上一次漏掉了印度/南美，本次必须补齐这些区域"）。
+    """
     today = datetime.now().strftime("%Y年%m月%d日")
     prompt = (
         f"请生成一份{today}的全球汽车行业深度周报，并直接输出完整的 HTML 文件内容。"
@@ -78,7 +83,10 @@ def fetch_weekly_html(attempt: int = 1) -> str:
         "    (b) 中国／北美／欧洲／东南亚／印度 这 5 张卡，**每张卡内的 card-content 都必须包含至少 4 个 <li> 列表项**（每个 <li> 是一条独立市场动态，各含'关键数据/事件：…／影响分析：…／趋势判断：…'三要点 + '来源：机构名' + 一个 <a class='source-link'> 原文链接，且三者与来源必须在同一个 <li> 内）；'其他'区域卡可包含 1-4 条或说明本周无重大新增；\n"
         "    (c) 全篇至少要有 4+4+4+4+4=20 条带 source-link 链接的独立动态分散在上述 5 张区域卡内（允许更多，但不能少于 20）；\n"
         "    (d) 输出完成后逐条核对 (a)(b)(c)，若任一不满足，必须即时补充对应区域卡或列表项，直到 6 张卡、每卡 ≥4 条、共 ≥20 条全部达标再结束生成。每一条事件的三要点（关键数据/事件、影响分析、趋势判断）与来源必须放在同一个 <li> 列表项内，严禁拆成多个 <li>。"
-    )
+        "12. 【联网搜索要求】在生成'各地市场动态'前，请**先联网搜索**以下 6 个地区各自近一周的汽车行业新闻/销量/政策/车企动向，逐区检索后再写入：中国、北美、欧洲、东南亚、印度、其他（南美/日韩/俄罗斯等）。"
+        "尤其注意印度（可参考 SIAM、ACMA、Motown India 等机构与当地媒体）与东南亚（GAIKINDO、泰国汽车工业协会）一般每周都有真实新闻，不要因为偷懒而漏写或整区空缺。"
+        "每个区域至少检索到对应数量的真实新闻后再输出，严禁以'暂无重大动态'敷衍整区。\n"
+    ) + (extra_instruction or "")
 
     resp = requests.post(
         f"{COZE_API_BASE}/v3/chat",
@@ -169,16 +177,29 @@ def save_html(content: str) -> Path:
 
 MAX_ATTEMPTS = int(os.environ.get("AGENT_MAX_ATTEMPTS", "3"))
 
+def _missing_regions_from_checks(checks) -> List[str]:
+    """从校验失败项中提取缺失的区域名（用于补缺指令）。"""
+    missing: List[str] = []
+    for c in checks:
+        name = getattr(c, "name", "")
+        if name.startswith("市场区域「") and not c.passed:
+            m = re.search(r"市场区域「(.+?)」", name)
+            if m:
+                missing.append(m.group(1))
+    return missing
+
+
 def main():
     print("开始调用 Agent 生成周报 HTML...")
     from agent_checks import print_report, validate
     import agent_checks
 
     content = ""
+    extra = ""
     for attempt in range(1, MAX_ATTEMPTS + 1):
         if attempt > 1:
             print(f"\n▶ 第 {attempt} 次尝试生成（上一版未通过检查）...")
-        raw = fetch_weekly_html(attempt=attempt)
+        raw = fetch_weekly_html(attempt=attempt, extra_instruction=extra)
         content = clean_html(raw)
         html_path = save_html(content)
 
@@ -195,8 +216,16 @@ def main():
         if summary["ok"]:
             print("\n✅ Agent 输出通过全部检查，予以采纳。")
             break
+
+        # 计算缺失区域 → 构造补缺指令，供下一次重呼
+        missing = _missing_regions_from_checks(checks)
+        if missing:
+            extra = (f"\n【上一版检查未通过，缺失以下区域的新闻，本次请务必专题搜索并补齐、每区至少 4 条真实新闻：{', '.join(missing)}】")
+        else:
+            extra = "\n【上一版检查未通过（板块不全/三要点或链接不足），本次请严格按自检要求补齐所有板块与三要点原文链接】"
+
         if attempt < MAX_ATTEMPTS:
-            print(f"\n❌ 检查未通过（{len(summary['failed'])} 项）：将重试...")
+            print(f"\n❌ 检查未通过（{len(summary['failed'])} 项），补缺：{missing if missing else '通用'}，将重试...")
         else:
             print(f"\n❌ 已达最大重试次数（{MAX_ATTEMPTS}），保留当前输出。")
 

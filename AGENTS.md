@@ -52,7 +52,7 @@ coze dev
 
 ## Agent 输出检查清单（scripts/agent_checks.py）
 
-`generate_weekly.py` 每次生成后自动对 Agent 输出的 HTML 执行 `agent_checks.validate()`，不合格自动重试（默认最多 3 次，可用环境变量 `AGENT_MAX_ATTEMPTS` 调整）。检查维度：
+`generate_weekly.py` 每次生成后自动对 Agent 输出的 HTML 执行 `agent_checks.validate()`，不合格自动重试（默认最多 3 次，可用环境变量 `AGENT_MAX_ATTEMPTS` 调整），且**补缺重试**：若某区域无内容（如印度/南美空缺），会把缺失区域清单传给下一次重呼，要求 Agent 专题搜索补齐该区新闻。检查维度：
 
 1. **七大板块齐全**：本周总览 / 各地市场动态 / 政策动态 / 车企动态 / 调研报告·机构观点 / 注塑机会专题 / 下周关注。
 2. **市场六大区域覆盖**：中国、北美、欧洲、东南亚、印度、其他——每个区域都须有内容，否则对应板块会空置（"无 news"）。
