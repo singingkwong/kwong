@@ -43,6 +43,14 @@ coze dev
 新版流水线路径为 **Agent 输出文本(markdown) → agent.html → index.html → 注入配图**：
 
 ```bash
+python3 scripts/run_pipeline.py                              # 一键：fetch Agent md → 转 HTML → 渲染 → 注入图 → 推送企微
+python3 scripts/run_pipeline.py --md weekly_agent_output.md  # 跳过 fetch，用指定 md
+python3 scripts/run_pipeline.py --no-fetch                   # 跳过 fetch，使用已有 weekly_*.md
+```
+
+分步（也可单独执行）：
+
+```bash
 python3 scripts/md_to_agent_html.py weekly_agent_output.md agent.html   # 步骤1：文本转 HTML
 python3 scripts/render_html.py agent.html                                # 步骤2：渲染成品页
 python3 scripts/inject_images.py index.html                             # 步骤3：注入板块配图
