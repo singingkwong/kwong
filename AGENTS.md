@@ -16,13 +16,16 @@
 ```
 .
 ├── index.html              # 周报主页面（GitHub Pages 入口）
+├── images/                 # 板块配图（真实 jpeg，相对路径引用）
 ├── styles/                 # 样式目录
 ├── .coze                   # Coze 运行配置
 ├── .gitignore              # Git 忽略规则
 ├── scripts/
 │   ├── generate_weekly.py  # 调用扣子 Agent 生成周报 HTML
+│   ├── md_to_agent_html.py # 将 Agent 文本(markdown) 转成 agent.html（文件驱动，可复用）
 │   ├── agent_checks.py     # Agent 输出检查清单（7 板块/6 区域/三要点/来源/链接）
-│   ├── render_html.py      # 将 Agent HTML 渲染为成品周报页面
+│   ├── render_html.py      # 将 agent.html 渲染为成品周报页面
+│   ├── inject_images.py    # 渲染后向 index.html 注入板块配图（≥3 张）
 │   └── send_wecom.py       # 企业微信热点推送
 ├── templates/weekly.html   # 成品渲染模板
 ├── DESIGN.md              # 设计规范（渲染与三要点卡片规则）
@@ -34,6 +37,24 @@
 ```bash
 coze dev
 ```
+
+## 文本 → 成品渲染流水线（GitHub workflow 可复用）
+
+新版流水线路径为 **Agent 输出文本(markdown) → agent.html → index.html → 注入配图**：
+
+```bash
+python3 scripts/md_to_agent_html.py weekly_agent_output.md agent.html   # 步骤1：文本转 HTML
+python3 scripts/render_html.py agent.html                                # 步骤2：渲染成品页
+python3 scripts/inject_images.py index.html                             # 步骤3：注入板块配图
+```
+
+- `md_to_agent_html.py` 是**文件驱动**的转换器（输入/输出路径走命令行参数，默认
+  `weekly_agent_output.md` → `agent.html`），解析七大板块 / 六大区域 / 三要点 / 来源 / 原文链接，
+  并为缺少"趋势判断"的事件按内容规则自动补足三要点。上线后 Agent 只需输出符合约定的 markdown，
+  天然支持各区域小标题（### 中国市场 / 欧洲 / 北美 / 东南亚 / 印度）。
+- `inject_images.py` 在渲染完成后向 `index.html` 三个板块插入真实配图（`images/*.jpeg`，相对路径），
+  满足 DESIGN 的"配图 ≥3 张"要求；配图从脚本注入而非 Agent 产物，避免 render 丢弃 `<img>` 导致配图缺失。
+- 配图文件放 `images/`（相对路径引用），兼顾沙箱预览与 GitHub Pages 子路径部署。
 
 ## GitHub Pages 部署要点
 

@@ -752,6 +752,29 @@ a:focus-visible{outline:2px solid var(--accent-blue);outline-offset:2px;border-r
   a{color:#111;text-decoration:underline}
   a[href]::after{content:" (" attr(href) ")";font-size:10px;color:#666}
 }
+
+/* ── 板块配图 ───────────────────────────── */
+.weekly-figure{
+  margin:4px 0 20px;
+  border-radius:14px;
+  overflow:hidden;
+  box-shadow:0 12px 30px rgba(0,0,0,.35);
+  border:1px solid var(--border-color);
+}
+.weekly-img{
+  display:block;
+  width:100%;
+  height:auto;
+  aspect-ratio:16/9;
+  object-fit:cover;
+  border-radius:14px;
+}
+.weekly-figure-hero{margin:6px 0 24px}
+.weekly-figure-markets{margin:0 0 26px}
+.weekly-figure-injection{margin:0 0 24px}
+@media print{
+  .weekly-figure{box-shadow:none;border-color:#ddd}
+}
 </style>
 </head>
 <body>
