@@ -242,6 +242,21 @@ def validate(html: str) -> List[CheckItem]:
     fake = [h for h in anchors if _is_fake_link_format(h)]
     checks.append(CheckItem("原文链接无伪造格式", not fake, f"{len(fake)} 条疑似伪造" if fake else f"{len(anchors)} 条链接格式正常"))
 
+    # 5) 配图数量必须达标（≥3 张）
+    soups = [BeautifulSoup(full_html, "html.parser")]
+    soup = soups[0]
+    n_img = len([i for i in soup.find_all("img") if i.get("src") and i["src"].startswith("http")])
+    checks.append(CheckItem("配图数量达标",
+                            n_img >= 3,
+                            f"{n_img} 张配图（要求 ≥3）"))
+
+    # 6) 全篇原文链接总数必须达标（≥26 条）
+    n_src = len([a for a in soup.find_all("a", class_="source-link", href=True)
+                 if a["href"].startswith("http")])
+    checks.append(CheckItem("原文链接数量达标",
+                            n_src >= 26,
+                            f"{n_src} 条原文链接（要求 ≥26）"))
+
     return checks
 
 
