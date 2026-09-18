@@ -6,7 +6,7 @@
   1) 调用扣子 Agent 抓取 Markdown 文本     -> scripts/fetch_weekly_text.py  → ROOT/weekly_YYYYMMDD.md
   2) 文本(markdown) → agent.html          -> scripts/md_to_agent_html.py   → ROOT/agent.html
   3) agent.html → index.html（成品渲染）   -> scripts/render_html.py        → ROOT/index.html
-  4) 注入板块配图                         -> scripts/inject_images.py      → ROOT/index.html（配图 ≥3 张）
+  4) 注入板块配图（默认关闭，--with-images 开启） -> scripts/inject_images.py
   5) 推送企业微信图文（可选）              -> scripts/send_wecom.py         需要 WECOM_WEBHOOK_KEY
 
 用法：
@@ -75,8 +75,11 @@ def main() -> None:
     # 3) 渲染 index.html
     run([sys.executable, str(SCRIPTS / "render_html.py"), str(agent_path)], "渲染 index.html")
 
-    # 4) 注入配图（配图来自 Agent md 中的远程图片）
-    run([sys.executable, str(SCRIPTS / "inject_images.py"), str(index_path), f"--md={md}"], "注入板块配图")
+    # 4) 注入配图（默认关闭；仅显式传 --with-images 时注入，配图来自 Agent md 中的远程图片）
+    if "--with-images" in sys.argv:
+        run([sys.executable, str(SCRIPTS / "inject_images.py"), str(index_path), f"--md={md}"], "注入板块配图")
+    else:
+        print("[skip] 配图注入已默认关闭（如需启用请加 --with-images）")
 
     # 5) 推送企微（可选）
     if do_push:
@@ -86,7 +89,7 @@ def main() -> None:
         else:
             run([sys.executable, str(SCRIPTS / "send_wecom.py")], "推送企业微信")
 
-    print("\n✅ 流水线完成：agent.html + index.html（含配图）已就绪。")
+    print("\n✅ 流水线完成：agent.html + index.html 已就绪。")
 
 
 if __name__ == "__main__":
