@@ -488,25 +488,70 @@ def build_simple_section(body: str) -> str:
 
 
 def build_overview(body: str) -> str:
-    events = split_events(body)
-    lis = []
+    """本周总览：引言段落 + 热点卡片（hotspot-card）。
+
+    Bot 常见结构：
+      总述段落 × 2
+      ### 本周核心热点
+      1. **热点标题**【原文链接】：url
+      2. ...
+    旧逻辑只按数字序号 split_events，导致总述+子标题残留并入第一张卡、
+    标题 ** 残留、render 兜底标题变"要点N"。现按「### 子标题」切分引言与热点列表，
+    每个热点输出 hotspot-card（render 原生识别，标题/正文/链接各归其位）。
+    """
+    lines = body.splitlines()
+    intro_lines: list[str] = []
+    hotspot_lines: list[str] = []
+    in_hotspot = False
+    for line in lines:
+        if re.match(r"^\s*#{1,6}\s+", line):
+            in_hotspot = True  # 遇到子标题（如「### 本周核心热点」）后进入热点列表区
+            continue
+        (hotspot_lines if in_hotspot else intro_lines).append(line)
+
+    intro = clean("\n".join(intro_lines)).strip()
+    hotspot_body = "\n".join(hotspot_lines) if in_hotspot else body
+    events = split_events(hotspot_body)
+
+    out: list[str] = []
+    if intro:
+        out.append(f"<p class='overview-intro'>{escape_html(intro)}</p>")
+
     for e in events:
         txt = clean(e)
         if not txt:
             continue
         txt = re.sub(r"^\d+[\s.、．]\s*", "", txt)
         link = extract_link(txt)
-        # 正文里残留的【原文链接】:URL 不当作纯文本显示，改为可点击"原文链接"
         txt = re.sub(r"【?原文链接】?[:：]?\s*https?://\S+", "", txt)
-        txt = re.sub(r"\s+", " ", txt).strip(" ：:～—| 【】")
-        if link:
-            href = escape_html(link)
-            txt = f'{txt} <a href="{href}" class="source-link" target="_blank">原文链接</a>'
-        if txt:
-            lis.append(f"<li>{txt}</li>")
-    if not lis:
+        # 提取 **标题**；无加粗则取首个句子作标题
+        title = ""
+        desc = ""
+        m = re.search(r"\*\*([^*]{4,120})\*\*", txt)
+        if m:
+            title = m.group(1).strip(" ：:，,。;；")
+            desc = (txt[: m.start()] + txt[m.end():]).strip(" ：:，,。;；")
+        else:
+            parts = re.split(r"(?<=[。；;])\s*", txt, maxsplit=1)
+            if len(parts) == 2 and len(parts[0]) >= 8:
+                title, desc = parts[0].strip(), parts[1].strip()
+            else:
+                title, desc = txt.strip(), ""
+        title = re.sub(r"\*\*", "", title).strip()
+        desc = re.sub(r"\*\*", "", desc).strip()
+        if not title:
+            continue
+        href = f' <a href="{escape_html(link)}" class="source-link" target="_blank">原文链接</a>' if link else ""
+        desc_html = f'<p class="hotspot-desc">{escape_html(desc)}</p>' if desc else ""
+        out.append(
+            f'<div class="hotspot-card">'
+            f'<h3 class="hotspot-title">{escape_html(title)}</h3>'
+            f'{desc_html}{href}</div>'
+        )
+
+    if not out:
         return "<p>本周全球汽车行业动态汇总。</p>"
-    return "<ul class='styled-list'>\n" + "\n".join(lis) + "\n</ul>"
+    return "\n".join(out)
 
 
 def main() -> None:
