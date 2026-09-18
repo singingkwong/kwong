@@ -96,10 +96,11 @@ def _title_key(title: str) -> str | None:
 def _split_sections_impl(lines: list[str]) -> dict[str, str]:
     marks: list[tuple[int, str, str]] = []
     for i, line in enumerate(lines):
-        # 板块标题是 # / ## 两级；### 及以下的标题属于板块内部卡片标题，
-        # 不能当作板块边界（否则会把调研/注塑等板块正文切丢）。
-        m = re.match(r"^\s*(#{1,2})\s+(.+)", line)
-        if m and len(m.group(1)) <= 2:
+        # 板块标题：# / ## 两级；#### 及以下的标题属于板块内部卡片标题。
+        # 兼容 Bot 把非市场板块写成 `### 5. 行业调研`/`### 6. 下周关注` 这类
+        # 带编号的三级标题：只要标题能命中板块关键词，同样视为板块边界。
+        m = re.match(r"^\s*(#{1,3})\s+(.+)", line)
+        if m and len(m.group(1)) <= 3:
             key = _title_key(m.group(2))
             if key:
                 marks.append((i, m.group(2).strip(), key))
@@ -275,11 +276,11 @@ def simple_li(text: str, source: str, link: str) -> str:
             f'<a href="{href}" class="source-link" target="_blank">原文</a></li>')
 
 
-# 板块配图（相对路径，沙箱与 GitHub Pages 子路径均可加载；16:9 防布局抖动）
+# 板块配图（webp 小图，相对路径，沙箱与 GitHub Pages 子路径均可加载；16:9 防布局抖动）
 _SECTION_IMG: dict[str, str] = {
-    "本周总览": "images/cover-global-weekly.jpeg",
-    "各地市场动态": "images/export-port.jpeg",
-    "注塑机会专题": "images/injection-factory.jpeg",
+    "本周总览": "images/cover-global-weekly.webp",
+    "各地市场动态": "images/export-port.webp",
+    "注塑机会专题": "images/injection-factory.webp",
 }
 
 

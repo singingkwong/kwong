@@ -13,6 +13,7 @@
 输出：ROOT/weekly_YYYYMMDD.md（Agent 原始 Markdown 文本）。
 """
 import os
+import re
 import sys
 import time
 from datetime import datetime
@@ -164,12 +165,22 @@ def parts_full(parts):
     return "\n".join(x for x in parts if x)
 
 
+def _headlines(full: str) -> str:
+    """提取全文的标题行（#/##/###…），用于板块完整度判断。"""
+    out = []
+    for line in full.splitlines():
+        if re.match(r"^\s*#{1,3}\s+", line):
+            out.append(re.sub(r"^\s*#{1,3}\s+", "", line).strip(" #.*-="))
+    return "\n".join(out)
+
+
 def still_missing(full: str) -> str:
     hints = []
-    miss_regs = [r for r in REGS if f"{r}市场" not in full]
+    heads = _headlines(full)
+    miss_regs = [r for r in REGS if f"{r}市场" not in heads]
     if miss_regs:
         hints.append("分区域市场动态尤其要补齐：" + "、".join(miss_regs))
-    miss_secs = [s for s in SECTIONS if s not in full]
+    miss_secs = [s for s in SECTIONS if s not in heads]
     if miss_secs:
         hints.append("补齐板块：" + "、".join(miss_secs))
     return "；".join(hints)

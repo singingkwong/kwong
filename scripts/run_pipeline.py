@@ -75,8 +75,8 @@ def main() -> None:
     # 3) 渲染 index.html
     run([sys.executable, str(SCRIPTS / "render_html.py"), str(agent_path)], "渲染 index.html")
 
-    # 4) 注入配图
-    run([sys.executable, str(SCRIPTS / "inject_images.py"), str(index_path)], "注入板块配图")
+    # 4) 注入配图（配图来自 Agent md 中的远程图片）
+    run([sys.executable, str(SCRIPTS / "inject_images.py"), str(index_path), f"--md={md}"], "注入板块配图")
 
     # 5) 推送企微（可选）
     if do_push:
