@@ -558,8 +558,13 @@ def build_overview(body: str) -> str:
         if not txt:
             continue
         txt = re.sub(r"^\d+[\s.、．]\s*", "", txt)
+        txt = re.sub(r"^[-*•]\s*", "", txt)  # 剥离列表项前缀 `- `
         link = extract_link(txt)
         txt = re.sub(r"【?原文链接】?[:：]?\s*https?://\S+", "", txt)
+        # 「**热点1**：内容」/「**看点**：内容」→ label 为通用词时取冒号后内容
+        m_label = re.match(r"^\*\*([^*]{2,15})\*\*\s*[:：]\s*(.+)$", txt, re.S)
+        if m_label and re.match(r"^(热点|看点|要点|主题|事件|news)\s*\d*$", m_label.group(1), re.I):
+            txt = m_label.group(2).strip()
         # 提取 **标题**；无加粗则取首个句子作标题
         title = ""
         desc = ""
@@ -568,11 +573,19 @@ def build_overview(body: str) -> str:
             title = m.group(1).strip(" ：:，,。;；")
             desc = (txt[: m.start()] + txt[m.end():]).strip(" ：:，,。;；")
         else:
-            parts = re.split(r"(?<=[。；;])\s*", txt, maxsplit=1)
-            if len(parts) == 2 and len(parts[0]) >= 8:
-                title, desc = parts[0].strip(), parts[1].strip()
+            # 标题取首个完整短句：先按句号分，首句过长（>45字）则按逗号再分，保证标题紧凑
+            m_stop = re.search(r"[。；;]", txt)
+            head = txt[: m_stop.start()] if m_stop else txt
+            tail = txt[m_stop.end():] if m_stop else ""
+            if len(head) > 45:
+                m_comma = re.search(r"[，,]", head)
+                if m_comma and m_comma.start() >= 8:
+                    title = head[: m_comma.start()].strip()
+                    desc = (head[m_comma.end():] + ("。" + tail if tail else "")).strip(" ，,。;；")
+                else:
+                    title, desc = head.strip(), tail.strip()
             else:
-                title, desc = txt.strip(), ""
+                title, desc = (head.strip(), tail.strip()) if len(head) >= 8 else (txt.strip(), "")
         title = re.sub(r"\*\*", "", title).strip()
         desc = re.sub(r"\*\*", "", desc).strip()
         if not title:

@@ -21,6 +21,53 @@ GITHUB_REPO = os.environ.get("GITHUB_REPO", os.environ.get("GITHUB_REPOSITORY_NA
 BASE_URL = f"https://{GITHUB_USER}.github.io/{GITHUB_REPO}"
 COVER_URL = f"{BASE_URL}/cover.png"
 
+# 封面图候选列表（按优先级）：主图 -> 压缩备用图，均托管在 GitHub Pages 下。
+# 备用图用 jpg（企微对 webp 兼容性差，可能显示破图；jpg 压缩率高、加载快）。
+COVER_CANDIDATES = [
+    COVER_URL,
+    f"{BASE_URL}/cover-wecom.jpg",
+]
+
+
+def _check_image_reachable(url: str, timeout: int = 10) -> bool:
+    """校验图片 URL 真实可达且非破损。
+
+    判定标准（全部满足才算有效）：
+    1. HTTP 状态码 200
+    2. Content-Type 为 image/*
+    3. Content-Length 大于 0（防止 0 字节破损文件）
+    """
+    try:
+        resp = requests.head(url, timeout=timeout, allow_redirects=True)
+        if resp.status_code != 200:
+            return False
+        ctype = resp.headers.get("Content-Type", "")
+        if not ctype.lower().startswith("image/"):
+            return False
+        length = resp.headers.get("Content-Length")
+        if length is not None and int(length) <= 0:
+            return False
+        return True
+    except (requests.RequestException, ValueError):
+        return False
+
+
+def resolve_cover_url() -> str:
+    """返回经验证真实可达的封面图 URL。
+
+    逐个校验候选图（HTTP 200 + image/* + 非空内容），返回第一个有效的；
+    全部不可达时抛出异常并阻止发送，保证企微绝不收到无图/破图卡片。
+    """
+    for url in COVER_CANDIDATES:
+        if _check_image_reachable(url):
+            print(f"[cover] 封面图校验通过: {url}")
+            return url
+        print(f"[warn] 封面图不可达，尝试备用图: {url}")
+    raise RuntimeError(
+        "企微封面图全部不可达，已阻止发送以避免无图/破图卡片: "
+        + ", ".join(COVER_CANDIDATES)
+    )
+
 
 def find_html() -> Path:
     html_path = ROOT / "index.html"
@@ -439,14 +486,18 @@ def _polish_hotspot_title(idx: int, title: str) -> str:
     return f"{prefix} {title}"
 
 
-def build_payload(title: str, summary: str, hotspots: list) -> dict:
-    """构建企微图文消息 payload。热点卡片 url 带章节锚点。"""
+def build_payload(title: str, summary: str, hotspots: list, cover_url: str) -> dict:
+    """构建企微图文消息 payload。热点卡片 url 带章节锚点。
+
+    cover_url 必须是经 resolve_cover_url() 校验过的真实可达图片，
+    所有卡片（主卡 + 热点小卡）统一使用该图，杜绝无图/破图。
+    """
     articles = [
         {
             "title": title,
             "description": summary,
             "url": BASE_URL,
-            "picurl": COVER_URL,
+            "picurl": cover_url,
         }
     ]
 
@@ -466,7 +517,7 @@ def build_payload(title: str, summary: str, hotspots: list) -> dict:
             "title": _polish_hotspot_title(idx, hotspot["title"]),
             "description": description,
             "url": url,
-            "picurl": COVER_URL,
+            "picurl": cover_url,
         })
 
     return {"msgtype": "news", "news": {"articles": articles}}
@@ -496,7 +547,10 @@ def main() -> None:
     print(f"摘要: {summary}")
     print(f"热点数: {len(hotspots)}")
 
-    payload = build_payload(title, summary, hotspots)
+    # 发送前强制校验封面图：必须真实可达、非破损，否则直接中止，不发破图卡片
+    cover_url = resolve_cover_url()
+
+    payload = build_payload(title, summary, hotspots, cover_url)
     print("Payload:", json.dumps(payload, ensure_ascii=False, indent=2))
 
     result = send_message(payload)
