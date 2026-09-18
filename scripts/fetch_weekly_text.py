@@ -16,7 +16,7 @@ import os
 import re
 import sys
 import time
-from datetime import datetime
+from datetime import datetime, timedelta
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -32,11 +32,19 @@ import requests as REQUESTS
 SECTIONS = ["本周总览", "各地市场动态", "政策", "车企", "调研", "注塑", "下周关注"]
 REGS = ["中国", "北美", "欧洲", "东南亚", "印度", "其他"]
 
-MAIN_PROMPT = f"""请直接一次输出完整的《全球汽车行业深度周报（{datetime.now().strftime('%Y年%m月%d日')}）》Markdown 文本。
+_NOW = datetime.now()
+_TODAY = _NOW.strftime('%Y年%m月%d日')
+# 下周关注的时间窗（明天起 7 天内），用于约束 Bot 不得使用往年同期事件
+_NEXT_START = (_NOW + timedelta(days=1)).strftime('%Y年%m月%d日')
+_NEXT_END = (_NOW + timedelta(days=7)).strftime('%Y年%m月%d日')
+_YEAR = _NOW.strftime('%Y')
+
+MAIN_PROMPT = f"""请直接一次输出完整的《全球汽车行业深度周报（{_TODAY}）》Markdown 文本。
 
 【务必严格遵守】
 - 只输出 Markdown 正文本身，禁止输出 HTML 代码，禁止输出任何前后说明文字、禁止用代码块包裹。
 - 内容基于你联网检索到的近 7 天真实行业数据（政策、车企动态、各地销量/渗透率、行业报告、注塑机与汽车注塑件相关机会），每条信息标注真实出处。
+- 当前真实日期是 {_TODAY}（{_YEAR} 年）。全文所有日期、数据、事件必须与 {_YEAR} 年一致；严禁把往年（如 {int(_YEAR)-1} 年或更早）的同期事件、历史数据当作本周新闻或下周关注。
 
 一、板块齐全，用 Markdown 二级标题（##）依次输出，一个都不能少：
 1. 本周总览（2-3 段概述 + 3 个本周核心热点，每条给原文链接）
@@ -45,7 +53,7 @@ MAIN_PROMPT = f"""请直接一次输出完整的《全球汽车行业深度周�
 4. 主要车企动态（至少 2 条）
 5. 调研报告/机构观点（至少 2 条）
 6. 注塑机会专题（至少 3 个方向，每个用 **标题**：列出机会点、对应设备/材料、涉及客户）
-7. 下周关注（3-5 条，纯列表项）
+7. 下周关注（3-5 条，纯列表项；**只能是 {_NEXT_START} 至 {_NEXT_END} 这 7 天内即将发生的真实事件**，日期一律用 {_YEAR} 年表述；若检索到的是往年同期日程，必须确认该事件在 {_YEAR} 年同一时间点确实仍会发生，否则不要列出）
 
 二、各地市场动态区域要求（用 Markdown 三级标题 ###）：
 - 依次输出固定 6 个区域：### 中国市场、### 北美市场、### 欧洲市场、### 东南亚市场、### 印度市场、### 其他市场（南美/日韩/俄罗斯等并入"其他"）。
@@ -231,6 +239,12 @@ def main():
             f"周报生成不合格：仍缺失【{still}】。"
             f"（当前正文 {len(full)} 字）为保质量不落盘，流水线中止，请检查 Bot 与网络。"
         )
+
+    # 兜底校验：扫描"下周关注"及全文中的往年日期，发现则告警（不阻断，便于 Actions 日志排查）
+    stale = sorted(set(re.findall(r"(19\d{2}|20[0-2]\d)\s*年", full)))
+    stale = [y for y in stale if int(y) < _NOW.year]
+    if stale:
+        print(f"[warn] 正文出现往年日期 {stale}，疑似 Bot 引用了往年同期事件，请人工复核", flush=True)
 
     date = datetime.now().strftime("%Y%m%d")
     out = ROOT / f"weekly_{date}.md"
