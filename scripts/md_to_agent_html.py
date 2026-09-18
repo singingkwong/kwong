@@ -384,49 +384,88 @@ def build_injection(body: str) -> str:
 
 
 def build_research(body: str) -> str:
-    """调研报告·机构观点：按 `### **调研标题**` 拆成多张 research-card。"""
+    """调研报告·机构观点：按条目拆成多张 research-card。
+
+    兼容 Bot 常见写法：
+      - `### **标题**` / `**标题**`（独占一行）
+      - `- **调研主题**：标题内容`（列表项，标题取冒号后内容）
+    每条正文合并 量化要点/影响 等子行，去掉 markdown 残留（`**`/`-`/图片行/
+    原文链接行），卡片底部附 source-link 原文链接（满足原文链接计数）。
+    """
     if not body:
         return ""
     # 跳过板段标记行（RESEARCH/POLICY/OEM/INJECTION）与占位标题
     _MARK = re.compile(r"^\s*(RESEARCH|POLICY|OEM|INJECTION|NEXT|HOTSPOT|REGIONAL|WEEKLY|REPORT)\s*$")
     PLACEHOLDER = re.compile(r"^\s*#+\s*\*\*?\s*调研\s*标题\s*\*\*\s*$")
-    # 新条目起点：### 标题 / 数字编号 / 独立 **加粗标题** 行
+    # 新条目起点：### 标题 / 数字编号 / 独立 **加粗标题** 行 / `- **label**：内容` 列表项
     _TITLE_H = re.compile(r"^\s*#{1,6}\s+\*\*([^*]+)\*\*\s*$")
     _TITLE_B = re.compile(r"^\s*\*\*(?!#)([^*]{2,40})\*\*\s*$")
     _NUM = re.compile(r"^\s*\d+\s*[.、．]\s*")
+    # `- **label**：内容` 列表项（行首 -，加粗 label 后跟冒号）；label 为通用词时标题取冒号后
+    _BULLET = re.compile(r"^\s*-\s+\*\*([^*]+)\*\*\s*[:：]\s*(.*)$")
+    _GENERIC_LABEL = {"调研主题", "主题", "调研", "报告主题", "机构观点", "报告标题"}
     lines: list[str] = [ln.strip() for ln in body.splitlines()]
     lines = [ln for ln in lines if ln and not _MARK.match(ln) and not PLACEHOLDER.match(ln)]
-    blocks: list[str] = []
+    blocks: list[list[str]] = []
     cur: list[str] = []
     for ln in lines:
-        if _TITLE_H.match(ln) or _TITLE_B.match(ln) or _NUM.match(ln):
+        if _TITLE_H.match(ln) or _TITLE_B.match(ln) or _NUM.match(ln) or _BULLET.match(ln):
             if cur:
-                blocks.append(" ".join(cur))
+                blocks.append(cur)
                 cur = []
         cur.append(ln)
     if cur:
-        blocks.append(" ".join(cur))
+        blocks.append(cur)
+
     cards = []
-    for block in blocks:
-        txt = clean(LINK_RE.sub("", block)).strip("【】 「」")
-        if len(txt) < 20:
-            continue
-        # 标题优先取行内首个加粗（调研主题）；否则取冒号/量化要点前的短句
-        m_bold = re.search(r"\*\*([^*]{2,30})\*\*", txt)
-        if m_bold:
-            title = m_bold.group(1).strip()
-        else:
-            head = txt.split("**量化要点**")[0].split("量化要点")[0]
-            head = head.split(":", 1)[0].split("：", 1)[0]
-            title = head.strip(" ：:～—，,。；;")
-            if len(title) > 40:
-                title = title[:40]
+    for blk in blocks:
+        raw = [l.strip() for l in blk if l.strip()]
+        link = extract_link("\n".join(raw))
+        title = ""
+        body_lines: list[str] = []
+        for idx, ln in enumerate(raw):
+            # 丢弃 markdown 图片行与原文链接行（链接已单独提取）
+            if re.search(r"!\[[^\]]*\]\(", ln):
+                continue
+            if LINK_RE.search(ln):
+                continue
+            m_bullet = _BULLET.match(ln)
+            if m_bullet:
+                label, rest = m_bullet.group(1).strip(), m_bullet.group(2).strip()
+                if label in _GENERIC_LABEL and rest:
+                    title = rest
+                else:
+                    if not title:
+                        title = label
+                    if rest:
+                        body_lines.append(rest)
+                continue
+            if idx == 0:
+                m_h = _TITLE_H.match(ln) or _TITLE_B.match(ln)
+                if m_h:
+                    if not title:
+                        title = m_h.group(1).strip()
+                    continue
+            # 普通正文行：去掉 ** 包裹与行首列表符
+            ln = re.sub(r"\*\*([^*]+)\*\*", r"\1", ln)
+            ln = re.sub(r"^[-•*]\s+", "", ln)
+            if ln:
+                body_lines.append(ln)
+        body_txt = clean(" ".join(body_lines))
+        body_txt = LINK_RE.sub("", body_txt).strip(" ：:～—| 【】")
         if not title:
-            title = "机构观点"
+            head = body_txt.split("量化要点")[0].split("：", 1)[0]
+            title = head.strip(" ：:～—，,。；;")[:40] or "机构观点"
         title = re.sub(r"^\d+\s*[.、．]\s*", "", title).strip()
+        if len(title) > 40:
+            title = title[:40]
+        if len(body_txt) < 10:
+            continue
+        href = escape_html(link) if link else "#"
+        tail = f' <a href="{href}" class="source-link" target="_blank">原文</a>' if link else ""
         cards.append(
             f'<div class="research-card"><h3>{escape_html(title)}</h3>'
-            f'<p>{escape_html(txt)}</p></div>'
+            f'<p>{escape_html(body_txt)}{tail}</p></div>'
         )
     return "\n".join(cards) if cards else "<p>本周暂无重大调研报告更新。</p>"
 
