@@ -96,11 +96,13 @@ def _title_key(title: str) -> str | None:
 def _split_sections_impl(lines: list[str]) -> dict[str, str]:
     marks: list[tuple[int, str, str]] = []
     for i, line in enumerate(lines):
-        m = re.match(r"^\s*#{1,4}\s+(.+)", line)
-        if m:
-            key = _title_key(m.group(1))
+        # 板块标题是 # / ## 两级；### 及以下的标题属于板块内部卡片标题，
+        # 不能当作板块边界（否则会把调研/注塑等板块正文切丢）。
+        m = re.match(r"^\s*(#{1,2})\s+(.+)", line)
+        if m and len(m.group(1)) <= 2:
+            key = _title_key(m.group(2))
             if key:
-                marks.append((i, m.group(1).strip(), key))
+                marks.append((i, m.group(2).strip(), key))
     if not marks:
         return {}
     marks.sort(key=lambda x: x[0])
@@ -380,6 +382,54 @@ def build_injection(body: str) -> str:
     return "\n".join(cards)
 
 
+def build_research(body: str) -> str:
+    """调研报告·机构观点：按 `### **调研标题**` 拆成多张 research-card。"""
+    if not body:
+        return ""
+    # 跳过板段标记行（RESEARCH/POLICY/OEM/INJECTION）与占位标题
+    _MARK = re.compile(r"^\s*(RESEARCH|POLICY|OEM|INJECTION|NEXT|HOTSPOT|REGIONAL|WEEKLY|REPORT)\s*$")
+    PLACEHOLDER = re.compile(r"^\s*#+\s*\*\*?\s*调研\s*标题\s*\*\*\s*$")
+    # 新条目起点：### 标题 / 数字编号 / 独立 **加粗标题** 行
+    _TITLE_H = re.compile(r"^\s*#{1,6}\s+\*\*([^*]+)\*\*\s*$")
+    _TITLE_B = re.compile(r"^\s*\*\*(?!#)([^*]{2,40})\*\*\s*$")
+    _NUM = re.compile(r"^\s*\d+\s*[.、．]\s*")
+    lines: list[str] = [ln.strip() for ln in body.splitlines()]
+    lines = [ln for ln in lines if ln and not _MARK.match(ln) and not PLACEHOLDER.match(ln)]
+    blocks: list[str] = []
+    cur: list[str] = []
+    for ln in lines:
+        if _TITLE_H.match(ln) or _TITLE_B.match(ln) or _NUM.match(ln):
+            if cur:
+                blocks.append(" ".join(cur))
+                cur = []
+        cur.append(ln)
+    if cur:
+        blocks.append(" ".join(cur))
+    cards = []
+    for block in blocks:
+        txt = clean(LINK_RE.sub("", block)).strip("【】 「」")
+        if len(txt) < 20:
+            continue
+        # 标题优先取行内首个加粗（调研主题）；否则取冒号/量化要点前的短句
+        m_bold = re.search(r"\*\*([^*]{2,30})\*\*", txt)
+        if m_bold:
+            title = m_bold.group(1).strip()
+        else:
+            head = txt.split("**量化要点**")[0].split("量化要点")[0]
+            head = head.split(":", 1)[0].split("：", 1)[0]
+            title = head.strip(" ：:～—，,。；;")
+            if len(title) > 40:
+                title = title[:40]
+        if not title:
+            title = "机构观点"
+        title = re.sub(r"^\d+\s*[.、．]\s*", "", title).strip()
+        cards.append(
+            f'<div class="research-card"><h3>{escape_html(title)}</h3>'
+            f'<p>{escape_html(txt)}</p></div>'
+        )
+    return "\n".join(cards) if cards else "<p>本周暂无重大调研报告更新。</p>"
+
+
 def build_simple_section(body: str) -> str:
     """政策/车企/调研 等：每条 li 一条动态。"""
     events = split_events(body)
@@ -399,7 +449,21 @@ def build_simple_section(body: str) -> str:
 
 def build_overview(body: str) -> str:
     events = split_events(body)
-    lis = [f"<li>{clean(re.sub(r'^\\d+[\\s.、．]\\s*', '', e))}</li>" for e in events if clean(e)]
+    lis = []
+    for e in events:
+        txt = clean(e)
+        if not txt:
+            continue
+        txt = re.sub(r"^\d+[\s.、．]\s*", "", txt)
+        link = extract_link(txt)
+        # 正文里残留的【原文链接】:URL 不当作纯文本显示，改为可点击"原文链接"
+        txt = re.sub(r"【?原文链接】?[:：]?\s*https?://\S+", "", txt)
+        txt = re.sub(r"\s+", " ", txt).strip(" ：:～—| 【】")
+        if link:
+            href = escape_html(link)
+            txt = f'{txt} <a href="{href}" class="source-link" target="_blank">原文链接</a>'
+        if txt:
+            lis.append(f"<li>{txt}</li>")
     if not lis:
         return "<p>本周全球汽车行业动态汇总。</p>"
     return "<ul class='styled-list'>\n" + "\n".join(lis) + "\n</ul>"
@@ -429,7 +493,7 @@ def main() -> None:
     simple_map = {
         "policy": sec("政策动态", build_simple_section(sections.get("policy", ""))),
         "oem": sec("车企动态", build_simple_section(sections.get("oem", ""))),
-        "research": sec("调研报告·机构观点", build_simple_section(sections.get("research", ""))),
+        "research": sec("调研报告·机构观点", build_research(sections.get("research", ""))),
         "injection": sec("注塑机会专题", build_injection(sections.get("injection", ""))),
         "nextweek": sec("下周关注", build_simple_section(sections.get("nextweek", ""))),
     }
