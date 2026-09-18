@@ -275,12 +275,18 @@ def make_li(title: str, pts: dict[str, str], source: str, link: str) -> str:
     imp = pts.get("影响分析", "") or pts.get("产业链影响", "")
     tr = pts.get("趋势判断", "")
     href = escape_html(link) if link else "#"
-    return (f'<li><strong>{escape_html(title)}</strong>\n'
-            f'        关键数据/事件：{escape_html(key)}\n'
-            f'        影响分析：{escape_html(imp)}\n'
-            f'        趋势判断：{escape_html(tr)}\n'
-            f'        <a href="{href}" '
-            f'class="source-link" target="_blank">原文</a></li>')
+    rows = [f'<li><strong>{escape_html(title)}</strong>']
+    rows.append(f'        关键数据/事件：{escape_html(key)}')
+    if imp:
+        rows.append(f'        影响分析：{escape_html(imp)}')
+    if tr:
+        rows.append(f'        趋势判断：{escape_html(tr)}')
+    # 卡片底部标注数据来源（DESIGN：📌 数据来源：机构名），供 agent_checks 来源校验
+    if source and source != "来源待核":
+        rows.append(f'        数据来源：{escape_html(source)}')
+    rows.append(f'        <a href="{href}" '
+                f'class="source-link" target="_blank">原文</a></li>')
+    return "\n".join(rows)
 
 
 def simple_li(text: str, source: str, link: str) -> str:
@@ -330,14 +336,30 @@ def build_region_html(region_blocks: list[dict]) -> str:
             continue
         lis = []
         for ev in events:
-            # 标题：数字序号后的首句（到第一个「量化要点/关键数据」前）
-            cut = len(ev)
-            for a in POINT_KEY_ALIASES + POINT_IMPACT_ALIASES:
-                i = ev.find(a)
-                if i != -1 and i < cut:
-                    cut = i
-            title = clean(ev[:cut]).strip("【】[] 。．")
-            title = re.sub(r"^\d+[\s.、．]\s*", "", title)
+            # 标题：优先取 `- **标题**` 加粗标题；若加粗词是"事件标题"等占位词，取冒号后首句；
+            # 否则（数字序号格式）取序号后到第一个要点标签前的首句。
+            m_bold = re.match(r"^\s*[-*•]\s*\*\*([^*]+)\*\*\s*[:：]?\s*(.*)$", ev, re.S)
+            if m_bold:
+                label = clean(m_bold.group(1))
+                rest = m_bold.group(2) or ""
+                if label in {"事件标题", "标题", "新闻标题", "事件", "新闻", "市场动态"} and rest.strip():
+                    cut = len(rest)
+                    for a in POINT_KEY_ALIASES + POINT_IMPACT_ALIASES + POINT_TREND_ALIASES:
+                        i = rest.find(a)
+                        if i != -1 and i < cut:
+                            cut = i
+                    title = clean(rest[:cut]).strip(" ：:～—。【】[]")
+                else:
+                    title = label
+            else:
+                cut = len(ev)
+                for a in POINT_KEY_ALIASES + POINT_IMPACT_ALIASES:
+                    i = ev.find(a)
+                    if i != -1 and i < cut:
+                        cut = i
+                title = clean(ev[:cut]).strip("【】[] 。．")
+                title = re.sub(r"^\d+[\s.、．]\s*", "", title)
+                title = re.sub(r"\*\*", "", title).strip(" ：:～—-")
             pts = extract_three_points(ev)
             source = extract_source(ev)
             link = extract_link(ev)
@@ -455,11 +477,15 @@ def build_research(body: str) -> str:
         title = ""
         body_lines: list[str] = []
         for idx, ln in enumerate(raw):
-            # 丢弃 markdown 图片行与原文链接行（链接已单独提取）
+            # 丢弃 markdown 图片行
             if re.search(r"!\[[^\]]*\]\(", ln):
                 continue
+            # 剥离行内【原文链接】：URL（链接已单独提取）；仅当整行就是链接时才跳过，
+            # 避免把「内容+【原文链接】同行」的条目（Bot 调试版常见格式）误判为空
             if LINK_RE.search(ln):
-                continue
+                ln = LINK_RE.sub("", ln).strip(" ：:～—| 【】")
+                if not ln:
+                    continue
             m_bullet = _BULLET.match(ln)
             if m_bullet:
                 label, rest = m_bullet.group(1).strip(), m_bullet.group(2).strip()

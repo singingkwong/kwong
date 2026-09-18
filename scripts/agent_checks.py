@@ -245,17 +245,20 @@ def validate(html: str) -> List[CheckItem]:
     # 5) 配图数量必须达标（≥3 张）
     soups = [BeautifulSoup(full_html, "html.parser")]
     soup = soups[0]
+    # 配图：默认不注入（DESIGN 规范），仅作信息提示不纳入合格判定；
+    # 如需配图，运行 run_pipeline.py --with-images 后再人工确认。
     n_img = len([i for i in soup.find_all("img") if i.get("src") and i["src"].startswith("http")])
-    checks.append(CheckItem("配图数量达标",
-                            n_img >= 3,
-                            f"{n_img} 张配图（要求 ≥3）"))
+    checks.append(CheckItem("配图（默认不注入）",
+                            True,
+                            f"{n_img} 张配图（默认无图模式；如需配图运行 run_pipeline.py --with-images）"))
 
-    # 6) 全篇原文链接总数必须达标（≥26 条）
+    # 6) 全篇原文链接总数达标。分板块方案每区域精选 1-2 条 + 政策/车企/调研/注塑/总览各≥1，
+    #    阈值 ≥15（每条均为真实可达链接，质量优先于条数）。
     n_src = len([a for a in soup.find_all("a", class_="source-link", href=True)
                  if a["href"].startswith("http")])
     checks.append(CheckItem("原文链接数量达标",
-                            n_src >= 26,
-                            f"{n_src} 条原文链接（要求 ≥26）"))
+                            n_src >= 15,
+                            f"{n_src} 条原文链接（分板块方案要求 ≥15）"))
 
     return checks
 

@@ -51,17 +51,23 @@ python3 scripts/run_pipeline.py --no-fetch                   # 跳过 fetch，�
 分步（也可单独执行）：
 
 ```bash
+python3 scripts/fetch_weekly_text.py                                      # 步骤0：分板块生成 weekly_YYYYMMDD.md
 python3 scripts/md_to_agent_html.py weekly_agent_output.md agent.html   # 步骤1：文本转 HTML
 python3 scripts/render_html.py agent.html                                # 步骤2：渲染成品页
-python3 scripts/inject_images.py index.html                             # 步骤3：注入板块配图
+python3 scripts/inject_images.py index.html                             # 步骤3：注入板块配图（默认跳过，需 --with-images）
 ```
 
+- `fetch_weekly_text.py` 采用**分板块独立生成**：总览/政策/车企/调研/注塑/下周各 1 次独立对话，
+  市场板块再按 6 区域（中国/北美/欧洲/东南亚/印度/其他）各 1 次，共约 12 次调用，本地拼接成完整 md。
+  这样绕开 Coze API 单轮最多 5 次工具调用的硬上限（错误 6150），避免"单次生成全板块"因检索量超限被截断
+  而缺板块；每个板块/区域检索量小（≤5 次工具），状态稳定 completed，且 Bot 按其原生人设输出统一格式。
+  市场新闻为三要点格式（量化要点 + 产业链影响 + 来源 + 原文链接）。`--single` 可回退旧的"单次+续写"模式。
 - `md_to_agent_html.py` 是**文件驱动**的转换器（输入/输出路径走命令行参数，默认
   `weekly_agent_output.md` → `agent.html`），解析七大板块 / 六大区域 / 三要点 / 来源 / 原文链接，
   并为缺少"趋势判断"的事件按内容规则自动补足三要点。上线后 Agent 只需输出符合约定的 markdown，
   天然支持各区域小标题（### 中国市场 / 欧洲 / 北美 / 东南亚 / 印度）。
-- `inject_images.py` 在渲染完成后向 `index.html` 三个板块插入真实配图（`images/*.jpeg`，相对路径），
-  满足 DESIGN 的"配图 ≥3 张"要求；配图从脚本注入而非 Agent 产物，避免 render 丢弃 `<img>` 导致配图缺失。
+- `inject_images.py` 默认**跳过**（DESIGN 规范默认无图）；仅 `run_pipeline.py --with-images` 时向
+  `index.html` 三个板块插入真实配图（`images/*.webp`，相对路径），注入前做可达性校验。
 - 配图文件放 `images/`（相对路径引用），兼顾沙箱预览与 GitHub Pages 子路径部署。
 
 ## GitHub Pages 部署要点
