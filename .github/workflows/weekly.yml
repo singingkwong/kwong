@@ -40,7 +40,12 @@ jobs:
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html agent.html weekly_*.md
+          # 只提交 Pages 成品 index.html；agent.html 是中间产物且已被 .gitignore 忽略，不提交
+          git add index.html
+          # 封面图资产（已在仓库，有更新时一并提交；容错不阻塞）
+          git add cover.png cover-wecom.jpg 2>/dev/null || true
+          # 本期 markdown 归档（glob 无匹配时跳过，避免 pathspec 报错）
+          git add weekly_*.md 2>/dev/null || echo "[skip] 本期无 weekly md"
           git commit -m "auto: $(date +%Y-%m-%d) 汽车行业周报" || echo "No changes to commit"
           git pull origin main --rebase --autostash || true
           git push
