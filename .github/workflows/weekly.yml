@@ -1,53 +1,79 @@
 name: 生成汽车行业周报并推送
-
 on:
   schedule:
     # 每周一 10:35 CST (02:35 UTC)
     - cron: "35 2 * * 1"
   workflow_dispatch:
-
 permissions:
   contents: write
-
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
           pip install requests beautifulsoup4
-
-      # 完整流水线：Bot抓文本 → md转agent.html → 渲染index.html → 注入配图 → 推送企微
-      - name: Run weekly report pipeline
+      # 完整流水线：Bot抓文本 → md转agent.html → 渲染index.html → 注入配图
+      # --no-push 阻止在部署前推企微，避免用户点开链接时尚未构建 Pages 导致 404
+      - name: Run weekly report pipeline (no push)
         env:
           COZE_WORKLOAD_API_TOKEN: ${{ secrets.COZE_WORKLOAD_API_TOKEN }}
           COZE_BOT_ID: ${{ secrets.COZE_BOT_ID }}
           COZE_API_BASE_URL: ${{ secrets.COZE_API_BASE_URL || 'https://api.coze.cn' }}
-          WECOM_WEBHOOK_KEY: ${{ secrets.WECOM_WEBHOOK_KEY }}
         run: |
-          python scripts/run_pipeline.py
+          python scripts/run_pipeline.py --no-push
           echo "=== index.html 配图数 ==="
           grep -c '<img' index.html || true
           echo "=== index.html 原文链接数 ==="
           grep -c 'class="src-link"' index.html || true
-
-      # run_pipeline.py 内部已处理企微推送（缺 key 时自动跳过），无需单独 fallback，避免重复推送。
+      # 提交 index.html 到 main，触发 GitHub 按 main 分支自动构建 Pages
       - name: Commit and push changes
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add index.html weekly_*.md
+          git add index.html agent.html weekly_*.md
           git commit -m "auto: $(date +%Y-%m-%d) 汽车行业周报" || echo "No changes to commit"
           git pull origin main --rebase --autostash || true
           git push
+      # 等待 GitHub Pages 构建完成（轮询 pages/builds/latest，兜底 sleep），构建好才推企微
+      - name: Wait for GitHub Pages deployment
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+        run: |
+          for i in $(seq 1 30); do
+            status=$(curl -s -H "Authorization: Bearer $GITHUB_TOKEN" \
+              -H "Accept: application/vnd.github+json" \
+              "https://api.github.com/repos/$REPO/pages/builds/latest" \
+              | python3 -c "import sys,json;print(json.load(sys.stdin).get('status',''))" 2>/dev/null)
+            echo "page build status: '$status' (attempt $i)"
+            if [ "$status" = "built" ]; then
+              echo "GitHub Pages 构建完成，开始推送企微"
+              break
+            fi
+            sleep 10
+          done
+          # 兜底：防止 API 拿不到状态时直接推企微导致 404
+          echo "额外等待 20s 兜底..."
+          sleep 20
+      # 构建完成后推送企微，确保用户点开链接已是新版本
+      - name: Push WeCom notification (after pages build)
+        env:
+          WECOM_WEBHOOK_KEY: ${{ secrets.WECOM_WEBHOOK_KEY }}
+          GITHUB_USER: ${{ github.repository_owner }}
+          GITHUB_REPO: ${{ github.event.repository.name }}
+        run: |
+          if [ -n "$WECOM_WEBHOOK_KEY" ]; then
+            python scripts/send_wecom.py
+          else
+            echo "[skip] 未配置 WECOM_WEBHOOK_KEY，跳过企微推送"
+          fi
