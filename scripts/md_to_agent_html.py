@@ -64,6 +64,13 @@ POINT_TREND_ALIASES = ["趋势判断", "趋势", "展望", "未来判断"]
 LINK_RE = re.compile(r"【?原文链接】?\s*[:：]\s*(https?://\S+)")
 SOURCE_RE = re.compile(r"来源[:：]\s*([^\s，,。；;|】]+)")
 NUM_HEAD_RE = re.compile(r"^\s*\d+[\s.、．]\s*")
+# 列表项加粗标题行：`- **标题**` / `- **标题**：内容`（Bot 常用此格式输出板块条目）
+LIST_BOLD_RE = re.compile(r"^\s*[-*•]\s*\*\*[^*]+\*\*")
+# 子要点标签行（`- 量化要点：xxx` 等），这些是事件内部的要点，不是新事件边界
+SUB_POINT_RE = re.compile(
+    r"^\s*[-*•]\s*(量化要点|影响分析|产业链影响|对注塑产业链的市场影响|趋势判断|趋势|核心要点|事件概述|影响|来源)\b")
+# 纯文本列表项：`- 中汽协发布xxx`（下周关注等板块的条目形式）
+PLAIN_ITEM_RE = re.compile(r"^\s*[-*•]\s+\S")
 
 
 def clean(text: str) -> str:
@@ -147,7 +154,13 @@ def split_events(body: str) -> list[str]:
     events: list[str] = []
     cur: list[str] = []
     for line in body.splitlines():
-        if NUM_HEAD_RE.match(line):
+        # 新事件边界：数字序号行 / `- **标题**` 加粗列表项 / 非子要点的纯文本列表项（如下周关注条目）
+        is_boundary = (
+            NUM_HEAD_RE.match(line)
+            or LIST_BOLD_RE.match(line)
+            or (PLAIN_ITEM_RE.match(line) and not SUB_POINT_RE.match(line))
+        )
+        if is_boundary:
             if cur:
                 events.append("\n".join(cur))
             cur = [line]
@@ -353,17 +366,32 @@ def build_injection(body: str) -> str:
         line = raw.strip()
         if not line:
             continue
-        # 每个条目：N. **标题**： 或 **标题**：
+        # 每个条目：`- **标题**：内容` / `N. **标题**` / `**标题**`（标题可独占一行或带冒号接内容）
         m0 = re.match(r"^\d+[\s.、．]\s*\*\*([^*]+)\*\*\s*[:：]?\s*$", line)
         m1 = re.match(r"^\*\*([^*]+)\*\*\s*[:：]?\s*$", line)
-        m = m0 or m1
+        m2 = re.match(r"^[-*•]\s*\*\*([^*]+)\*\*\s*[:：]?\s*(.*)$", line)
+        m = m0 or m1 or m2
         if m:
-            blocks.append({"title": clean(m.group(1)), "subs": []})
+            blocks.append({"title": clean(m.group(1)), "subs": [], "link": ""})
             cur = blocks[-1]
+            # `- **标题**：内容` 形式：冒号后的内容并入首个子要点
+            if m2 is m and m.group(2):
+                inline = LINK_RE.sub("", m.group(2)).strip()
+                if inline:
+                    cur["subs"].append(clean(inline))  # type: ignore[attr-defined]
+            continue
+        # 原文链接行：提取链接，不进正文
+        mlink = re.search(r"【原文链接】\s*[:：]?\s*(https?://\S+)", line)
+        if mlink:
+            if cur is not None:
+                cur["link"] = mlink.group(1)  # type: ignore[attr-defined]
+            continue
+        # markdown 图片行：丢弃（页面默认无图）
+        if re.match(r"^>?\s*!\[", line):
             continue
         # 子要点：- xxx 或 纯文本
         if cur is None:
-            blocks.append({"title": "", "subs": []})
+            blocks.append({"title": "", "subs": [], "link": ""})
             cur = blocks[-1]
         sub = re.sub(r"^[-•*]\s+", "", line)
         sub = LINK_RE.sub("", sub)
@@ -374,11 +402,14 @@ def build_injection(body: str) -> str:
     for b in blocks:
         title = b["title"]
         subs = b["subs"]
+        link = b.get("link", "")  # type: ignore[attr-defined]
         body_txt = "；".join(subs) if subs else "本周暂无明确注塑机订单数据，持续跟踪注塑结构件、工程塑料替代等机会。"
         t = escape_html(title) if title else "持续关注"
+        link_html = (f'<div class="news-foot"><a class="source-link" href="{escape_html(link)}" '
+                     f'target="_blank" rel="noopener">原文</a></div>') if link else ""
         cards.append(
             f'<div class="inj-card"><h3>{t}</h3>'
-            f'<div class="news-body rich">{escape_html(body_txt)}</div></div>'
+            f'<div class="news-body rich">{escape_html(body_txt)}</div>{link_html}</div>'
         )
     return "\n".join(cards)
 
@@ -477,12 +508,17 @@ def build_simple_section(body: str) -> str:
         return ""
     lis = []
     for ev in events:
-        # 去掉开头数字序号，作为单段动态
-        text = re.sub(r"^\d+[\s.、．]\s*", "", clean(ev))
+        text = clean(ev)
+        # 剥离列表项前缀 `- ` 与数字序号
+        text = re.sub(r"^\s*[-*•]\s*", "", text)
+        text = re.sub(r"^\d+[\s.、．]\s*", "", text)
+        # 去掉所有 **加粗** 符号（保留文字），如 `**标题**`→标题、`**量化要点**`→量化要点
+        text = re.sub(r"\*\*([^*]+)\*\*", r"\1", text)
+        # 去掉【原文链接】字样（链接由 simple_li 单独渲染）
+        text = LINK_RE.sub("", text)
+        text = re.sub(r"\s{2,}", " ", text).strip(" ，。;；")
         source = extract_source(ev)
         link = extract_link(ev)
-        # 去掉文本内的原文链接字样
-        text = LINK_RE.sub("", text)
         lis.append(simple_li(text, source, link))
     return '<ul class="styled-list">\n' + "\n".join(lis) + "\n</ul>"
 
