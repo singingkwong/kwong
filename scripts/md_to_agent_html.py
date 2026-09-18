@@ -62,7 +62,7 @@ POINT_IMPACT_ALIASES = ["产业链影响", "影响分析", "行业影响", "影�
 POINT_TREND_ALIASES = ["趋势判断", "趋势", "展望", "未来判断"]
 
 LINK_RE = re.compile(r"【?原文链接】?\s*[:：]\s*(https?://\S+)")
-SOURCE_RE = re.compile(r"来源[:：]\s*([^\s，,。；;|】]+)")
+SOURCE_RE = re.compile(r"来源[:：]\s*([^\s，,。；;|】（）()—\-]+)")
 NUM_HEAD_RE = re.compile(r"^\s*\d+[\s.、．]\s*")
 # 列表项加粗标题行：`- **标题**` / `- **标题**：内容`（Bot 常用此格式输出板块条目）
 LIST_BOLD_RE = re.compile(r"^\s*[-*•]\s*\*\*[^*]+\*\*")
@@ -261,7 +261,7 @@ def extract_link(event: str) -> str:
 def extract_source(event: str) -> str:
     m = SOURCE_RE.search(event)
     if m:
-        return m.group(1).strip()
+        return m.group(1).strip().strip("（）()")
     link = extract_link(event)
     if link:
         host = re.sub(r"^www\.", "", link.split("/")[2] if "//" in link else "")
@@ -566,12 +566,19 @@ def build_overview(body: str) -> str:
     hotspot_lines: list[str] = []
     in_hotspot = False
     for line in lines:
-        if re.match(r"^\s*#{1,6}\s+", line):
+        is_heading = re.match(r"^\s*#{1,6}\s+", line)
+        # 热点列表项 = `- **标题**` / `N. **标题**` / `【原文链接】` 等；总述段落（无列表符）归入引言
+        is_listitem = re.match(r"^\s*[-*•]\s+", line) or re.match(r"^\s*\d+[\s.、．]\s*", line)
+        if is_heading:
             in_hotspot = True  # 遇到子标题（如「### 本周核心热点」）后进入热点列表区
             continue
+        if not in_hotspot and is_listitem:
+            in_hotspot = True
         (hotspot_lines if in_hotspot else intro_lines).append(line)
 
     intro = clean("\n".join(intro_lines)).strip()
+    intro = re.sub(r"\*\*([^*]+)\*\*", r"\1", intro)  # 引言残留的加粗符号→纯文本
+    intro = re.sub(r"^\s*[-*•]\s*", "", intro, flags=re.M)
     hotspot_body = "\n".join(hotspot_lines) if in_hotspot else body
     events = split_events(hotspot_body)
 

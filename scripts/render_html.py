@@ -246,8 +246,11 @@ def _split_points(body: str) -> Optional[Dict[str, str]]:
         end = hits[k + 1][1] if k + 1 < len(hits) else len(body)
         seg = body[start:end].strip(" ：:（）()/、\n")
         seg = re.sub(r"\s*原文\s*$", "", seg).strip()
-        # 剥掉段末尾 Agent 自标的"来源：xxx"，避免与底部"数据来源"行重复
-        seg = re.sub(r"\s*来源[:：]\s*\S+$", "", seg).strip()
+        # 先剥末尾破折号/分隔符
+        seg = re.sub(r"\s*[-—～]\s*$", "", seg).strip()
+        # 段尾"（数据）来源：xxx"标注（含方/圆括号、多来源逗号分隔）剥到段尾，避免与底部"数据来源"行重复；
+        # 遇句号/分号即止，防止误伤正文
+        seg = re.sub(r"\s*[（(【\[]?\s*(?:数据)?来源[:：]\s*[^。；;\n]*?[）)】\]]?\s*$", "", seg).strip()
         result[lab] = seg
     return result
 
@@ -321,6 +324,9 @@ _SOURCE_BY_HOST = {
     "people.com.cn": "人民网",
     "chinadaily.com.cn": "中国日报",
     "cnevpost.com": "盖世汽车",
+    "sina.cn": "新浪",
+    "autohome.com.cn": "汽车之家",
+    "yiche.com": "易车",
 }
 _SOURCE_DEFAULT = "产业研究整理自公开报道"
 
@@ -344,11 +350,15 @@ def _source_label(href: str) -> str:
     return _SOURCE_DEFAULT
 
 def _body_source(body: str) -> str:
-    m = re.search(r"来源[:：]\s*([^\s，,。；;|]+)", body or "")
-    return m.group(1).strip() if m else ""
+    # 排除括号，避免把"（数据来源：中国汽车工业协会）"的"）"一并吞入机构名
+    m = re.search(r"来源[:：]\s*([^\s，,。；;|（）()—\-]+)", body or "")
+    return m.group(1).strip().strip("（）()") if m else ""
 
 def _source_html(link: str, body: str = "") -> str:
-    src = _body_source(body) or _source_label(link)
+    src = _body_source(body)
+    # 来源残缺（单字符如 "M"/"K"、待核、聚合占位）时回退到链接域名智能识别
+    if not src or src in ("来源待核", "产业研究整理自公开报道") or len(src.strip()) < 2:
+        src = _source_label(link)
     return f'<div class="news-source">📌 数据来源：{escape_html(src)}</div>'
 
 
@@ -489,7 +499,7 @@ def _split_card_by_li_events(card_el) -> List[Dict[str, object]]:
     if not lis:
         return []
 
-    # 继承卡片自身标题（通常是区域名），便于后续按区域归类
+    # 继承卡片自身标题（通常是区域名），作为 region 字段供按区域归类
     ct = card_el.select_one(".card-title, .hotspot-title")
     own_title = clean_text(ct.get_text(" ", strip=True)) if ct else ""
     own_title = re.sub(r"\s*原文\s*$", "", own_title).strip() if own_title else ""
@@ -497,11 +507,20 @@ def _split_card_by_li_events(card_el) -> List[Dict[str, object]]:
     items: List[Dict[str, object]] = []
     seen = set()
     for li in lis:
+        # 提取事件自身标题：<strong>新闻标题 -</strong>，去掉末尾残留的“- / — / ～”
+        strong = li.find(["strong", "b"])
+        news_title = ""
+        if strong:
+            news_title = clean_text(strong.get_text(" ", strip=True)).strip()
+            news_title = re.sub(r"\s*[-—～]\s*$", "", news_title).strip()
+            strong.extract()  # 从 li 里移除，剩下三要点正文
         txt = clean_text(li.get_text(" ", strip=True)).strip()
-        if not txt or len(txt) < 8 or txt in seen:
+        if not txt or len(txt) < 8:
+            continue
+        if txt in seen:
             continue
         seen.add(txt)
-        item: Dict[str, object] = {"title": own_title, "body": txt}
+        item: Dict[str, object] = {"title": news_title, "body": txt, "region": own_title}
         link = _first_link(li)
         if link:
             item["link"] = link
@@ -803,11 +822,14 @@ def build_markets_html(markets: Optional[Dict[str, str]]) -> str:
 
             for c in all_cards:
                 title = str(c.get("title", "")).strip()
-                key = region_by_prefix(title)
-                if key:
-                    c["title"] = ""  # 区域名已作为 subsection 标题，卡片不再重复
+                region = str(c.get("region", "")).strip()
+                if region:
+                    key = region_by_prefix(region) or classify_region(region + title + str(c.get("body", "")))
                 else:
-                    key = classify_region(title + str(c.get("body", "")))
+                    key = region_by_prefix(title) or classify_region(title + str(c.get("body", "")))
+                # title 已为新闻标题时不再重复展示区域名；若 title 恰好是区域名则清空
+                if title and region_by_prefix(title):
+                    c["title"] = ""
                 region_cards[key].append(c)
 
         for r in REGION_ORDER:
@@ -1116,7 +1138,7 @@ def render(agent_html: str, *, team: str = DEFAULT_TEAM) -> str:
     result = re.sub(r"数据周期：[^<\n{]+", period_str, result)
 
     # ---- 动态汇总"数据来源"列表（对齐实际报告内容）----
-    used = re.findall(r"数据来源[：:]\s*([^\s,，。；;|<>]+)", result)
+    used = re.findall(r"数据来源[：:]\s*([^\s,，。；;|<>（）()]+)", result)
     # 过滤占位/待核词，去重，保留出现顺序
     seen, real = set(), []
     drop = {"来源待核", "待核", "来源", "暂无", "——来源待累计——"}
