@@ -146,9 +146,11 @@ def _wait_and_fetch(data: dict, need_raise_on_incomplete: bool = True) -> str:
     return partial
 
 
-def fetch_markdown() -> str:
+def fetch_markdown(need_raise_on_incomplete: bool = False) -> str:
+    # failed/在途中止（如单轮工具调用上限 6150）不应让流水线硬失败，
+    # 返回当前 partial 正文交给 main() 的续写/重试兜底。
     data = _create_chat(MAIN_PROMPT)
-    return _wait_and_fetch(data, need_raise_on_incomplete=True)
+    return _wait_and_fetch(data, need_raise_on_incomplete=need_raise_on_incomplete)
 
 
 def fetch_markdown_continued(instruction: str) -> str:
@@ -177,9 +179,17 @@ def main():
     parts: list[str] = []
 
     print("MAIN_PROMPT len:", len(MAIN_PROMPT), flush=True)
-    p1 = fetch_markdown()
+    p1 = ""
+    for attempt in range(1, 4):
+        p1 = fetch_markdown()
+        print(f"首轮(尝试{attempt}) len:", len(p1), flush=True)
+        if p1.strip():
+            break
+        # 首轮 failed 且 0 字：重新开一场（不带 conversation_id 即新对话）再试
+        print(f"首轮为空（对话可能 failed），重试新对话 (attempt={attempt})", flush=True)
     parts.append(p1)
-    print("首轮 len:", len(p1), flush=True)
+    if not p1.strip():
+        print("[warn] 重试 3 次后首轮仍为空，转续写兜底", flush=True)
 
     for r in range(1, 4):
         full = parts_full(parts)
