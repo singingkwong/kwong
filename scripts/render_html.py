@@ -1008,66 +1008,16 @@ def build_next_week_html(sec: Optional[Dict[str, str]]) -> str:
 # Agent 获取
 # ---------------------------------------------------------------------------
 def fetch_agent_html() -> str:
-    """调用扣子 Agent 生成周报 HTML；失败时回退到已有 agent.html。"""
-    token = os.environ.get("COZE_WORKLOAD_API_TOKEN", "").strip()
-    bot_id = os.environ.get("COZE_BOT_ID", "").strip()
+    """读取 md_to_agent_html.py 生成的 agent.html。
 
-    if token and bot_id:
-        try:
-            headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
-            create = requests.post(
-                f"{COZE_API_BASE}/v3/chat",
-                headers=headers,
-                json={
-                    "bot_id": bot_id,
-                    "user_id": "weekly-report-bot",
-                    "stream": False,
-                    "auto_save_history": True,
-                    "additional_messages": [{
-                        "role": "user",
-                        "content": "请生成本周全球汽车行业周报的完整 HTML，包含本周总览、各地市场动态、政策动态、车企动态、调研报告、注塑机会专题、下周关注。",
-                        "content_type": "text",
-                    }],
-                },
-                timeout=60,
-            )
-            create.raise_for_status()
-            data = create.json().get("data", {})
-            chat_id = data.get("id")
-            conv_id = data.get("conversation_id")
-            if chat_id and conv_id:
-                import time
-                for _ in range(60):
-                    time.sleep(5)
-                    r = requests.get(
-                        f"{COZE_API_BASE}/v3/chat/retrieve",
-                        headers=headers,
-                        params={"chat_id": chat_id, "conversation_id": conv_id},
-                        timeout=30,
-                    )
-                    info = r.json().get("data", {})
-                    status = info.get("status")
-                    if status in ("completed", "failed", "requires_action"):
-                        break
-                if status == "completed":
-                    mr = requests.get(
-                        f"{COZE_API_BASE}/v3/chat/message/list",
-                        headers=headers,
-                        params={"chat_id": chat_id, "conversation_id": conv_id},
-                        timeout=30,
-                    )
-                    for msg in mr.json().get("data", []):
-                        if msg.get("type") == "answer" and msg.get("content"):
-                            content = msg["content"]
-                            m = re.search(r"<!DOCTYPE html>.*?</html>", content, re.DOTALL | re.IGNORECASE)
-                            return m.group(0) if m else content
-        except Exception as exc:  # noqa: BLE001
-            print(f"[warn] Agent API 调用失败，回退本地 agent.html：{exc}", file=sys.stderr)
-
+    新版流水线中，HTML 文本由 md_to_agent_html.py 从 markdown 转换而来，
+    渲染脚本只负责读取该产物套用模板；不再直接调用 Agent API 生成 HTML
+    （旧逻辑会绕过解析器、产生平铺拆卡等格式问题）。
+    """
     if os.path.exists(AGENT_HTML_PATH):
         with open(AGENT_HTML_PATH, "r", encoding="utf-8") as f:
             return f.read()
-    raise RuntimeError("无法获取 Agent HTML：API 调用失败且本地无 agent.html")
+    raise RuntimeError("未找到 agent.html：请先运行 md_to_agent_html.py 生成")
 
 
 # ---------------------------------------------------------------------------
