@@ -28,7 +28,6 @@ TEMPLATE_PATH = os.path.join(PROJECT_ROOT, "templates", "weekly.html")
 AGENT_HTML_PATH = os.path.join(PROJECT_ROOT, "agent.html")
 OUTPUT_PATH = os.path.join(PROJECT_ROOT, "index.html")
 
-COZE_API_BASE = "https://api.coze.cn"
 DEFAULT_TEAM = "YZM海外汽车行业拓展项目组"
 
 REGIONS: List[Dict[str, str]] = [
@@ -153,7 +152,7 @@ def get_overview_section(sections: List[Dict[str, str]], full_html: str) -> Dict
     return {"title": "本周总览", "body": full_html[:6000]}
 
 
-_LINK_CHECK_CACHE: Dict[str, bool] = {}
+_LINK_CHECK_CACHE: Dict[str, str] = {}
 _LINK_TIMEOUT = 8
 _LINK_HEADERS = {
     "User-Agent": (
@@ -161,6 +160,10 @@ _LINK_HEADERS = {
         "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
     ),
 }
+# 规律拼凑的高风险链接格式（如 detail-xxxx.shtml），需做网络死链探测
+_DETAIL_LINK_RE = re.compile(r"/detail-[a-z0-9]+\.shtml", re.IGNORECASE)
+# 死链拦截统计：format=格式伪链，dead=网络探测确认的死链
+_LINK_BLOCK_STATS: Dict[str, List[str]] = {"format": [], "dead": []}
 
 
 def _is_fake_link_format(href: str) -> bool:
@@ -175,31 +178,48 @@ def _is_fake_link_format(href: str) -> bool:
     return False
 
 
-def _link_is_reachable(href: str) -> bool:
-    """探测链接是否真实可用（HEAD 优先，失败回退 GET），带缓存避免重复请求。"""
+def _link_status(href: str) -> str:
+    """探测链接状态（HEAD 优先，失败回退 GET），带缓存避免重复请求。
+
+    返回三态：
+      'ok'      —— HTTP < 400，链接可达；
+      'dead'    —— 明确死链（404/410/451），应被拦截；
+      'unknown' —— 不确定（403/5xx/超时/DNS 失败等），可能被反爬或网络受限，保留以免误删真实出处。
+    """
     key = href.strip()
     if key in _LINK_CHECK_CACHE:
         return _LINK_CHECK_CACHE[key]
-    ok = False
+    status = "unknown"
     for method in ("HEAD", "GET"):
         try:
             resp = requests.request(method, key, headers=_LINK_HEADERS,
                                     timeout=_LINK_TIMEOUT, allow_redirects=True,
                                     stream=True)
             if resp.status_code < 400:
-                ok = True
+                status = "ok"
+                break
+            if resp.status_code in (404, 410, 451):
+                status = "dead"
                 break
         except Exception:
             continue
-    _LINK_CHECK_CACHE[key] = ok
-    return ok
+    _LINK_CHECK_CACHE[key] = status
+    return status
+
+
+def _link_is_reachable(href: str) -> bool:
+    """向后兼容：返回链接是否可达（ok 才视为可达）。"""
+    return _link_status(href) == "ok"
 
 
 def _first_link(el) -> str:
     """返回元素内第一个可信 http(s) 外部链接 href。
 
-    对链接做软性可达性探测：仅剔除明显的伪造格式链（_is_fake_link_format）。
-    沙箱/CI 网络探测受限不代表最终用户不可达，因此探测失败时仍保留链接，避免误删真实出处。
+    两级拦截：
+      1) 格式级：_is_fake_link_format 明确剔除明显伪造格式；
+      2) 死链级：对 detail-*.shtml 这类规律拼凑的高风险链接做网络探测，
+         明确 404/410/451 死链（_link_status == 'dead'）才拦截，其余（ok/unknown）保留，
+         避免把沙箱/CI 网络受限误判成死链而误删真实出处。
     """
     if el is None:
         return ""
@@ -208,9 +228,27 @@ def _first_link(el) -> str:
         href = a["href"].strip()
         if href.startswith(("http://", "https://")):
             if _is_fake_link_format(href):
+                _LINK_BLOCK_STATS["format"].append(href)
+                return ""
+            if _DETAIL_LINK_RE.search(href) and _link_status(href) == "dead":
+                _LINK_BLOCK_STATS["dead"].append(href)
                 return ""
             return href
     return ""
+
+
+def _report_link_blocks() -> None:
+    """打印死链拦截统计：格式伪链 + 网络确认死链，方便定位 Agent 编造链接重灾区。"""
+    fmt = _LINK_BLOCK_STATS["format"]
+    dead = _LINK_BLOCK_STATS["dead"]
+    if not fmt and not dead:
+        print("[link-check] 未拦截任何伪链接/死链")
+        return
+    print(f"[link-check] 拦截统计：格式伪链 {len(fmt)} 条，死链 {len(dead)} 条")
+    for u in dead:
+        print(f"  [dead]   {u}")
+    for u in fmt:
+        print(f"  [format] {u}")
 
 
 def _link_html(link: str) -> str:
@@ -1116,6 +1154,7 @@ def main() -> None:
     with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
         f.write(final_html)
     print(f"[render] 已生成 {OUTPUT_PATH}（{len(final_html)} 字符）")
+    _report_link_blocks()
 
 
 if __name__ == "__main__":
