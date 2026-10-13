@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """向 Coze Bot 发送告警消息（用于 token 过期 / 鉴权失败等场景）。
 
-优先使用独立的告警 Bot（COZE_ALERT_BOT_ID / COZE_ALERT_API_TOKEN），
-未配置时回退到主 Bot（COZE_BOT_ID / COZE_WORKLOAD_API_TOKEN）。
-告警发送失败不会阻塞主流程（整体退出码由 run_pipeline 决定）。
+默认复用现有周报 Bot（COZE_BOT_ID + COZE_WORKLOAD_API_TOKEN）发送告警，无需额外配置。
+若你后续想用独立的告警 Bot，可选配置 COZE_ALERT_BOT_ID / COZE_ALERT_API_TOKEN 覆盖。
+注意：若正是主 token 过期，复用主 token 的告警同样会失败，此时退化为 workflow 报错失败
+（GitHub Actions 失败态 + 扣子平台可见）作为兜底提示。
 
 用法：
   python3 scripts/coze_alert.py "告警内容"     # 显式指定告警内容
@@ -23,8 +24,8 @@ DEFAULT_MESSAGE = (
     "【汽车周报自动告警】\n"
     "Coze 鉴权失败（token 过期/无效/无权限），本次周报已中止，未推送。\n"
     "请到 GitHub 仓库 Settings → Secrets and variables → Actions 更新 "
-    "COZE_WORKLOAD_API_TOKEN（若告警 Bot 独立，也请检查 COZE_ALERT_API_TOKEN），"
-    "修复后手动触发 workflow：Actions → 生成汽车行业周报并推送 → Run workflow。"
+    "COZE_WORKLOAD_API_TOKEN，修复后手动触发 workflow："
+    "Actions → 生成汽车行业周报并推送 → Run workflow。"
 )
 
 HEADERS = {"Authorization": f"Bearer {TOKEN}", "Content-Type": "application/json"}
