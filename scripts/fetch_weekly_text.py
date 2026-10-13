@@ -80,6 +80,50 @@ CONT_TMPL = """继续刚才那份周报尚未写到的部分，与被截断前�
 # ---------- 独立 API 封装（不复用 generate_weekly 的 HTML fetch） ----------
 _LAST_CONVERSATION_ID = None
 
+# 鉴权失败（token 过期/无效/无权限）专用退出码，供 run_pipeline 识别并触发告警、阻断周报推送
+AUTH_EXIT_CODE = 3
+
+
+class CozeAuthError(RuntimeError):
+    """Coze 鉴权失败（token 过期 / 无效 / 无权限），应立即中止而不是盲目重试。"""
+
+
+_AUTH_HTTP_STATUS = {401, 403}
+_AUTH_MSG_HINTS = (
+    "token",
+    "auth",
+    "unauthor",
+    "expired",
+    "invalid",
+    "credential",
+    "permission",
+    "forbidden",
+)
+
+
+def _is_auth_failure(status_code: int, code=None, msg="") -> bool:
+    """判断是否为 Coze 鉴权失败（token 过期 / 无权限）。
+
+    依据 HTTP 401/403，或响应体 code/msg 中的鉴权关键词（如 token_expired）。
+    业务类失败（如 6150 工具调用上限）不判为鉴权失败，仍走正常重试。
+    """
+    if status_code in _AUTH_HTTP_STATUS:
+        return True
+    text = f"{code} {msg}".lower()
+    return any(h in text for h in _AUTH_MSG_HINTS)
+
+
+def _raise_auth_error(status_code: int = 0, code=None, msg="") -> None:
+    detail = f"HTTP {status_code}" if status_code else ""
+    if code is not None:
+        detail = f"{detail} code={code}".strip()
+    if msg:
+        detail = f"{detail} msg={msg}".strip()
+    raise CozeAuthError(
+        f"Coze 鉴权失败（token 过期/无效/无权限）：{detail}。"
+        "请检查并更新 COZE_WORKLOAD_API_TOKEN（或 COZE_ALERT_API_TOKEN）后，手动重新触发 workflow。"
+    )
+
 
 def _create_chat(user_prompt: str, conversation_id=None) -> dict:
     global _LAST_CONVERSATION_ID
@@ -100,9 +144,15 @@ def _create_chat(user_prompt: str, conversation_id=None) -> dict:
         json=body,
         timeout=120,
     )
+    if _is_auth_failure(resp.status_code):
+        _raise_auth_error(resp.status_code)
     resp.raise_for_status()
     doc = resp.json()
     if doc.get("code") != 0:
+        code = doc.get("code")
+        msg = doc.get("msg", "")
+        if _is_auth_failure(200, code, msg):
+            _raise_auth_error(code=code, msg=msg)
         raise RuntimeError(f"创建对话失败: {doc}")
     data = doc["data"]
     _LAST_CONVERSATION_ID = data["conversation_id"]
@@ -126,11 +176,15 @@ def _wait_and_fetch(data: dict, need_raise_on_incomplete: bool = True) -> str:
                 params={"conversation_id": conversation_id, "chat_id": chat_id},
                 timeout=30,
             )
+            if _is_auth_failure(rr.status_code):
+                _raise_auth_error(rr.status_code)
             rr.raise_for_status()
             rj = rr.json()
             raw_data = rj.get("data", {})
             status = raw_data.get("status")
             last_error = raw_data.get("last_error")
+        except CozeAuthError:
+            raise
         except Exception as e:
             print(f"[warn] retrieve 轮询异常: {e}", flush=True)
             time.sleep(3)
@@ -145,6 +199,8 @@ def _wait_and_fetch(data: dict, need_raise_on_incomplete: bool = True) -> str:
         if isinstance(last_error, dict) and last_error:
             err_code = last_error.get("code")
             err_msg = last_error.get("msg")
+            if _is_auth_failure(200, err_code, err_msg):
+                _raise_auth_error(code=err_code, msg=err_msg)
             print(f"[error] Coze 失败详情: code={err_code} msg={err_msg}", flush=True)
         else:
             print(
@@ -313,6 +369,8 @@ def fetch_section(sec_key: str, max_attempts: int = 3) -> str:
         try:
             data = _create_chat(prompt)  # 不传 conversation_id => 全新对话
             text = _wait_and_fetch(data, need_raise_on_incomplete=False)
+        except CozeAuthError:
+            raise
         except Exception as e:  # noqa: BLE001
             print(f"[warn] 板块[{title}] 第{attempt}次调用异常: {e}", flush=True)
             text = ""
@@ -351,6 +409,8 @@ def _fetch_region(region: str, max_attempts: int = 3) -> str:
         try:
             data = _create_chat(prompt)
             text = _wait_and_fetch(data, need_raise_on_incomplete=False)
+        except CozeAuthError:
+            raise
         except Exception as e:  # noqa: BLE001
             print(f"[warn] 区域[{region}] 第{attempt}次调用异常: {e}", flush=True)
             text = ""
@@ -482,6 +542,9 @@ def main():
 if __name__ == "__main__":
     try:
         main()
+    except CozeAuthError as exc:
+        print(f"\n[AUTH-FAIL] {exc}", flush=True)
+        sys.exit(AUTH_EXIT_CODE)
     except Exception as exc:
         print(f"\n[FATAL] {exc}", flush=True)
         sys.exit(1)

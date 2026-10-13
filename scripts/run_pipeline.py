@@ -25,11 +25,42 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parent.parent
 SCRIPTS = ROOT / "scripts"
 
+# 与 fetch_weekly_text.py 约定的鉴权失败退出码
+AUTH_EXIT_CODE = 3
+
+
+class CozeAuthPipelineError(RuntimeError):
+    """fetch 阶段 Coze 鉴权失败，应触发告警并阻断周报推送。"""
+
+
+def _notify_coze_auth_failure(detail: str) -> None:
+    """鉴权失败时向 Coze 反馈告警（提示 token 过期、请修复后手动触发）。
+
+    告警发送失败不影响主流程：主流程仍会以非 0 退出使 workflow 失败。
+    """
+    print(
+        "\n[告警] Coze 鉴权失败，向 Coze 反馈告警（提示 token 过期，修复后请手动触发）...",
+        flush=True,
+    )
+    proc = subprocess.run(
+        [sys.executable, str(SCRIPTS / "coze_alert.py")],
+        cwd=ROOT,
+        text=True,
+    )
+    if proc.returncode == 0:
+        print("[告警] Coze 告警已发送（或未配置告警 Bot 已跳过）", flush=True)
+    else:
+        print("[告警] Coze 告警发送失败，详情见上方 coze_alert 输出", flush=True)
+
 
 def run(cmd: list[str], step: str) -> None:
     print(f"\n[step] {step}")
     print("  $ " + " ".join(cmd))
     proc = subprocess.run(cmd, cwd=ROOT, text=True)
+    if proc.returncode == AUTH_EXIT_CODE:
+        raise CozeAuthPipelineError(
+            f"步骤失败({step}): Coze 鉴权失败（token 过期/无效/无权限），已中止后续流程。"
+        )
     if proc.returncode != 0:
         raise RuntimeError(f"步骤失败({step}): exit={proc.returncode}")
     print(f"[ok] {step}\n")
@@ -93,4 +124,9 @@ def main() -> None:
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except CozeAuthPipelineError as exc:
+        print(f"\n[告警] {exc}", flush=True)
+        _notify_coze_auth_failure(str(exc))
+        sys.exit(1)

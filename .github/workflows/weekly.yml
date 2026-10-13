@@ -27,6 +27,8 @@ jobs:
           COZE_WORKLOAD_API_TOKEN: ${{ secrets.COZE_WORKLOAD_API_TOKEN }}
           COZE_BOT_ID: ${{ secrets.COZE_BOT_ID }}
           COZE_API_BASE_URL: ${{ secrets.COZE_API_BASE_URL || 'https://api.coze.cn' }}
+          COZE_ALERT_BOT_ID: ${{ secrets.COZE_ALERT_BOT_ID }}
+          COZE_ALERT_API_TOKEN: ${{ secrets.COZE_ALERT_API_TOKEN }}
         run: |
           python scripts/run_pipeline.py --no-push
           echo "=== index.html 配图数 ==="

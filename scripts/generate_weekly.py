@@ -28,6 +28,43 @@ ROOT = Path(__file__).resolve().parent.parent
 _LAST_CONVERSATION_ID = None
 
 
+class CozeAuthError(RuntimeError):
+    """Coze 鉴权失败（token 过期 / 无效 / 无权限），应立即中止而不是盲目重试。"""
+
+
+_AUTH_HTTP_STATUS = {401, 403}
+_AUTH_MSG_HINTS = (
+    "token",
+    "auth",
+    "unauthor",
+    "expired",
+    "invalid",
+    "credential",
+    "permission",
+    "forbidden",
+)
+
+
+def _is_auth_failure(status_code: int, code=None, msg="") -> bool:
+    """判断是否为 Coze 鉴权失败（token 过期 / 无权限）。业务失败（如 6150）不算鉴权。"""
+    if status_code in _AUTH_HTTP_STATUS:
+        return True
+    text = f"{code} {msg}".lower()
+    return any(h in text for h in _AUTH_MSG_HINTS)
+
+
+def _raise_auth_error(status_code: int = 0, code=None, msg="") -> None:
+    detail = f"HTTP {status_code}" if status_code else ""
+    if code is not None:
+        detail = f"{detail} code={code}".strip()
+    if msg:
+        detail = f"{detail} msg={msg}".strip()
+    raise CozeAuthError(
+        f"Coze 鉴权失败（token 过期/无效/无权限）：{detail}。"
+        "请检查并更新 COZE_WORKLOAD_API_TOKEN（或 COZE_ALERT_API_TOKEN）后，手动重新触发 workflow。"
+    )
+
+
 def _create_chat(user_prompt: str, conversation_id=None) -> dict:
     """创建(或续写)一次 Bot 对话。auto_save_history=True 保留上下文，支持同会话续写。"""
     global _LAST_CONVERSATION_ID
@@ -48,9 +85,15 @@ def _create_chat(user_prompt: str, conversation_id=None) -> dict:
         json=body,
         timeout=90,
     )
+    if _is_auth_failure(resp.status_code):
+        _raise_auth_error(resp.status_code)
     resp.raise_for_status()
     doc = resp.json()
     if doc.get("code") != 0:
+        code = doc.get("code")
+        msg = doc.get("msg", "")
+        if _is_auth_failure(200, code, msg):
+            _raise_auth_error(code=code, msg=msg)
         raise RuntimeError(f"创建对话失败: {doc}")
     data = doc["data"]
     _LAST_CONVERSATION_ID = data["conversation_id"]
@@ -71,6 +114,8 @@ def _wait_and_fetch(data: dict) -> str:
             params={"conversation_id": conversation_id, "chat_id": chat_id},
             timeout=30,
         )
+        if _is_auth_failure(rr.status_code):
+            _raise_auth_error(rr.status_code)
         rr.raise_for_status()
         rj = rr.json()
         d = rj["data"]
@@ -79,8 +124,13 @@ def _wait_and_fetch(data: dict) -> str:
         if status in ("completed", "failed", "canceled"):
             break
     print(f"chat 状态: {status}")
-    if status in ("failed", "canceled") and isinstance(last_error, dict) and last_error:
-        print(f"[error] Coze 失败详情: code={last_error.get('code')} msg={last_error.get('msg')}")
+    if status in ("failed", "canceled"):
+        if isinstance(last_error, dict) and last_error:
+            err_code = last_error.get("code")
+            err_msg = last_error.get("msg")
+            if _is_auth_failure(200, err_code, err_msg):
+                _raise_auth_error(code=err_code, msg=err_msg)
+            print(f"[error] Coze 失败详情: code={err_code} msg={err_msg}")
     if status != "completed":
         msgs = requests.get(
             f"{COZE_API_BASE}/v3/chat/message/list",
