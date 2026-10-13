@@ -62,6 +62,7 @@ def _wait_and_fetch(data: dict) -> str:
     conversation_id = data["conversation_id"]
     chat_id = data["id"]
     status = "in_progress"
+    last_error = None
     for _ in range(540):
         time.sleep(2)
         rr = requests.get(
@@ -72,10 +73,14 @@ def _wait_and_fetch(data: dict) -> str:
         )
         rr.raise_for_status()
         rj = rr.json()
-        status = rj["data"]["status"]
+        d = rj["data"]
+        status = d["status"]
+        last_error = d.get("last_error")
         if status in ("completed", "failed", "canceled"):
             break
     print(f"chat 状态: {status}")
+    if status in ("failed", "canceled") and isinstance(last_error, dict) and last_error:
+        print(f"[error] Coze 失败详情: code={last_error.get('code')} msg={last_error.get('msg')}")
     if status != "completed":
         msgs = requests.get(
             f"{COZE_API_BASE}/v3/chat/message/list",
@@ -87,7 +92,10 @@ def _wait_and_fetch(data: dict) -> str:
         for m in msgs.get("data", []):
             if m.get("role") == "assistant" and m.get("type") == "answer":
                 partial = m.get("content", "")
-        print(f"[warn] 对话状态 {status}（可能达到单轮 5 次工具调用上限 6150），返回已生成部分 {len(partial)} 字供续写")
+        reason = ""
+        if isinstance(last_error, dict) and last_error.get("msg"):
+            reason = f"，Coze 错误码 {last_error.get('code')}：{last_error.get('msg')}"
+        print(f"[warn] 对话状态 {status}{reason}，返回已生成部分 {len(partial)} 字供续写")
         return partial  # 不抛错，交由调用方以“内容是否齐全”驱动续写
     msg_resp = requests.get(
         f"{COZE_API_BASE}/v3/chat/message/list",

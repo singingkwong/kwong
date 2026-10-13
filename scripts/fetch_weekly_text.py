@@ -12,6 +12,7 @@
 
 输出：ROOT/weekly_YYYYMMDD.md（Agent 原始 Markdown 文本）。
 """
+import json
 import os
 import re
 import sys
@@ -112,6 +113,8 @@ def _wait_and_fetch(data: dict, need_raise_on_incomplete: bool = True) -> str:
     conversation_id = data["conversation_id"]
     chat_id = data["id"]
     status = "in_progress"
+    last_error = None
+    raw_data = {}
     deadline = time.time() + 600
     for _ in range(300):
         if time.time() > deadline:
@@ -125,7 +128,9 @@ def _wait_and_fetch(data: dict, need_raise_on_incomplete: bool = True) -> str:
             )
             rr.raise_for_status()
             rj = rr.json()
-            status = rj["data"]["status"]
+            raw_data = rj.get("data", {})
+            status = raw_data.get("status")
+            last_error = raw_data.get("last_error")
         except Exception as e:
             print(f"[warn] retrieve 轮询异常: {e}", flush=True)
             time.sleep(3)
@@ -134,6 +139,18 @@ def _wait_and_fetch(data: dict, need_raise_on_incomplete: bool = True) -> str:
             break
         time.sleep(2)
     print(f"chat 状态: {status}", flush=True)
+
+    # 失败时打印 Coze 返回的真实错误详情，避免误判为“工具调用上限 6150”
+    if status in ("failed", "canceled"):
+        if isinstance(last_error, dict) and last_error:
+            err_code = last_error.get("code")
+            err_msg = last_error.get("msg")
+            print(f"[error] Coze 失败详情: code={err_code} msg={err_msg}", flush=True)
+        else:
+            print(
+                f"[error] Coze 失败，retrieve data: {json.dumps(raw_data, ensure_ascii=False)}",
+                flush=True,
+            )
 
     msgs = REQUESTS.get(
         f"{COZE_API_BASE}/v3/chat/message/list",
@@ -148,7 +165,10 @@ def _wait_and_fetch(data: dict, need_raise_on_incomplete: bool = True) -> str:
             break
     print(f"[info] 对话返回正文 {len(partial)} 字", flush=True)
     if status != "completed":
-        msg = f"对话状态 {status}（可能达到单轮 5 次工具调用上限 6150），当前返回正文 {len(partial)} 字"
+        reason = ""
+        if isinstance(last_error, dict) and last_error.get("msg"):
+            reason = f"，Coze 错误码 {last_error.get('code')}：{last_error.get('msg')}"
+        msg = f"对话状态 {status}{reason}，当前返回正文 {len(partial)} 字"
         if need_raise_on_incomplete:
             raise RuntimeError(msg)
         print(f"[warn] {msg}，交由调用方判断是否续写", flush=True)
