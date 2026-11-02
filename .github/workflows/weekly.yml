@@ -1,8 +1,10 @@
 name: 生成汽车行业周报并推送
 on:
-  schedule:
-    # 每周一 10:35 CST (02:35 UTC)
-    - cron: "35 2 * * 1"
+  # 已停用定时自动推送（取消 schedule cron），避免模型/接口异常时每周自动推送空周报。
+  # 需要生成周报时，在 Actions → 生成汽车行业周报并推送 → Run workflow 手动触发即可。
+  # schedule:
+  #   # 每周一 10:35 CST (02:35 UTC)
+  #   - cron: "35 2 * * 1"
   workflow_dispatch:
 permissions:
   contents: write
